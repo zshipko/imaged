@@ -3,7 +3,7 @@
 #include <string.h>
 
 Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
-                  uint8_t bits, void *data) {
+                  uint8_t bits, const void *data) {
   Image *image = malloc(sizeof(Image));
   if (!image) {
     return NULL;
@@ -39,6 +39,11 @@ void imageFree(Image *image) {
   }
 
   free(image);
+}
+
+Image *imageClone(const Image *image) {
+  return imageAlloc(image->meta.width, image->meta.height, image->meta.channels,
+                    image->meta.kind, image->meta.bits, image->data);
 }
 
 size_t imagePixelBytes(Image *image) {

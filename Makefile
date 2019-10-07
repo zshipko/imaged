@@ -1,4 +1,4 @@
-SRC=src/util.c src/iter.c src/db.c
+SRC=src/util.c src/iter.c src/db.c src/image.c
 OBJ=$(SRC:.c=.o)
 CFLAGS?=-Wall -Wextra
 LDFLAGS?=
