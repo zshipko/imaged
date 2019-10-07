@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-Image *imageAlloc(uint64_t w, uint64_t h, uint64_t c, ImagedKind kind,
+Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
                   uint8_t bits, void *data) {
   Image *image = malloc(sizeof(Image));
   if (!image) {

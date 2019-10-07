@@ -1,15 +1,20 @@
 #define _GNU_SOURCE
+#include <ezimage.h>
+
 #include "../src/imaged.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 static const char *usage_s =
     "Usage: imaged -r [PATH] [COMMAND] [ARGS...]\nCommands:"
     "\n\tlist"
     "\n\tget [KEY]"
     "\n\tset [KEY] [WIDTH] [HEIGHT] [CHANNELS] [TYPE]"
     "\n\tremove [KEY]"
+    "\n\timport [KEY] [PATH]"
+    "\n\texport [KEY] [PATH]"
     "\n";
 
 static void usage() { fputs(usage_s, stderr); }
@@ -81,7 +86,7 @@ int main(int argc, char *argv[]) {
     const char *key = argv[optind++];
     ImagedStatus rc;
     ImagedHandle handle;
-    if ((rc = imagedGet(db, key, -1, &handle)) != IMAGED_OK) {
+    if ((rc = imagedGet(db, key, -1, false, &handle)) != IMAGED_OK) {
       imagedPrintError(rc, "Unable to get image");
       return 1;
     }
@@ -130,6 +135,62 @@ int main(int argc, char *argv[]) {
       imagedPrintError(rc, "Unable to set image");
       return 1;
     }
+    puts("OK");
+
+  } else if (strncasecmp(cmd, "import", 6) == 0) {
+    if (argc < optind + 2) {
+      usage();
+      return 1;
+    }
+    const char *key = argv[optind++];
+    const char *filename = argv[optind++];
+    ezimage_shape shape;
+    void *data = ezimage_imread(filename, NULL, &shape);
+    if (data == NULL) {
+      fprintf(stderr, "Unable to open image: %s\n", filename);
+      return 1;
+    }
+
+    ImagedMeta meta = {
+        .width = shape.width,
+        .height = shape.height,
+        .channels = shape.channels,
+        .bits = shape.t.bits,
+        .kind = (ImagedKind)shape.t.kind,
+    };
+    imagedSet(db, key, -1, meta, data, NULL);
+    free(data);
+    puts("OK");
+  } else if (strncasecmp(cmd, "export", 6) == 0) {
+    if (argc < optind + 2) {
+      usage();
+      return 1;
+    }
+    const char *key = argv[optind++];
+    const char *filename = argv[optind++];
+
+    ImagedHandle handle;
+    ImagedStatus rc;
+    if ((rc = imagedGet(db, key, -1, false, &handle)) != IMAGED_OK) {
+      imagedPrintError(rc, "Cannot open key");
+      return 1;
+    }
+
+    ezimage_shape shape = {.width = handle.image.meta.width,
+                           .height = handle.image.meta.height,
+                           .channels = handle.image.meta.channels,
+                           .t = {
+                               .kind = (ezimage_kind)handle.image.meta.kind,
+                               .bits = handle.image.meta.bits,
+                           }};
+
+    if (!ezimage_imwrite(filename, handle.image.data, &shape)) {
+      imagedHandleFree(&handle);
+      fprintf(stderr, "Unable to write image: %s\n", filename);
+      return 1;
+    }
+
+    imagedHandleFree(&handle);
     puts("OK");
   } else {
     fprintf(stderr, "Invalid command: %s\n", cmd);

@@ -48,7 +48,7 @@ Image *imagedIterNext(ImagedIter *iter) {
     imagedHandleFree(&iter->handle);
   }
 
-  if (imagedGet(iter->db, ent->d_name, -1, &iter->handle) != IMAGED_OK) {
+  if (imagedGet(iter->db, ent->d_name, -1, true, &iter->handle) != IMAGED_OK) {
     return imagedIterNext(iter);
   }
 

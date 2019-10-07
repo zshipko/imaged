@@ -5,6 +5,8 @@ pub enum Error {
     CannotOpenDB,
     InvalidPath,
     NullPointer,
+    IncorrectImageType,
+    OutOfBounds,
     FFI(ffi::ImagedStatus),
 }
 
@@ -44,12 +46,16 @@ impl Meta {
             ffi::ImagedKind::IMAGED_KIND_FLOAT => Type::F(self.bits),
         }
     }
+
+    pub fn total_bytes(&self) -> usize {
+        return unsafe { ffi::imagedMetaTotalBytes(self) };
+    }
 }
 
 impl<'a> Drop for Image<'a> {
     fn drop(&mut self) {
         match self.1 {
-            Some(_) => unsafe { ffi::imageFree(self.0) },
+            None => unsafe { ffi::imageFree(self.0) },
             _ => (),
         }
     }
@@ -105,13 +111,14 @@ impl Imaged {
         return Ok(Iter(iter, self));
     }
 
-    pub fn get<S: AsRef<str>>(&self, key: S) -> Result<Handle, Error> {
+    pub fn get<S: AsRef<str>>(&self, key: S, editable: bool) -> Result<Handle, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
             ffi::imagedGet(
                 self.0,
                 key.as_ref().as_ptr() as *const i8,
                 key.as_ref().len() as isize,
+                editable,
                 &mut handle,
             )
         };
@@ -193,6 +200,81 @@ impl<'a> Iterator for Iter<'a> {
             let key = std::str::from_utf8_unchecked(key);
             Some((key, Image(ptr, Some(self.1))))
         }
+    }
+}
+
+impl<'a> Image<'a> {
+    pub fn new(w: usize, h: usize, channels: u8, ty: Type) -> Result<Self, Error> {
+        let meta = Meta::new(w, h, channels, ty);
+        let image = unsafe {
+            ffi::imageAlloc(
+                meta.width,
+                meta.height,
+                meta.channels,
+                meta.kind,
+                meta.bits,
+                std::ptr::null_mut(),
+            )
+        };
+        if image.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(image, None))
+    }
+
+    pub fn meta(&self) -> &Meta {
+        return unsafe { &(&*self.0).meta };
+    }
+
+    pub fn elem_size(&self) -> usize {
+        self.meta().bits as usize / 8
+    }
+
+    pub fn data<T>(&self) -> Result<&[T], Error> {
+        if std::mem::size_of::<T>() != self.elem_size() {
+            return Err(Error::IncorrectImageType);
+        }
+
+        let data = unsafe {
+            std::slice::from_raw_parts((&*self.0).data as *const T, self.meta().total_bytes())
+        };
+        Ok(data)
+    }
+
+    pub fn data_mut<T>(&mut self) -> Result<&mut [T], Error> {
+        if std::mem::size_of::<T>() != self.elem_size() {
+            return Err(Error::IncorrectImageType);
+        }
+
+        let data = unsafe {
+            std::slice::from_raw_parts_mut((&mut *self.0).data as *mut T, self.meta().total_bytes())
+        };
+        Ok(data)
+    }
+
+    pub fn is_type<T>(&self) -> bool {
+        std::mem::size_of::<T>() == self.elem_size()
+    }
+
+    pub fn at<T>(&mut self, x: usize, y: usize) -> Result<&mut [T], Error> {
+        if std::mem::size_of::<T>() != self.elem_size() {
+            return Err(Error::IncorrectImageType);
+        }
+
+        let meta = self.meta();
+        if x as u64 >= meta.width || y as u64 >= meta.height {
+            return Err(Error::OutOfBounds);
+        }
+
+        let ptr = unsafe { ffi::imageAt(self.0, x, y) };
+        if ptr.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        let data = unsafe { std::slice::from_raw_parts_mut(ptr as *mut T, meta.channels as usize) };
+
+        Ok(data)
     }
 }
 

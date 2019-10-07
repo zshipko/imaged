@@ -232,7 +232,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 }
 
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
-                       ImagedHandle *handle) {
+                       bool editable, ImagedHandle *handle) {
   if (!isValidKey(key, keylen)) {
     return IMAGED_ERR_INVALID_KEY;
   }
@@ -255,7 +255,11 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   flock(fd, LOCK_EX);
 
   size_t map_size = st.st_size;
-  void *data = mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  int flags = PROT_READ;
+  if (editable) {
+    flags |= PROT_WRITE;
+  }
+  void *data = mmap(0, map_size, flags, MAP_SHARED, fd, 0);
   if (data == MAP_FAILED) {
     close_unlock(fd);
     return IMAGED_ERR_MAP_FAILED;

@@ -45,7 +45,7 @@ typedef struct {
   void *data;
 } Image;
 
-Image *imageAlloc(uint64_t w, uint64_t h, uint64_t c, ImagedKind kind,
+Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
                   uint8_t bits, void *data);
 void imageFree(Image *image);
 size_t imagePixelBytes(Image *image);
@@ -76,7 +76,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
 // Get a key
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
-                       ImagedHandle *handle);
+                       bool editable, ImagedHandle *handle);
 
 // Remove the value associated with the provided key
 ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);

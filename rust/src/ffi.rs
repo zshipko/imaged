@@ -264,7 +264,7 @@ extern "C" {
     pub fn imageAlloc(
         w: u64,
         h: u64,
-        c: u64,
+        c: u8,
         kind: ImagedKind,
         bits: u8,
         data: *mut ::std::os::raw::c_void,
@@ -349,6 +349,7 @@ extern "C" {
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
         keylen: isize,
+        editable: bool,
         handle: *mut ImagedHandle,
     ) -> ImagedStatus;
 }

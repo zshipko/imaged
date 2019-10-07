@@ -5,4 +5,3 @@ authors = ["Zach Shipko <zachshipko@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-image2 = "0.11"
