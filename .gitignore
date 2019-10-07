@@ -2,3 +2,5 @@
 libimaged.*
 imaged
 testing/
+target/
+Cargo.lock

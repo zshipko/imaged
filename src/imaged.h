@@ -95,6 +95,7 @@ typedef struct {
 ImagedIter *imagedIterNew(Imaged *db);
 Image *imagedIterNext(ImagedIter *iter);
 void imagedIterFree(ImagedIter *iter);
+void imagedIterReset(ImagedIter *iter);
 
 // UTIL
 #ifndef unused
