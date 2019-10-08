@@ -299,7 +299,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   memcpy(&handle->image.meta, data, sizeof(ImagedMeta));
   handle->image.data = data + sizeof(ImagedMeta);
 
-  if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) !=
+  if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) + 1 !=
       (size_t)st.st_size) {
     imagedHandleFree(handle);
     unlink(path);

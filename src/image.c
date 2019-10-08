@@ -1,4 +1,5 @@
 #include "imaged.h"
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -64,7 +65,8 @@ void *imageAt(Image *image, size_t x, size_t y) {
   return image->data + imageIndex(image, x, y);
 }
 
-#define norm(x, min, max) (((double)x - min) / (max - min))
+#define norm(x, min, max)                                                      \
+  (((double)x - (double)min) / ((double)max - (double)min))
 
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   bool hasAlpha = image->meta.channels == 4;
@@ -76,19 +78,19 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
     case 8:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
         pixel->data[i] =
-            norm(((int8_t *)px)[i % image->meta.channels], -128.0, 127.0);
+            norm(((int8_t *)px)[i % image->meta.channels], INT8_MIN, INT8_MAX);
       }
       break;
     case 16:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
-        pixel->data[i] =
-            norm(((int16_t *)px)[i % image->meta.channels], -32768.0, 32767.0);
+        pixel->data[i] = norm(((int16_t *)px)[i % image->meta.channels],
+                              INT16_MIN, INT16_MAX);
       }
       break;
     case 32:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
         pixel->data[i] = norm(((uint32_t *)px)[i % image->meta.channels],
-                              -2147483648.0, 2147483647.0);
+                              INT32_MIN, INT32_MAX);
       }
       break;
     default:
@@ -100,19 +102,19 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
     case 8:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
         pixel->data[i] =
-            norm(((uint8_t *)px)[i % image->meta.channels], 0.0, 255.0);
+            norm(((uint8_t *)px)[i % image->meta.channels], 0, UINT8_MAX);
       }
       break;
     case 16:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
         pixel->data[i] =
-            norm(((uint8_t *)px)[i % image->meta.channels], 0.0, 65535.0);
+            norm(((uint8_t *)px)[i % image->meta.channels], 0, UINT16_MAX);
       }
       break;
     case 32:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
         pixel->data[i] =
-            norm(((uint32_t *)px)[i % image->meta.channels], 0, 4294967295.0);
+            norm(((uint32_t *)px)[i % image->meta.channels], 0, UINT32_MAX);
       }
       break;
     default:
@@ -149,7 +151,8 @@ Pixel pixelNew() {
   return px;
 }
 
-#define denorm(x, min, max) ((max - min) * ((x - 0) / (1.0 - 0))) + min
+#define denorm(x, min, max)                                                    \
+  (((double)max - (double)min) * ((x - 0) / (1.0 - 0))) + (double)min
 
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   void *px = imageAt(image, x, y);
@@ -158,18 +161,19 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     switch (image->meta.bits) {
     case 8:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((int8_t *)px)[i] = (int8_t)denorm(pixel->data[i], -128.0, 127.0);
+        ((int8_t *)px)[i] = (int8_t)denorm(pixel->data[i], INT8_MIN, INT8_MAX);
       }
       break;
     case 16:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((int16_t *)px)[i] = (int16_t)denorm(pixel->data[i], -32768.0, 32767.0);
+        ((int16_t *)px)[i] =
+            (int16_t)denorm(pixel->data[i], INT16_MIN, INT16_MAX);
       }
       break;
     case 32:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
         ((int32_t *)px)[i] =
-            (int32_t)denorm(pixel->data[i], -2147483648.0, 2147483647.0);
+            (int32_t)denorm(pixel->data[i], INT32_MIN, INT32_MAX);
       }
       break;
     default:
@@ -180,17 +184,17 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     switch (image->meta.bits) {
     case 8:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, 255.0);
+        ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, UINT8_MAX);
       }
       break;
     case 16:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((uint16_t *)px)[i] = (uint16_t)denorm(pixel->data[i], 0, 65535.0);
+        ((uint16_t *)px)[i] = (uint16_t)denorm(pixel->data[i], 0, UINT16_MAX);
       }
       break;
     case 32:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((uint32_t *)px)[i] = (uint32_t)denorm(pixel->data[i], 0, 4294967295.0);
+        ((uint32_t *)px)[i] = (uint32_t)denorm(pixel->data[i], 0, UINT32_MAX);
       }
       break;
     default:
