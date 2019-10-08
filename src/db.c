@@ -108,6 +108,8 @@ const char *imagedError(ImagedStatus status) {
     return "unable to map file";
   case IMAGED_ERR_INVALID_KEY:
     return "invalid key";
+  case IMAGED_ERR_INVALID_FILE:
+    return "invalid file";
   }
 
   return "unknown";
@@ -244,6 +246,12 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_FILE_DOES_NOT_EXIST;
   }
 
+  size_t map_size = st.st_size;
+  if (map_size <= sizeof(ImagedMeta)) {
+    unlink(path);
+    return IMAGED_ERR_INVALID_FILE;
+  }
+
   if (handle == NULL) {
     return IMAGED_OK;
   }
@@ -254,7 +262,6 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   }
   flock(fd, LOCK_EX);
 
-  size_t map_size = st.st_size;
   int flags = PROT_READ;
   if (editable) {
     flags |= PROT_WRITE;
@@ -268,6 +275,13 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   handle->fd = fd;
   memcpy(&handle->image.meta, data, sizeof(ImagedMeta));
   handle->image.data = data + sizeof(ImagedMeta);
+
+  if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) !=
+      st.st_size) {
+    imagedHandleFree(handle);
+    unlink(path);
+    return IMAGED_ERR_INVALID_FILE;
+  }
 
   return IMAGED_OK;
 }

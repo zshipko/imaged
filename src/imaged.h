@@ -17,6 +17,7 @@ typedef enum {
   IMAGED_ERR_SEEK,
   IMAGED_ERR_MAP_FAILED,
   IMAGED_ERR_INVALID_KEY,
+  IMAGED_ERR_INVALID_FILE,
 } ImagedStatus;
 
 const char *imagedError(ImagedStatus status);

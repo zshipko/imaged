@@ -2,15 +2,14 @@ package imaged
 
 // #cgo CFLAGS: -I../src
 // #cgo LDFLAGS: -L.. -limaged
+// #include <string.h>
 // #include <stdlib.h>
-/*
-#include "wrap.c"
-*/
+// #include "imaged.h"
+// ImagedMeta _meta(size_t w, size_t h, uint8_t channels, ImagedKind kind, uint8_t bits);
 import "C"
 
 import (
 	"errors"
-	"log"
 	"unsafe"
 )
 
@@ -21,6 +20,14 @@ type Imaged struct {
 type Type struct {
 	bits uint8
 	kind C.ImagedKind
+}
+
+func (t Type) Bits() uint {
+	return uint(t.bits)
+}
+
+func (t Type) Kind() uint {
+	return uint(t.kind)
 }
 
 var U8 = Type{
@@ -124,6 +131,12 @@ func (i *Iter) Close() {
 	C.imagedIterFree(i.ptr)
 }
 
+type Pixel struct {
+	ptr    unsafe.Pointer
+	length uint
+	size   uint
+}
+
 func (i *Image) Free() {
 	if i.owner {
 		C.imageFree(i.ptr)
@@ -155,6 +168,28 @@ func (i *Image) Channels() uint8 {
 func (i *Image) Type() Type {
 	_, _, _, t := i.Meta()
 	return t
+}
+
+func (i *Image) GetPixel(x, y uint, px *Pixel) bool {
+	ptr := C.imageAt(i.ptr, C.ulong(x), C.ulong(y))
+	if ptr == nil {
+		return false
+	}
+
+	px.ptr = ptr
+	px.size = uint(i.Type().Bits() / 8)
+	px.length = uint(i.Channels())
+	return true
+}
+
+func (i *Image) SetPixel(x, y uint, px *Pixel) bool {
+	ptr := C.imageAt(i.ptr, C.ulong(x), C.ulong(y))
+	if ptr == nil || px.size != i.Type().Bits()/8 || px.length != uint(i.Channels()) {
+		return false
+	}
+
+	C.memcpy(ptr, px.ptr, C.ulong(px.size*px.length))
+	return true
 }
 
 func (db *Imaged) Iter() *Iter {
