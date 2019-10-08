@@ -124,6 +124,29 @@ size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
          ((size_t)meta->bits / 8);
 }
 
+void imagedResetLocks(Imaged *db) {
+  DIR *dir = opendir(db->root);
+  if (!dir) {
+    return;
+  }
+
+  struct dirent *ent;
+
+  while ((ent = readdir(dir))) {
+    char *filename = pathJoin(db->root, ent->d_name, -1);
+    if (filename) {
+      int fd = open(filename, O_RDONLY);
+      if (fd != -1) {
+        flock(fd, LOCK_UN);
+      }
+      close(fd);
+      free(filename);
+    }
+  }
+
+  closedir(dir);
+}
+
 Imaged *imagedOpen(const char *path) {
   char template[] = "/tmp/imaged.XXXXXX";
   if (path == NULL) {

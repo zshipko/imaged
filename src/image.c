@@ -63,3 +63,148 @@ void *imageAt(Image *image, size_t x, size_t y) {
 
   return image->data + imageIndex(image, x, y);
 }
+
+#define norm(x, min, max) (((double)x - min) / (max - min))
+
+bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
+  bool hasAlpha = image->meta.channels == 4;
+  pixel->data[3] = 1.0;
+  void *px = imageAt(image, x, y);
+  switch (image->meta.kind) {
+  case IMAGED_KIND_INT:
+    switch (image->meta.bits) {
+    case 8:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] =
+            norm(((int8_t *)px)[i % image->meta.channels], -128.0, 127.0);
+      }
+      break;
+    case 16:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] =
+            norm(((int16_t *)px)[i % image->meta.channels], -32768.0, 32767.0);
+      }
+      break;
+    case 32:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] = norm(((uint32_t *)px)[i % image->meta.channels],
+                              -2147483648.0, 2147483647.0);
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  case IMAGED_KIND_UINT:
+    switch (image->meta.bits) {
+    case 8:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] =
+            norm(((uint8_t *)px)[i % image->meta.channels], 0.0, 255.0);
+      }
+      break;
+    case 16:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] =
+            norm(((uint8_t *)px)[i % image->meta.channels], 0.0, 65535.0);
+      }
+      break;
+    case 32:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] =
+            norm(((uint32_t *)px)[i % image->meta.channels], 0, 4294967295.0);
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  case IMAGED_KIND_FLOAT:
+    switch (image->meta.bits) {
+    case 32:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] = ((float *)px)[i % image->meta.channels];
+      }
+      break;
+    case 64:
+      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+        pixel->data[i] = ((double *)px)[i % image->meta.channels];
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  }
+
+  return true;
+}
+
+#define denorm(x, min, max) ((max - min) * ((x - 0) / (1.0 - 0))) + min
+
+bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
+  void *px = imageAt(image, x, y);
+  switch (image->meta.kind) {
+  case IMAGED_KIND_INT:
+    switch (image->meta.bits) {
+    case 8:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((int8_t *)px)[i] = (int8_t)denorm(pixel->data[i], -128.0, 127.0);
+      }
+      break;
+    case 16:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((int16_t *)px)[i] = (int16_t)denorm(pixel->data[i], -32768.0, 32767.0);
+      }
+      break;
+    case 32:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((int32_t *)px)[i] =
+            (int32_t)denorm(pixel->data[i], -2147483648.0, 2147483647.0);
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  case IMAGED_KIND_UINT:
+    switch (image->meta.bits) {
+    case 8:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, 255.0);
+      }
+      break;
+    case 16:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((uint16_t *)px)[i] = (uint16_t)denorm(pixel->data[i], 0, 65535.0);
+      }
+      break;
+    case 32:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((uint32_t *)px)[i] = (uint32_t)denorm(pixel->data[i], 0, 4294967295.0);
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  case IMAGED_KIND_FLOAT:
+    switch (image->meta.bits) {
+    case 32:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((float *)px)[i] = (float)pixel->data[i];
+      }
+      break;
+    case 64:
+      for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
+        ((double *)px)[i] = (float)pixel->data[i];
+      }
+      break;
+    default:
+      return false;
+    }
+    break;
+  }
+
+  return true;
+}

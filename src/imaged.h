@@ -55,9 +55,18 @@ size_t imageIndex(Image *image, size_t x, size_t y);
 void *imageAt(Image *image, size_t x, size_t y);
 
 typedef struct {
+  double data[4];
+} Pixel;
+
+bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
+bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
+
+typedef struct {
   int fd;
   Image image;
 } ImagedHandle;
+
+void imagedResetLocks(Imaged *db);
 
 // Open a new imaged context
 Imaged *imagedOpen(const char *path);
