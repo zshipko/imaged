@@ -6,6 +6,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#ifdef __AVX__
+#include <immintrin.h>
+#endif
+
 char *imagedStringPrintf(const char *fmt, ...);
 
 typedef enum {
@@ -55,9 +59,14 @@ size_t imageIndex(Image *image, size_t x, size_t y);
 void *imageAt(Image *image, size_t x, size_t y);
 
 typedef struct {
+#ifdef __AVX__
+  __m256d data;
+#else
   double data[4];
+#endif
 } Pixel;
 
+Pixel pixelNew();
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 

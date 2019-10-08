@@ -140,6 +140,15 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   return true;
 }
 
+Pixel pixelNew() {
+#ifdef __AVX__
+  Pixel px = {.data = _mm256_setzero_pd()};
+#else
+  Pixel px = {.data = {0.0, 0.0, 0.0, 0.0}};
+#endif
+  return px;
+}
+
 #define denorm(x, min, max) ((max - min) * ((x - 0) / (1.0 - 0))) + min
 
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {

@@ -300,7 +300,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   handle->image.data = data + sizeof(ImagedMeta);
 
   if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) !=
-      st.st_size) {
+      (size_t)st.st_size) {
     imagedHandleFree(handle);
     unlink(path);
     return IMAGED_ERR_INVALID_FILE;

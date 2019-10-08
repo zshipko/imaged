@@ -1,6 +1,7 @@
 package imaged
 
 // #cgo CFLAGS: -I../src
+// #cgo amd64 CFLAGS: -mavx
 // #cgo LDFLAGS: -L.. -limaged
 // #include <string.h>
 // #include <stdlib.h>

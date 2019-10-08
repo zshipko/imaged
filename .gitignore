@@ -4,3 +4,5 @@ imaged
 testing/
 target/
 Cargo.lock
+.cflags
+.ldflags
