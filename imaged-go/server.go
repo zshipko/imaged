@@ -4,6 +4,7 @@ package imaged
 import "C"
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/zshipko/worm"
@@ -68,6 +69,65 @@ func (c *Context) RemoveAll(client *worm.Client) error {
 	for iter.Next() {
 		C.imagedHandleFree(&iter.ptr.handle)
 		c.DB.Remove(iter.Key())
+	}
+
+	return client.WriteOK()
+}
+
+func (c *Context) GetPixel(client *worm.Client, key, x, y *worm.Value) error {
+	keyStr := key.ToString()
+	xPos := x.ToInt64()
+	yPos := y.ToInt64()
+	pixel := EmptyPixel()
+	handle, err := c.DB.Get(keyStr)
+	if err != nil {
+		return err
+	}
+	defer handle.Free()
+
+	if !handle.Image().GetPixel(uint(xPos), uint(yPos), &pixel) {
+		return errors.New("Unable to get pixel")
+	}
+
+	client.WriteArrayHeader(4)
+
+	for i := 0; i < 4; i++ {
+		client.WriteValue(worm.New(pixel.Get(i)))
+	}
+
+	return nil
+}
+
+func (c *Context) SetPixel(client *worm.Client, key, x, y *worm.Value, px ...*worm.Value) error {
+	keyStr := key.ToString()
+	xPos := x.ToInt64()
+	yPos := y.ToInt64()
+	pxLen := len(px)
+
+	if pxLen == 0 {
+		return worm.ErrNotEnoughArguments
+	}
+
+	pixel := EmptyPixel()
+
+	if pxLen == 4 {
+		pixel.Set(3, float32(px[3].ToFloat64()))
+	} else {
+		pixel.Set(3, 1.0)
+	}
+
+	for i := 0; i < 3; i++ {
+		pixel.Set(i, float32(px[i%pxLen].ToFloat64()))
+	}
+
+	handle, err := c.DB.Get(keyStr)
+	if err != nil {
+		return err
+	}
+	defer handle.Free()
+
+	if !handle.Image().SetPixel(uint(xPos), uint(yPos), &pixel) {
+		return errors.New("Unable to set pixel")
 	}
 
 	return client.WriteOK()

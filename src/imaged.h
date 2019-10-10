@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#ifdef __AVX__
+#ifdef __SSE__
 #include <immintrin.h>
 #endif
 
@@ -59,14 +59,17 @@ size_t imageIndex(Image *image, size_t x, size_t y);
 void *imageAt(Image *image, size_t x, size_t y);
 
 typedef struct {
-#ifdef __AVX__
-  __m256d data;
+#ifdef __SSE__
+  __m128 data;
 #else
-  double data[4];
+  float data[4];
 #endif
 } Pixel;
 
-Pixel pixelNew();
+Pixel pixelEmpty();
+Pixel pixelGray(float r);
+Pixel pixelRGB(float r, float g, float b);
+Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 

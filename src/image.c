@@ -66,7 +66,7 @@ void *imageAt(Image *image, size_t x, size_t y) {
 }
 
 #define norm(x, min, max)                                                      \
-  (((double)x - (double)min) / ((double)max - (double)min))
+  (((float)x - (float)min) / ((float)max - 1 - (float)min))
 
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   bool hasAlpha = image->meta.channels == 4;
@@ -130,7 +130,7 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
       break;
     case 64:
       for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
-        pixel->data[i] = ((double *)px)[i % image->meta.channels];
+        pixel->data[i] = (float)((double *)px)[i % image->meta.channels];
       }
       break;
     default:
@@ -142,17 +142,8 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   return true;
 }
 
-Pixel pixelNew() {
-#ifdef __AVX__
-  Pixel px = {.data = _mm256_setzero_pd()};
-#else
-  Pixel px = {.data = {0.0, 0.0, 0.0, 0.0}};
-#endif
-  return px;
-}
-
 #define denorm(x, min, max)                                                    \
-  (((double)max - (double)min) * ((x - 0) / (1.0 - 0))) + (double)min
+  (((float)max - 1 - (float)min) * ((x - 0) / (1.0 - 0))) + (float)min
 
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   void *px = imageAt(image, x, y);
@@ -210,7 +201,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
       break;
     case 64:
       for (size_t i = 0; i < image->meta.channels && i < 4; i++) {
-        ((double *)px)[i] = (float)pixel->data[i];
+        ((double *)px)[i] = (double)pixel->data[i];
       }
       break;
     default:

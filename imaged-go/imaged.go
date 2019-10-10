@@ -1,7 +1,7 @@
 package imaged
 
 // #cgo CFLAGS: -I../src
-// #cgo amd64 CFLAGS: -mavx
+// #cgo amd64 CFLAGS: -msse
 // #cgo LDFLAGS: -L.. -limaged
 // #include <string.h>
 // #include <stdlib.h>
@@ -16,52 +16,6 @@ import (
 
 type Imaged struct {
 	ptr *C.Imaged
-}
-
-type Type struct {
-	bits uint8
-	kind C.ImagedKind
-}
-
-func (t Type) Bits() uint {
-	return uint(t.bits)
-}
-
-func (t Type) Kind() uint {
-	return uint(t.kind)
-}
-
-var U8 = Type{
-	bits: 8,
-	kind: C.IMAGED_KIND_UINT,
-}
-
-var U16 = Type{
-	bits: 16,
-	kind: C.IMAGED_KIND_UINT,
-}
-
-var F32 = Type{
-	bits: 32,
-	kind: C.IMAGED_KIND_FLOAT,
-}
-
-var F64 = Type{
-	bits: 64,
-	kind: C.IMAGED_KIND_FLOAT,
-}
-
-type Handle struct {
-	ref C.ImagedHandle
-}
-
-type Image struct {
-	ptr   *C.Image
-	owner bool
-}
-
-type Iter struct {
-	ptr *C.ImagedIter
 }
 
 func Open(path string) (*Imaged, error) {
@@ -92,105 +46,6 @@ func (db *Imaged) Destroy() {
 	}
 	C.imagedDestroy(db.ptr)
 	db.ptr = nil
-}
-
-func (h *Handle) Free() {
-	C.imagedHandleFree(&h.ref)
-}
-
-func (i *Handle) Image() *Image {
-	ptr := &i.ref.image
-	return &Image{
-		ptr:   ptr,
-		owner: false,
-	}
-}
-
-func (i *Iter) Next() bool {
-	im := C.imagedIterNext(i.ptr)
-	return im != nil
-}
-
-func (i *Iter) Image() *Image {
-	ptr := &i.ptr.handle.image
-	return &Image{
-		ptr:   ptr,
-		owner: false,
-	}
-}
-
-func (i *Iter) Key() string {
-	s := i.ptr.key
-	return C.GoString(s)
-}
-
-func (i *Iter) Reset() {
-	C.imagedIterReset(i.ptr)
-}
-
-func (i *Iter) Close() {
-	C.imagedIterFree(i.ptr)
-}
-
-type Pixel struct {
-	ptr    unsafe.Pointer
-	length uint
-	size   uint
-}
-
-func (i *Image) Free() {
-	if i.owner {
-		C.imageFree(i.ptr)
-	}
-}
-
-func (i *Image) Meta() (uint64, uint64, uint8, Type) {
-	meta := i.ptr.meta
-	return uint64(meta.width), uint64(meta.height), uint8(meta.channels), Type{
-		bits: uint8(meta.bits),
-		kind: meta.kind,
-	}
-}
-
-func (i *Image) Width() uint64 {
-	w, _, _, _ := i.Meta()
-	return w
-}
-func (i *Image) Height() uint64 {
-	_, h, _, _ := i.Meta()
-	return h
-}
-
-func (i *Image) Channels() uint8 {
-	_, _, c, _ := i.Meta()
-	return c
-}
-
-func (i *Image) Type() Type {
-	_, _, _, t := i.Meta()
-	return t
-}
-
-func (i *Image) GetPixel(x, y uint, px *Pixel) bool {
-	ptr := C.imageAt(i.ptr, C.ulong(x), C.ulong(y))
-	if ptr == nil {
-		return false
-	}
-
-	px.ptr = ptr
-	px.size = uint(i.Type().Bits() / 8)
-	px.length = uint(i.Channels())
-	return true
-}
-
-func (i *Image) SetPixel(x, y uint, px *Pixel) bool {
-	ptr := C.imageAt(i.ptr, C.ulong(x), C.ulong(y))
-	if ptr == nil || px.size != i.Type().Bits()/8 || px.length != uint(i.Channels()) {
-		return false
-	}
-
-	C.memcpy(ptr, px.ptr, C.ulong(px.size*px.length))
-	return true
 }
 
 func (db *Imaged) Iter() *Iter {

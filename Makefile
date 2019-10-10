@@ -1,4 +1,4 @@
-SRC=src/util.c src/iter.c src/db.c src/image.c
+SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c
 OBJ=$(SRC:.c=.o)
 CFLAGS?=-Wall -Wextra
 LDFLAGS?=
@@ -7,10 +7,10 @@ DEST?=/usr/local
 INTRIN?=yes
 
 ifeq (yes,$(INTRIN))
-HAS_AVX=$(shell $(CC) -mavx -dM -E - < /dev/null | egrep "AVX" | sort | grep '__AVX__ 1')
-ifneq (,$(HAS_AVX))
-	CFLAGS+= -mavx
-endif # HAS_AVX
+HAS_SSE=$(shell $(CC) -mavx -dM -E - < /dev/null | egrep "SSE" | sort | grep '__SSE__ 1')
+ifneq (,$(HAS_SSE))
+	CFLAGS+= -msse
+endif # HAS_SSE
 endif # INTRIN
 
 $(shell echo $(CFLAGS) > .cflags)

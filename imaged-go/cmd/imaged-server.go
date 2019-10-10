@@ -45,5 +45,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println("Running server on:", *addr)
+	log.Println("DB root:", *root)
 	log.Fatal(server.Run())
 }
