@@ -34,12 +34,13 @@ clean:
 	rm -f $(OBJ) libimaged.a libimaged.so .cflags .ldflags
 
 install:
-	mkdir -p $(DEST)/lib $(DEST)/include
+	mkdir -p $(DEST)/lib $(DEST)/include $(DEST)/bin
 	install libimaged.a $(DEST)/lib
 	install src/imaged.h $(DEST)/include
+	install imaged $(DEST)/bin
 
 uninstall:
-	rm -f $(DEST)/lib/libimaged.a $(DEST)/include/imaged.h
+	rm -f $(DEST)/lib/libimaged.a $(DEST)/include/imaged.h $(DEST)/bin/imaged
 
 %.o: %.c base
 	$(CC) $(PIC) -Wall -O3 -c $*.c $(CFLAGS) -o $@

@@ -121,9 +121,7 @@ void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
 
 // UTIL
-#ifndef unused
-#define unused __attribute__((unused))
-#endif
+#define IMAGED_UNUSED __attribute__((unused))
 
 #ifndef IMAGED_NO_DEFER
 void defer_free(void *data);
