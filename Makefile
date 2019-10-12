@@ -24,7 +24,7 @@ bin: src/imaged.h .cflags $(OBJ)
 	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS) `pkg-config --cflags --libs ezimage`
 
 lib: $(OBJ)
-	ar rcs libimaged.a $(OBJ)
+	$(AR) rcs libimaged.a $(OBJ)
 
 shared: $(OBJ)
 	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.so $(OBJ) $(LDFLAGS)

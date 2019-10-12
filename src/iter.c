@@ -55,6 +55,24 @@ Image *imagedIterNext(ImagedIter *iter) {
   return &iter->handle.image;
 }
 
+const char *imagedIterNextKey(ImagedIter *iter) {
+  if (iter == NULL) {
+    return NULL;
+  }
+
+  struct dirent *ent = readdir(iter->d);
+  if (ent == NULL) {
+    return NULL;
+  }
+  iter->key = ent->d_name;
+
+  if (ent->d_type == DT_DIR) {
+    return imagedIterNextKey(iter);
+  }
+
+  return iter->key;
+}
+
 void imagedIterFree(ImagedIter *iter) {
   if (iter == NULL) {
     return;

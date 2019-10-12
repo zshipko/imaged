@@ -118,6 +118,7 @@ typedef struct {
 
 ImagedIter *imagedIterNew(Imaged *db);
 Image *imagedIterNext(ImagedIter *iter);
+const char *imagedIterNextKey(ImagedIter *iter);
 void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
 
