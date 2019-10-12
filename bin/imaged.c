@@ -1,6 +1,5 @@
 #define _GNU_SOURCE
-#include <ezimage.h>
-
+#define IMAGED_EZIMAGE
 #include "../src/imaged.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -144,22 +143,14 @@ int main(int argc, char *argv[]) {
     }
     const char *key = argv[optind++];
     const char *filename = argv[optind++];
-    ezimage_shape shape;
-    void *data = ezimage_imread(filename, NULL, &shape);
-    if (data == NULL) {
+    Image *image = imagedReadImage(filename);
+    if (image == NULL) {
       fprintf(stderr, "Unable to open image: %s\n", filename);
       return 1;
     }
 
-    ImagedMeta meta = {
-        .width = shape.width,
-        .height = shape.height,
-        .channels = shape.channels,
-        .bits = shape.t.bits,
-        .kind = (ImagedKind)shape.t.kind,
-    };
-    imagedSet(db, key, -1, meta, data, NULL);
-    free(data);
+    imagedSet(db, key, -1, image->meta, image->data, NULL);
+    imageFree(image);
     puts("OK");
   } else if (strncasecmp(cmd, "export", 6) == 0) {
     if (argc < optind + 2) {
@@ -176,15 +167,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    ezimage_shape shape = {.width = handle.image.meta.width,
-                           .height = handle.image.meta.height,
-                           .channels = handle.image.meta.channels,
-                           .t = {
-                               .kind = (ezimage_kind)handle.image.meta.kind,
-                               .bits = handle.image.meta.bits,
-                           }};
-
-    if (!ezimage_imwrite(filename, handle.image.data, &shape)) {
+    if (!imagedWriteImage(filename, &handle.image)) {
       imagedHandleFree(&handle);
       fprintf(stderr, "Unable to write image: %s\n", filename);
       return 1;

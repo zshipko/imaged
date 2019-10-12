@@ -133,4 +133,122 @@ void defer_ImagedHandle(ImagedHandle **image);
 #define defer(t, v) defer_(t, t, v)
 #endif
 
+#ifdef IMAGED_EZIMAGE
+#include <ezimage.h>
+IMAGED_UNUSED static ezimage_shape imagedMetaToEzimageShape(ImagedMeta meta) {
+  ezimage_shape shape = {
+      .width = meta.width,
+      .height = meta.height,
+      .channels = meta.channels,
+      .t = {.bits = meta.bits, .kind = (ezimage_kind)meta.kind}};
+  return shape;
+}
+
+IMAGED_UNUSED static ImagedMeta
+imagedMetaFromEzimageShape(ezimage_shape shape) {
+  ImagedMeta meta = {
+      .width = shape.width,
+      .height = shape.height,
+      .channels = shape.channels,
+      .bits = shape.t.bits,
+      .kind = (ImagedKind)shape.t.kind,
+  };
+  return meta;
+}
+
+IMAGED_UNUSED static Image *imagedReadImage(const char *path) {
+  ezimage_shape shape;
+  void *data = ezimage_imread(path, NULL, &shape);
+  if (!data) {
+    return NULL;
+  }
+
+  Image *image = malloc(sizeof(Image));
+  if (!image) {
+    free(data);
+    return NULL;
+  }
+
+  image->meta = imagedMetaFromEzimageShape(shape);
+  image->data = data;
+
+  return image;
+}
+
+IMAGED_UNUSED static bool imagedWriteImage(const char *path,
+                                           const Image *image) {
+  ezimage_shape shape = imagedMetaToEzimageShape(image->meta);
+  return ezimage_imwrite(path, image->data, &shape);
+}
+
+#endif // IMAGED_EZIMAGE
+
+#ifdef IMAGED_HALIDE
+#include "HalideRuntime.h"
+static halide_type_code_t getType(ImagedKind kind) {
+  switch (kind) {
+  case IMAGED_KIND_UINT:
+    return halide_type_uint;
+  case IMAGED_KIND_INT:
+    return halide_type_uint;
+  case IMAGED_KIND_FLOAT:
+    return halide_type_float;
+  }
+}
+
+IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
+                                               halide_buffer_t *buffer) {
+  buffer->device = 0;
+  buffer->device_interface = NULL;
+  buffer->host = image->data;
+  buffer->dimensions = image->meta.channels < 3 ? 2 : 3;
+  buffer->dim = malloc(sizeof(halide_buffer_t) * buffer->dimensions);
+  assert(buffer->dim);
+
+  if (buffer->dimensions == 2) {
+    // width
+    buffer->dim[0].min = 0;
+    buffer->dim[0].extent = image->meta.width;
+    buffer->dim[0].stride = 1;
+    buffer->dim[0].flags = 0;
+
+    // height
+    buffer->dim[1].min = 0;
+    buffer->dim[1].extent = image->meta.height;
+    buffer->dim[1].stride = image->meta.width;
+    buffer->dim[1].flags = 0;
+  } else {
+    // channels
+    buffer->dim[0].min = 0;
+    buffer->dim[0].extent = image->meta.channels;
+    buffer->dim[0].stride = 1;
+    buffer->dim[0].flags = 0;
+
+    // width
+    buffer->dim[1].min = 0;
+    buffer->dim[1].extent = image->meta.width;
+    buffer->dim[1].stride = image->meta.channels;
+    buffer->dim[1].flags = 0;
+
+    // height
+    buffer->dim[2].min = 0;
+    buffer->dim[2].extent = image->meta.height;
+    buffer->dim[2].stride = image->meta.width * image->meta.channels;
+    buffer->dim[2].flags = 0;
+  }
+
+  struct halide_type_t t;
+  t.code = getType(image->meta.kind);
+  t.bits = image->meta.bits;
+  t.lanes = 1;
+
+  buffer->type = t;
+}
+
+IMAGED_UNUSED static void imageFreeHalideBuffer(halide_buffer_t *buffer) {
+  free(buffer->dim);
+}
+
+#endif // IMAGED_HALIDE
+
 #endif
