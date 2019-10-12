@@ -279,11 +279,12 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_OK;
   }
 
-  int fd = open(path, O_CREAT | O_RDWR, 0655);
+  int fd = open(path, (editable ? O_CREAT | O_RDWR : O_RDONLY), 0655);
   if (fd < 0) {
     return IMAGED_ERR;
   }
-  flock(fd, LOCK_EX);
+
+  flock(fd, editable ? LOCK_EX : LOCK_SH);
 
   int flags = PROT_READ;
   if (editable) {
