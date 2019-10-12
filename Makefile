@@ -17,17 +17,16 @@ $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
 
 build: lib bin
-
-base: src/imaged.h .cflags .ldflags
+fresh: src/imaged.h .cflags .ldflags build
 
 .PHONY: bin
-bin: base $(OBJ)
+bin: src/imaged.h .cflags $(OBJ)
 	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS) `pkg-config --cflags --libs ezimage`
 
-lib: base $(OBJ)
+lib: $(OBJ)
 	ar rcs libimaged.a $(OBJ)
 
-shared: base $(OBJ)
+shared: $(OBJ)
 	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.so $(OBJ) $(LDFLAGS)
 
 clean:

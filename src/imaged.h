@@ -55,6 +55,7 @@ Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
 Image *imageClone(const Image *image);
 void imageFree(Image *image);
 size_t imagePixelBytes(Image *image);
+size_t imageBytes(Image *image);
 size_t imageIndex(Image *image, size_t x, size_t y);
 void *imageAt(Image *image, size_t x, size_t y);
 
