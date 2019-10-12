@@ -181,7 +181,6 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     switch (image->meta.bits) {
     case 8:
       for (size_t i = 0; i < channels; i++) {
-        printf("%d\n", (uint8_t)denorm(pixel->data[i], 0, UINT8_MAX));
         ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, UINT8_MAX);
       }
       break;
