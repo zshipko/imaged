@@ -1,6 +1,10 @@
 #ifndef __IMAGED_H
 #define __IMAGED_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <dirent.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -251,5 +255,9 @@ IMAGED_UNUSED static void imageFreeHalideBuffer(halide_buffer_t *buffer) {
 }
 
 #endif // IMAGED_HALIDE
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
