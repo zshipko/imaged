@@ -17,13 +17,13 @@ static void mkdir_all(const char *dir) {
 
   snprintf(tmp, sizeof(tmp), "%s", dir);
   len = strlen(tmp);
-  if (tmp[len - 1] == '/')
+  if (tmp[len - 1] == IMAGED_PATH_SEP)
     tmp[len - 1] = 0;
   for (p = tmp + 1; *p; p++)
-    if (*p == '/') {
+    if (*p == IMAGED_PATH_SEP) {
       *p = 0;
       mkdir(tmp, 0755);
-      *p = '/';
+      *p = IMAGED_PATH_SEP;
     }
   mkdir(tmp, 0755);
 }
@@ -50,11 +50,11 @@ static char *pathJoin(const char *a, const char *b, ssize_t blen) {
   size_t a_len = strlen(a);
   size_t b_len = blen <= 0 ? strlen(b) : (size_t)blen;
 
-  if (a[a_len - 1] == '/') {
+  if (a[a_len - 1] == IMAGED_PATH_SEP) {
     a_len -= 1;
   }
 
-  if (b[0] == '/') {
+  if (b[0] == IMAGED_PATH_SEP) {
     b += 1;
     b_len -= 1;
   }
@@ -65,7 +65,7 @@ static char *pathJoin(const char *a, const char *b, ssize_t blen) {
     return NULL;
   }
 
-  s[a_len] = '/';
+  s[a_len] = IMAGED_PATH_SEP;
   memcpy(s, a, a_len);
   memcpy(s + a_len + 1, b, b_len);
   s[outlen - 1] = '\0';
@@ -78,7 +78,7 @@ static bool isValidKey(const char *key, ssize_t len) {
   }
 
   for (ssize_t i = 0; i < len; i++) {
-    if (key[i] == '/') {
+    if (key[i] == IMAGED_PATH_SEP) {
       return false;
     }
   }
@@ -148,7 +148,12 @@ void imagedResetLocks(Imaged *db) {
 }
 
 Imaged *imagedOpen(const char *path) {
+#ifdef _WIN32
+  char template[] = "\\tmp\\imaged.XXXXXX";
+#else
   char template[] = "/tmp/imaged.XXXXXX";
+#endif
+
   if (path == NULL) {
     path = mkdtemp(template);
     if (path == NULL) {

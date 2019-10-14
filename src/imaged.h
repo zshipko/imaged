@@ -14,6 +14,12 @@ extern "C" {
 #include <immintrin.h>
 #endif
 
+#ifdef _WIN32
+#define IMAGED_PATH_SEP '\\'
+#else
+#define IMAGED_PATH_SEP '/'
+#endif
+
 char *imagedStringPrintf(const char *fmt, ...);
 
 typedef enum {
