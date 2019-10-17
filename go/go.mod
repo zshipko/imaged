@@ -1,4 +1,4 @@
-module github.com/zshipko/imaged/imaged-go
+module github.com/zshipko/imaged/go
 
 go 1.13
 

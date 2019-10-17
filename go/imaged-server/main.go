@@ -8,7 +8,7 @@ import (
 
 	"github.com/zshipko/worm"
 
-	"github.com/zshipko/imaged/imaged-go"
+	"github.com/zshipko/imaged/go"
 )
 
 func main() {
