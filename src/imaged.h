@@ -37,6 +37,8 @@ typedef enum {
 const char *imagedError(ImagedStatus status);
 void imagedPrintError(ImagedStatus status, const char *message);
 
+typedef struct ImagedHandle ImagedHandle;
+
 typedef struct {
   char *root;
 } Imaged;
@@ -84,7 +86,7 @@ Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 
-typedef struct {
+typedef struct ImagedHandle {
   int fd;
   Image image;
 } ImagedHandle;
@@ -115,8 +117,8 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
 // Remove the value associated with the provided key
 ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);
 
-// Release ImageHandle resources including all memory and file descriptors
-void imagedHandleFree(ImagedHandle *handle);
+// Release ImagedHandle resources including all memory and file descriptors
+void imagedHandleClose(ImagedHandle *handle);
 
 typedef struct {
   Imaged *db;
@@ -137,11 +139,17 @@ void imagedIterReset(ImagedIter *iter);
 
 #ifndef IMAGED_NO_DEFER
 void defer_free(void *data);
+void defer_Image(Image **image);
 void defer_Imaged(Imaged **db);
 void defer_ImagedIter(ImagedIter **iter);
-void defer_ImagedHandle(ImagedHandle **image);
-#define defer_(b, t, v) t *v __attribute__((cleanup(defer_##b)))
-#define defer(t, v) defer_(t, t, v)
+void defer_ImagedHandle(ImagedHandle *h);
+#define $(b, t, v) t v __attribute__((cleanup(defer_##b)))
+#define $_(t, v) $(t, t, *v)
+#define $free(t, v) $_(free, t, v)
+#define $Imaged(v) $_(Imaged, v)
+#define $Image(v) $_(Image, v)
+#define $ImagedIter(v) $_(ImagedIter, v)
+#define $ImagedHandle(v) $(ImagedHandle, ImagedHandle, v)
 #endif
 
 #ifdef IMAGED_EZIMAGE

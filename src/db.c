@@ -34,13 +34,13 @@ static void close_unlock(int fd) {
 }
 
 static bool fileExists(const char *path, struct stat *st) {
-  struct stat stx;
-  if (stat(path, &stx) == -1) {
+  struct stat tmp;
+  if (stat(path, &tmp) == -1) {
     return false;
   }
 
   if (st) {
-    *st = stx;
+    *st = tmp;
   }
 
   return true;
@@ -147,18 +147,15 @@ void imagedResetLocks(Imaged *db) {
   closedir(dir);
 }
 
-Imaged *imagedOpen(const char *path) {
 #ifdef _WIN32
-  char template[] = "\\tmp\\imaged.XXXXXX";
+static char defaultRoot[] = "\\tmp\\imaged";
 #else
-  char template[] = "/tmp/imaged.XXXXXX";
+static char defaultRoot[] = "/tmp/imaged";
 #endif
 
+Imaged *imagedOpen(const char *path) {
   if (path == NULL) {
-    path = mkdtemp(template);
-    if (path == NULL) {
-      return NULL;
-    }
+    path = defaultRoot;
   }
 
   char *root = strndup(path, strlen(path));
@@ -170,6 +167,7 @@ Imaged *imagedOpen(const char *path) {
 
   Imaged *db = malloc(sizeof(Imaged));
   if (db == NULL) {
+    free(root);
     return NULL;
   }
 
@@ -178,7 +176,7 @@ Imaged *imagedOpen(const char *path) {
 }
 
 void imagedClose(Imaged *db) {
-  if (db == NULL) {
+  if (db != NULL) {
     free(db->root);
     free(db);
   }
@@ -186,9 +184,9 @@ void imagedClose(Imaged *db) {
 
 ImagedStatus imagedDestroy(Imaged *db) {
   Image *img = NULL;
-  defer(ImagedIter, iter) = imagedIterNew(db);
+  $ImagedIter(iter) = imagedIterNew(db);
   while ((img = imagedIterNext(iter))) {
-    imagedHandleFree(&iter->handle);
+    imagedHandleClose(&iter->handle);
     imagedRemove(db, iter->key, -1);
   }
 
@@ -206,7 +204,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  defer_(free, char, path) = pathJoin(db->root, key, keylen);
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
   return fileExists(path, NULL);
 }
 
@@ -217,7 +215,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  defer_(free, char, path) = pathJoin(db->root, key, keylen);
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
 
   int fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0655);
   if (fd < 0) {
@@ -267,7 +265,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  defer_(free, char, path) = pathJoin(db->root, key, keylen);
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
 
   struct stat st;
   if (!fileExists(path, &st)) {
@@ -307,7 +305,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
 
   if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) + 1 !=
       (size_t)st.st_size) {
-    imagedHandleFree(handle);
+    imagedHandleClose(handle);
     unlink(path);
     return IMAGED_ERR_INVALID_FILE;
   }
@@ -320,7 +318,7 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  defer_(free, char, path) = pathJoin(db->root, key, keylen);
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
 
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
@@ -332,7 +330,7 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   return IMAGED_OK;
 }
 
-void imagedHandleFree(ImagedHandle *handle) {
+void imagedHandleClose(ImagedHandle *handle) {
   if (handle == NULL) {
     return;
   }

@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  defer(Imaged, db) = imagedOpen(root);
+  $Imaged(db) = imagedOpen(root);
   if (db == NULL) {
     perror("Unable to open database");
     return 1;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
     const char *key = argv[optind++];
     ImagedStatus rc;
-    ImagedHandle handle;
+    $ImagedHandle(handle);
     if ((rc = imagedGet(db, key, -1, false, &handle)) != IMAGED_OK) {
       imagedPrintError(rc, "Unable to get image");
       return 1;
@@ -95,7 +95,6 @@ int main(int argc, char *argv[]) {
                ? "i"
                : handle.image.meta.kind == IMAGED_KIND_UINT ? "u" : "f",
            handle.image.meta.bits);
-    imagedHandleFree(&handle);
   } else if (strncasecmp(cmd, "set", 3) == 0) {
     if (argc < optind + 5) {
       usage();
@@ -160,7 +159,7 @@ int main(int argc, char *argv[]) {
     const char *key = argv[optind++];
     const char *filename = argv[optind++];
 
-    ImagedHandle handle;
+    $(ImagedHandle, ImagedHandle, handle);
     ImagedStatus rc;
     if ((rc = imagedGet(db, key, -1, false, &handle)) != IMAGED_OK) {
       imagedPrintError(rc, "Cannot open key");
@@ -168,12 +167,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (!imagedWriteImage(filename, &handle.image)) {
-      imagedHandleFree(&handle);
       fprintf(stderr, "Unable to write image: %s\n", filename);
       return 1;
     }
 
-    imagedHandleFree(&handle);
     puts("OK");
   } else {
     fprintf(stderr, "Invalid command: %s\n", cmd);

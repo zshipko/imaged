@@ -10,7 +10,13 @@ void defer_free(void *data) {
     free(*ptr);
     *ptr = NULL;
   }
-};
+}
+
+void defer_Image(Image **image) {
+  if (image && *image) {
+    imageFree(*image);
+  }
+}
 
 void defer_Imaged(Imaged **db) {
   if (db && *db) {
@@ -24,9 +30,9 @@ void defer_ImagedIter(ImagedIter **iter) {
   }
 }
 
-void defer_ImagedHandle(ImagedHandle **image) {
-  if (image && *image) {
-    imagedHandleFree(*image);
+void defer_ImagedHandle(ImagedHandle *h) {
+  if (h) {
+    imagedHandleClose(h);
   }
 }
 

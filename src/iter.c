@@ -45,7 +45,7 @@ Image *imagedIterNext(ImagedIter *iter) {
   }
 
   if (iter->handle.image.data != NULL) {
-    imagedHandleFree(&iter->handle);
+    imagedHandleClose(&iter->handle);
   }
 
   if (imagedGet(iter->db, ent->d_name, -1, true, &iter->handle) != IMAGED_OK) {
@@ -79,7 +79,7 @@ void imagedIterFree(ImagedIter *iter) {
   }
 
   if (iter->handle.image.data != NULL) {
-    imagedHandleFree(&iter->handle);
+    imagedHandleClose(&iter->handle);
   }
 
   closedir(iter->d);
