@@ -87,6 +87,7 @@ pub struct __dirstream {
     _unused: [u8; 0],
 }
 pub type DIR = __dirstream;
+pub type __m128 = [f32; 4usize];
 extern "C" {
     pub fn imagedStringPrintf(
         fmt: *const ::std::os::raw::c_char,
@@ -94,7 +95,7 @@ extern "C" {
     ) -> *mut ::std::os::raw::c_char;
 }
 #[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImagedStatus {
     IMAGED_OK = 0,
     IMAGED_ERR = 1,
@@ -104,6 +105,7 @@ pub enum ImagedStatus {
     IMAGED_ERR_SEEK = 5,
     IMAGED_ERR_MAP_FAILED = 6,
     IMAGED_ERR_INVALID_KEY = 7,
+    IMAGED_ERR_INVALID_FILE = 8,
 }
 extern "C" {
     pub fn imagedError(status: ImagedStatus) -> *const ::std::os::raw::c_char;
@@ -112,7 +114,7 @@ extern "C" {
     pub fn imagedPrintError(status: ImagedStatus, message: *const ::std::os::raw::c_char);
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Imaged {
     pub root: *mut ::std::os::raw::c_char,
 }
@@ -140,14 +142,14 @@ fn bindgen_test_layout_Imaged() {
     );
 }
 #[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImagedKind {
     IMAGED_KIND_INT = 0,
     IMAGED_KIND_UINT = 1,
     IMAGED_KIND_FLOAT = 2,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedMeta {
     pub width: u64,
     pub height: u64,
@@ -222,7 +224,7 @@ extern "C" {
     pub fn imagedMetaTotalBytes(meta: *const ImagedMeta) -> usize;
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Image {
     pub meta: ImagedMeta,
     pub data: *mut ::std::os::raw::c_void,
@@ -267,8 +269,11 @@ extern "C" {
         c: u8,
         kind: ImagedKind,
         bits: u8,
-        data: *mut ::std::os::raw::c_void,
+        data: *const ::std::os::raw::c_void,
     ) -> *mut Image;
+}
+extern "C" {
+    pub fn imageClone(image: *const Image) -> *mut Image;
 }
 extern "C" {
     pub fn imageFree(image: *mut Image);
@@ -277,13 +282,63 @@ extern "C" {
     pub fn imagePixelBytes(image: *mut Image) -> usize;
 }
 extern "C" {
+    pub fn imageBytes(image: *mut Image) -> usize;
+}
+extern "C" {
     pub fn imageIndex(image: *mut Image, x: usize, y: usize) -> usize;
 }
 extern "C" {
     pub fn imageAt(image: *mut Image, x: usize, y: usize) -> *mut ::std::os::raw::c_void;
 }
 #[repr(C)]
+#[repr(align(16))]
 #[derive(Debug, Copy, Clone)]
+pub struct Pixel {
+    pub data: __m128,
+}
+#[test]
+fn bindgen_test_layout_Pixel() {
+    assert_eq!(
+        ::std::mem::size_of::<Pixel>(),
+        16usize,
+        concat!("Size of: ", stringify!(Pixel))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<Pixel>(),
+        16usize,
+        concat!("Alignment of ", stringify!(Pixel))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<Pixel>())).data as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Pixel),
+            "::",
+            stringify!(data)
+        )
+    );
+}
+extern "C" {
+    pub fn pixelEmpty() -> Pixel;
+}
+extern "C" {
+    pub fn pixelGray(r: f32) -> Pixel;
+}
+extern "C" {
+    pub fn pixelRGB(r: f32, g: f32, b: f32) -> Pixel;
+}
+extern "C" {
+    pub fn pixelRGBA(r: f32, g: f32, b: f32, a: f32) -> Pixel;
+}
+extern "C" {
+    pub fn imageGetPixel(image: *mut Image, x: usize, y: usize, pixel: *mut Pixel) -> bool;
+}
+extern "C" {
+    pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedHandle {
     pub fd: ::std::os::raw::c_int,
     pub image: Image,
@@ -320,6 +375,9 @@ fn bindgen_test_layout_ImagedHandle() {
             stringify!(image)
         )
     );
+}
+extern "C" {
+    pub fn imagedResetLocks(db: *mut Imaged);
 }
 extern "C" {
     pub fn imagedOpen(path: *const ::std::os::raw::c_char) -> *mut Imaged;
@@ -364,7 +422,7 @@ extern "C" {
     pub fn imagedHandleFree(handle: *mut ImagedHandle);
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedIter {
     pub db: *mut Imaged,
     pub d: *mut DIR,
@@ -440,6 +498,9 @@ extern "C" {
 }
 extern "C" {
     pub fn imagedIterNext(iter: *mut ImagedIter) -> *mut Image;
+}
+extern "C" {
+    pub fn imagedIterNextKey(iter: *mut ImagedIter) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     pub fn imagedIterFree(iter: *mut ImagedIter);

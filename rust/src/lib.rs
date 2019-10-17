@@ -1,3 +1,5 @@
+use std::ffi::c_void;
+
 pub mod ffi;
 
 #[derive(Debug)]
@@ -13,8 +15,28 @@ pub enum Error {
 pub use ffi::ImagedMeta as Meta;
 pub struct Imaged(*mut ffi::Imaged);
 pub struct Iter<'a>(*mut ffi::ImagedIter, &'a Imaged);
+pub struct KeyIter<'a>(*mut ffi::ImagedIter, &'a Imaged);
 pub struct Handle<'a>(ffi::ImagedHandle, &'a Imaged);
 pub struct Image<'a>(*mut ffi::Image, Option<&'a Imaged>);
+pub use ffi::Pixel;
+
+impl Pixel {
+    pub fn new() -> Pixel {
+        unsafe { ffi::pixelEmpty() }
+    }
+
+    pub fn rgb(r: f32, g: f32, b: f32) -> Pixel {
+        unsafe { ffi::pixelRGB(r, g, b) }
+    }
+
+    pub fn rgba(r: f32, g: f32, b: f32, a: f32) -> Pixel {
+        unsafe { ffi::pixelRGBA(r, g, b, a) }
+    }
+
+    pub fn gray(x: f32) -> Pixel {
+        unsafe { ffi::pixelGray(x) }
+    }
+}
 
 pub enum Type {
     I(u8),
@@ -73,6 +95,18 @@ impl<'a> Drop for Iter<'a> {
     }
 }
 
+impl<'a> Drop for KeyIter<'a> {
+    fn drop(&mut self) {
+        unsafe { ffi::imagedIterFree(self.0) }
+    }
+}
+
+impl<'a> Handle<'a> {
+    pub fn image(&self) -> Image<'a> {
+        Image(&self.0.image as *const ffi::Image as *mut ffi::Image, None)
+    }
+}
+
 impl Imaged {
     pub fn open<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
@@ -111,6 +145,15 @@ impl Imaged {
         return Ok(Iter(iter, self));
     }
 
+    pub fn iter_keys<'a>(&'a self) -> Result<KeyIter<'a>, Error> {
+        let iter = unsafe { ffi::imagedIterNew(self.0) };
+        if iter.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        return Ok(KeyIter(iter, self));
+    }
+
     pub fn get<S: AsRef<str>>(&self, key: S, editable: bool) -> Result<Handle, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
@@ -129,11 +172,15 @@ impl Imaged {
         Ok(Handle(handle, self))
     }
 
+    pub fn set_image<S: AsRef<str>>(&self, key: S, image: &Image) -> Result<Handle, Error> {
+        self.set(key, image.meta().clone(), Some(image.data_ptr()))
+    }
+
     pub fn set<S: AsRef<str>>(
         &self,
         key: S,
         meta: Meta,
-        data: Option<*const std::ffi::c_void>,
+        data: Option<*const c_void>,
     ) -> Result<Handle, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
@@ -185,6 +232,12 @@ impl<'a> Iter<'a> {
     }
 }
 
+impl<'a> KeyIter<'a> {
+    pub fn reset(&mut self) {
+        unsafe { ffi::imagedIterReset(self.0) }
+    }
+}
+
 impl<'a> Iterator for Iter<'a> {
     type Item = (&'a str, Image<'a>);
 
@@ -199,6 +252,23 @@ impl<'a> Iterator for Iter<'a> {
             let key = std::slice::from_raw_parts(iter.key as *const u8, strlen(iter.key));
             let key = std::str::from_utf8_unchecked(key);
             Some((key, Image(ptr, Some(self.1))))
+        }
+    }
+}
+
+impl<'a> Iterator for KeyIter<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let key = unsafe { ffi::imagedIterNextKey(self.0) };
+        if key.is_null() {
+            return None;
+        }
+
+        unsafe {
+            let key = std::slice::from_raw_parts(key as *const u8, strlen(key));
+            let key = std::str::from_utf8_unchecked(key);
+            Some(key)
         }
     }
 }
@@ -229,6 +299,14 @@ impl<'a> Image<'a> {
 
     pub fn elem_size(&self) -> usize {
         self.meta().bits as usize / 8
+    }
+
+    pub fn data_ptr(&self) -> *mut c_void {
+        if self.0.is_null() {
+            return std::ptr::null_mut();
+        }
+
+        unsafe { (*self.0).data }
     }
 
     pub fn data<T>(&self) -> Result<&[T], Error> {
@@ -275,6 +353,58 @@ impl<'a> Image<'a> {
         let data = unsafe { std::slice::from_raw_parts_mut(ptr as *mut T, meta.channels as usize) };
 
         Ok(data)
+    }
+
+    pub fn get_pixel(&self, x: usize, y: usize, px: &mut Pixel) -> bool {
+        unsafe { ffi::imageGetPixel(self.0, x, y, px) }
+    }
+
+    pub fn set_pixel(&self, x: usize, y: usize, px: &Pixel) -> bool {
+        unsafe { ffi::imageSetPixel(self.0, x, y, px) }
+    }
+
+    pub fn for_each<T, F: Fn((usize, usize), &mut [T])>(&mut self, f: F) -> Result<(), Error> {
+        if std::mem::size_of::<T>() != self.elem_size() {
+            return Err(Error::IncorrectImageType);
+        }
+
+        let meta = self.meta().clone();
+
+        self.data_mut()?
+            .chunks_exact_mut(meta.channels as usize)
+            .enumerate()
+            .for_each(|(n, pixel)| {
+                let y = n / meta.width as usize;
+                let x = n - (y * meta.width as usize);
+                f((x, y), pixel)
+            });
+        Ok(())
+    }
+
+    pub fn for_each2<T, F: Fn((usize, usize), &mut [T], &[T])>(
+        &mut self,
+        other: &Image,
+        f: F,
+    ) -> Result<(), Error> {
+        if std::mem::size_of::<T>() != self.elem_size()
+            || std::mem::size_of::<T>() != other.elem_size()
+        {
+            return Err(Error::IncorrectImageType);
+        }
+
+        let meta = self.meta().clone();
+
+        let b = other.data()?.chunks(meta.channels as usize);
+        self.data_mut()?
+            .chunks_mut(meta.channels as usize)
+            .zip(b)
+            .enumerate()
+            .for_each(|(n, (pixel, pixel1))| {
+                let y = n / meta.width as usize;
+                let x = n - (y * meta.width as usize);
+                f((x, y), pixel, pixel1)
+            });
+        Ok(())
     }
 }
 
