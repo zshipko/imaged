@@ -15,18 +15,21 @@ void defer_free(void *data) {
 void defer_Image(Image **image) {
   if (image && *image) {
     imageFree(*image);
+    *image = NULL;
   }
 }
 
 void defer_Imaged(Imaged **db) {
   if (db && *db) {
     imagedClose(*db);
+    *db = NULL;
   }
 }
 
 void defer_ImagedIter(ImagedIter **iter) {
   if (iter && *iter) {
     imagedIterFree(*iter);
+    *iter = NULL;
   }
 }
 

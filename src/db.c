@@ -184,6 +184,7 @@ void imagedClose(Imaged *db) {
 
 ImagedStatus imagedDestroy(Imaged *db) {
   Image *img = NULL;
+
   $ImagedIter(iter) = imagedIterNew(db);
   while ((img = imagedIterNext(iter))) {
     imagedHandleClose(&iter->handle);
@@ -193,8 +194,6 @@ ImagedStatus imagedDestroy(Imaged *db) {
   if (rmdir(db->root) == -1) {
     return IMAGED_ERR;
   }
-
-  imagedClose(db);
 
   return IMAGED_OK;
 }

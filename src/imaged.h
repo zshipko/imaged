@@ -99,7 +99,7 @@ Imaged *imagedOpen(const char *path);
 // Close an imaged context
 void imagedClose(Imaged *db);
 
-// Destroy an imaged context, removing all contents from disk
+// Destroy an imaged store, removing all contents from disk
 ImagedStatus imagedDestroy(Imaged *db);
 
 // Returns true when there is a value associated with the given key
