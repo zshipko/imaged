@@ -3,6 +3,10 @@ package imaged
 // #include "imaged.h"
 import "C"
 
+import (
+	"sync"
+)
+
 type Type struct {
 	bits uint8
 	kind C.ImagedKind
@@ -91,16 +95,35 @@ func EmptyPixel() Pixel {
 }
 
 func (px *Pixel) Set(index int, f float32) {
-	if index > 3 {
+	if index > 3 || index < 0 {
 		return
 	}
 	px.inner.data[index] = C.float(f)
 }
 
 func (px *Pixel) Get(index int) float32 {
-	if index > 3 {
+	if index > 3 || index < 0 {
 		return 0.0
 	}
 
 	return float32(px.inner.data[index])
+}
+
+func (image *Image) EachPixel(f func(x, y uint, px *Pixel)) {
+	var wg sync.WaitGroup
+
+	wg.Add(int(image.Height()))
+	for y := uint64(0); y < image.Height(); y++ {
+		yCopy := y
+		go func() {
+			px := EmptyPixel()
+			for x := uint64(0); x < image.Width(); x++ {
+				image.GetPixel(uint(x), uint(yCopy), &px)
+				f(uint(x), uint(yCopy), &px)
+				image.SetPixel(uint(x), uint(yCopy), &px)
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
