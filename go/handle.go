@@ -7,8 +7,8 @@ type Handle struct {
 	ref C.ImagedHandle
 }
 
-func (h *Handle) Free() {
-	C.imagedHandleFree(&h.ref)
+func (h *Handle) Close() {
+	C.imagedHandleClose(&h.ref)
 }
 
 func (i *Handle) Image() *Image {

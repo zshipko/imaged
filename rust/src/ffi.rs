@@ -419,7 +419,7 @@ extern "C" {
     ) -> ImagedStatus;
 }
 extern "C" {
-    pub fn imagedHandleFree(handle: *mut ImagedHandle);
+    pub fn imagedHandleClose(handle: *mut ImagedHandle);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]

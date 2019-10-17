@@ -29,7 +29,7 @@ func (c *Context) Set(client *worm.Client, key, width, height, channels, ty *wor
 	if err != nil {
 		return err
 	}
-	defer handle.Free()
+	defer handle.Close()
 
 	return client.WriteOK()
 }
@@ -67,7 +67,7 @@ func (c *Context) RemoveAll(client *worm.Client) error {
 	defer iter.Close()
 
 	for iter.Next() {
-		C.imagedHandleFree(&iter.ptr.handle)
+		C.imagedHandleClose(&iter.ptr.handle)
 		c.DB.Remove(iter.Key())
 	}
 
@@ -83,7 +83,7 @@ func (c *Context) GetPixel(client *worm.Client, key, x, y *worm.Value) error {
 	if err != nil {
 		return err
 	}
-	defer handle.Free()
+	defer handle.Close()
 
 	if !handle.Image().GetPixel(uint(xPos), uint(yPos), &pixel) {
 		return errors.New("Unable to get pixel")
@@ -124,7 +124,7 @@ func (c *Context) SetPixel(client *worm.Client, key, x, y *worm.Value, px ...*wo
 	if err != nil {
 		return err
 	}
-	defer handle.Free()
+	defer handle.Close()
 
 	if !handle.Image().SetPixel(uint(xPos), uint(yPos), &pixel) {
 		return errors.New("Unable to set pixel")

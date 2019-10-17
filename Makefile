@@ -41,5 +41,10 @@ install:
 uninstall:
 	rm -f $(DEST)/lib/libimaged.a $(DEST)/include/imaged.h $(DEST)/bin/imaged
 
+.PHONY: rust
+rust:
+	cd rust && $(MAKE)
+	cargo build
+
 %.o: %.c base
 	$(CC) $(PIC) -Wall -O3 -c $*.c $(CFLAGS) -o $@

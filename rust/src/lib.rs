@@ -85,7 +85,7 @@ impl<'a> Drop for Image<'a> {
 
 impl<'a> Drop for Handle<'a> {
     fn drop(&mut self) {
-        unsafe { ffi::imagedHandleFree(&mut self.0) }
+        unsafe { ffi::imagedHandleClose(&mut self.0) }
     }
 }
 
