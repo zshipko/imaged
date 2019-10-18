@@ -79,12 +79,29 @@ typedef struct {
 #endif
 } Pixel;
 
+void pixelClamp(Pixel *px);
 Pixel pixelEmpty();
 Pixel pixelGray(float r);
 Pixel pixelRGB(float r, float g, float b);
 Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
+
+typedef bool (*imageParallelFn)(uint32_t, uint32_t, Pixel *, void *);
+ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
+                              int nthreads, void *userdata);
+ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
+                             void *userdata);
+#define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
+  uint64_t x, y;                                                               \
+  for (y = _y; y < im->meta.height && y < _y + _h; y += sy)                    \
+    for (x = _x; x < im->meta.width && x < _x + _w; x += sx)
+#define IMAGE_ITER_ALL(im, x, y)                                               \
+  uint64_t x, y;                                                               \
+  for (y = 0; y < im->meta.height; y++)                                        \
+    for (x = 0; x < im->meta.width; x++)
+
+void imageConvert(Image *src, Image *dest);
 
 typedef struct ImagedHandle {
   int fd;

@@ -13,11 +13,11 @@ pub enum Error {
 }
 
 pub use ffi::ImagedMeta as Meta;
-pub struct Imaged(*mut ffi::Imaged);
-pub struct Iter<'a>(*mut ffi::ImagedIter, &'a Imaged);
-pub struct KeyIter<'a>(*mut ffi::ImagedIter, &'a Imaged);
-pub struct Handle<'a>(ffi::ImagedHandle, &'a Imaged);
-pub struct Image<'a>(*mut ffi::Image, Option<&'a Imaged>);
+pub struct DB(*mut ffi::Imaged);
+pub struct Iter<'a>(*mut ffi::ImagedIter, &'a DB);
+pub struct KeyIter<'a>(*mut ffi::ImagedIter, &'a DB);
+pub struct Handle<'a>(ffi::ImagedHandle, &'a DB);
+pub struct Image<'a>(*mut ffi::Image, Option<&'a DB>);
 pub use ffi::Pixel;
 
 impl Pixel {
@@ -107,7 +107,7 @@ impl<'a> Handle<'a> {
     }
 }
 
-impl Imaged {
+impl DB {
     pub fn open<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Error> {
         let path = path.as_ref();
         let path = match path.to_str() {
@@ -125,7 +125,7 @@ impl Imaged {
             return Err(Error::CannotOpenDB);
         }
 
-        return Ok(Imaged(db));
+        return Ok(DB(db));
     }
 
     pub fn destroy(self) -> Result<(), Error> {
@@ -216,7 +216,7 @@ impl Imaged {
     }
 }
 
-impl Drop for Imaged {
+impl Drop for DB {
     fn drop(&mut self) {
         unsafe { ffi::imagedClose(self.0) }
     }
@@ -414,7 +414,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let db = Imaged::open("./testing").unwrap();
+        let db = DB::open("./testing").unwrap();
         db.destroy().unwrap();
     }
 }

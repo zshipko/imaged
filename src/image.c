@@ -1,7 +1,15 @@
 #include "imaged.h"
 #include <limits.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
                   uint8_t bits, const void *data) {
@@ -217,4 +225,182 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   }
 
   return true;
+}
+
+struct imageParallelIterator {
+  uint32_t x0, y0, x1, y1;
+  Image *image0, *image1;
+  imageParallelFn f;
+  void *userdata;
+};
+
+void *bimageParallelWrapper(void *_iter) {
+  struct imageParallelIterator *iter = (struct imageParallelIterator *)_iter;
+  Pixel px;
+  uint32_t i, j;
+  for (j = iter->y0; j < iter->y1; j++) {
+    for (i = iter->x0; i < iter->x1; i++) {
+      if (imageGetPixel(iter->image1, i, j, &px)) {
+        if (iter->f(i, j, &px, iter->userdata)) {
+          imageSetPixel(iter->image0, i, j, &px);
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
+                              int nthreads, void *userdata) {
+  if (src == NULL) {
+    return IMAGED_ERR;
+  }
+
+  if (dst == NULL) {
+    dst = src;
+  }
+
+  if (nthreads <= 0) {
+    nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+  } else if (nthreads == 1) {
+    uint64_t i, j;
+    Pixel px;
+    for (j = 0; j < src->meta.height; j++) {
+      for (i = 0; i < src->meta.width; i++) {
+        if (imageGetPixel(src, i, j, &px)) {
+          if (fn(i, j, &px, userdata)) {
+            imageSetPixel(dst, i, j, &px);
+          }
+        }
+      }
+    }
+    return IMAGED_OK;
+  }
+
+  pthread_t threads[nthreads];
+  int tries = 1, n;
+  uint64_t height, x;
+
+  height = src->meta.height / nthreads;
+
+  for (x = 0; x < (size_t)nthreads; x++) {
+    struct imageParallelIterator iter;
+    iter.x1 = src->meta.width;
+    iter.x0 = 0;
+    iter.y1 = height * x;
+    iter.y0 = height;
+    iter.userdata = userdata;
+    iter.image0 = dst;
+    iter.image1 = src;
+    iter.f = fn;
+    if (pthread_create(&threads[x], NULL, bimageParallelWrapper, &iter) != 0) {
+      if (tries <= 5) {
+        x -= 1;
+        tries += 1;
+      } else {
+        return IMAGED_ERR;
+      }
+    } else {
+      tries = 1;
+    }
+  }
+
+  for (n = 0; n < nthreads; n++) {
+    // Maybe do something if this fails?
+    pthread_join(threads[n], NULL);
+  }
+
+  return IMAGED_OK;
+}
+
+ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
+                             void *userdata) {
+  return bimageEachPixel2(NULL, im, fn, nthreads, userdata);
+}
+
+void imageConvert(Image *src, Image *dest) {
+  Pixel px = pixelEmpty();
+
+  IMAGE_ITER_ALL(src, x, y) {
+    if (imageGetPixel(src, x, y, &px)) {
+      imageSetPixel(dest, x, y, &px);
+    } else {
+      break;
+    }
+  }
+}
+
+void bimageRotate(Image *im, Image *dst, float deg) {
+  float midX, midY;
+  float dx, dy;
+  int32_t rotX, rotY;
+
+  midX = im->meta.width / 2.0f;
+  midY = im->meta.height / 2.0f;
+
+  float angle = 2 * M_PI * deg / 360.0f;
+
+  Pixel px;
+  IMAGE_ITER_ALL(dst, i, j) {
+    dx = i + 0.5 - midX;
+    dy = j + 0.5 - midY;
+
+    rotX = (uint32_t)(midX + dx * cos(angle) - dy * sin(angle));
+    rotY = (uint32_t)(midY + dx * sin(angle) + dy * cos(angle));
+    if (rotX >= 0 && rotY >= 0) {
+      if (imageGetPixel(im, rotX, rotY, &px)) {
+        imageSetPixel(dst, i, j, &px);
+      }
+    }
+  }
+}
+
+void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
+                 float offset) {
+  Ks = Ks / 2;
+
+  int kx, ky;
+  Pixel p, px;
+  px.data[3] = 1.0;
+
+  // Divisor can never be zero
+  if (divisor == 0.0) {
+    divisor = 1.0;
+  }
+
+#ifdef __SSE__
+  __m128 divi = _mm_load_ps1(&divisor), offs = _mm_load_ps1(&offset);
+#else
+  int channels = im->meta.channels, l;
+
+  // Ignore alpha channel
+  if (channels > 3) {
+    channels = 3;
+  }
+#endif
+
+  IMAGE_ITER_ALL(im, ix, iy) {
+    px.data[0] = px.data[1] = px.data[2] = 0.0;
+    for (kx = -Ks; kx <= Ks; kx++) {
+      for (ky = -Ks; ky <= Ks; ky++) {
+        imageGetPixel(im, ix + kx, iy + ky, &p);
+#ifdef __SSE__
+        px.data +=
+            (_mm_load_ps1(&K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)]) / divi) *
+                p.data +
+            offs;
+#else
+        for (l = 0; l < channels; l++) {
+          px.data[l] +=
+              (K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)] / divisor) * p.data[l] +
+              offset;
+        }
+#endif
+      }
+    }
+
+    pixelClamp(&px);
+    imageSetPixel(dst, ix, iy, &px);
+  }
 }
