@@ -113,11 +113,10 @@ ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
   for (y = 0; y < im->meta.height; y++)                                        \
     for (x = 0; x < im->meta.width; x++)
 
-void imageConvertTo(Image *src, const char *srcfmt, Image *dest,
+bool imageConvertTo(Image *src, const char *srcfmt, Image *dest,
                     const char *destfmt);
 
-Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
-                    const char *destfmt);
+Image *imageConvert(Image *src, const char *srcfmt, const char *destfmt);
 
 typedef struct ImagedHandle {
   int fd;

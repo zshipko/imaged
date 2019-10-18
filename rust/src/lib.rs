@@ -417,25 +417,27 @@ impl<'a> Image<'a> {
     pub fn convert_to(&self, srcfmt: &str, dest: &mut Image, destfmt: &str) -> Result<(), Error> {
         let srcfmt = format!("{}\0", srcfmt);
         let destfmt = format!("{}\0", destfmt);
-        unsafe {
+        let rc = unsafe {
             ffi::imageConvertTo(
                 self.0,
                 srcfmt.as_ptr() as *const i8,
                 dest.0,
                 destfmt.as_ptr() as *const i8,
-            );
+            )
+        };
+        if !rc {
+            return Err(Error::IncorrectImageType);
         }
         Ok(())
     }
 
-    pub fn convert(&self, srcfmt: &str, kind: Kind, destfmt: &str) -> Result<Image, Error> {
+    pub fn convert(&self, srcfmt: &str, destfmt: &str) -> Result<Image, Error> {
         let srcfmt = format!("{}\0", srcfmt);
         let destfmt = format!("{}\0", destfmt);
         let dest = unsafe {
             ffi::imageConvert(
                 self.0,
                 srcfmt.as_ptr() as *const i8,
-                std::mem::transmute_copy(&kind),
                 destfmt.as_ptr() as *const i8,
             )
         };

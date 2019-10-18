@@ -328,21 +328,46 @@ ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
 }
 
 #ifdef IMAGED_BABL
-void imageConvertTo(Image *src, const char *srcfmt, Image *dest,
+bool imageConvertTo(Image *src, const char *srcfmt, Image *dest,
                     const char *destfmt) {
   babl_init();
+
+  if (dest->meta.width != src->meta.width ||
+      dest->meta.height != src->meta.height) {
+    return false;
+  }
+
+  const Babl *out = babl_format(destfmt);
+
+  if (dest->meta.channels != babl_format_get_n_components(out)) {
+    return false;
+  }
+
+  if (dest->meta.bits !=
+      babl_format_get_bytes_per_pixel(out) * 8 / (size_t)dest->meta.channels) {
+    return false;
+  }
+
   const Babl *fish = babl_fish(srcfmt, destfmt);
   babl_process(fish, src->data, dest->data, src->meta.width * src->meta.height);
   babl_exit();
+  return true;
 }
 
-Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
-                    const char *destfmt) {
+Image *imageConvert(Image *src, const char *srcfmt, const char *destfmt) {
   babl_init();
+  ImagedKind kind = IMAGED_KIND_UINT;
+  if (strpbrk(destfmt, "float") != NULL || strpbrk(destfmt, "double") ||
+      strpbrk(destfmt, "half")) {
+    kind = IMAGED_KIND_FLOAT;
+  } else if (strpbrk(destfmt, "i8") != NULL || strpbrk(destfmt, "i16") ||
+             strpbrk(destfmt, "i32") != NULL || strpbrk(destfmt, "i64")) {
+    kind = IMAGED_KIND_INT;
+  }
+
   const Babl *out = babl_format(destfmt);
+
   int outchan = babl_format_get_n_components(out);
-  printf("NCOMP: %d\n", outchan);
-  printf("BYTES: %d\n", babl_format_get_bytes_per_pixel(out));
   Image *dest =
       imageAlloc(src->meta.width, src->meta.height, outchan, kind,
                  babl_format_get_bytes_per_pixel(out) * 8 / outchan, NULL);
@@ -356,24 +381,21 @@ Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
   return dest;
 }
 #else
-void imageConvertTo(Image *src, const char *srcfmt, Image *dest,
+bool imageConvertTo(Image *src, const char *srcfmt, Image *dest,
                     const char *destfmt) {
   (void)src;
   (void)srcfmt;
   (void)dest;
   (void)destfmt;
   fputs("ERROR: Imaged was not compiled with Babl support", stderr);
-  abort();
+  return false;
 }
 
-Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
-                    const char *destfmt) {
+Image *imageConvert(Image *src, const char *srcfmt, const char *destfmt) {
   (void)src;
   (void)srcfmt;
-  (void)kind;
   (void)destfmt;
   fputs("ERROR: Imaged was not compiled with Babl support", stderr);
-  abort();
   return NULL;
 }
 #endif

@@ -346,13 +346,12 @@ extern "C" {
         srcfmt: *const ::std::os::raw::c_char,
         dest: *mut Image,
         destfmt: *const ::std::os::raw::c_char,
-    );
+    ) -> bool;
 }
 extern "C" {
     pub fn imageConvert(
         src: *mut Image,
         srcfmt: *const ::std::os::raw::c_char,
-        kind: ImagedKind,
         destfmt: *const ::std::os::raw::c_char,
     ) -> *mut Image;
 }
