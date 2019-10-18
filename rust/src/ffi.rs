@@ -320,6 +320,9 @@ fn bindgen_test_layout_Pixel() {
     );
 }
 extern "C" {
+    pub fn pixelClamp(px: *mut Pixel);
+}
+extern "C" {
     pub fn pixelEmpty() -> Pixel;
 }
 extern "C" {
@@ -336,6 +339,22 @@ extern "C" {
 }
 extern "C" {
     pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
+}
+extern "C" {
+    pub fn imageConvertTo(
+        src: *mut Image,
+        srcfmt: *const ::std::os::raw::c_char,
+        dest: *mut Image,
+        destfmt: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn imageConvert(
+        src: *mut Image,
+        srcfmt: *const ::std::os::raw::c_char,
+        kind: ImagedKind,
+        destfmt: *const ::std::os::raw::c_char,
+    ) -> *mut Image;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]

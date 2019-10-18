@@ -1,14 +1,18 @@
 #include "imaged.h"
 #include <limits.h>
+#include <math.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <math.h>
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
+
+#ifdef IMAGED_BABL
+#include <babl/babl.h>
 #endif
 
 Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
@@ -323,17 +327,56 @@ ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
   return bimageEachPixel2(NULL, im, fn, nthreads, userdata);
 }
 
-void imageConvert(Image *src, Image *dest) {
-  Pixel px = pixelEmpty();
-
-  IMAGE_ITER_ALL(src, x, y) {
-    if (imageGetPixel(src, x, y, &px)) {
-      imageSetPixel(dest, x, y, &px);
-    } else {
-      break;
-    }
-  }
+#ifdef IMAGED_BABL
+void imageConvertTo(Image *src, const char *srcfmt, Image *dest,
+                    const char *destfmt) {
+  babl_init();
+  const Babl *fish = babl_fish(srcfmt, destfmt);
+  babl_process(fish, src->data, dest->data, src->meta.width * src->meta.height);
+  babl_exit();
 }
+
+Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
+                    const char *destfmt) {
+  babl_init();
+  const Babl *out = babl_format(destfmt);
+  int outchan = babl_format_get_n_components(out);
+  printf("NCOMP: %d\n", outchan);
+  printf("BYTES: %d\n", babl_format_get_bytes_per_pixel(out));
+  Image *dest =
+      imageAlloc(src->meta.width, src->meta.height, outchan, kind,
+                 babl_format_get_bytes_per_pixel(out) * 8 / outchan, NULL);
+  if (dest == NULL) {
+    babl_exit();
+    return NULL;
+  }
+  const Babl *fish = babl_fish(srcfmt, out);
+  babl_process(fish, src->data, dest->data, src->meta.width * src->meta.height);
+  babl_exit();
+  return dest;
+}
+#else
+void imageConvertTo(Image *src, const char *srcfmt, Image *dest,
+                    const char *destfmt) {
+  (void)src;
+  (void)srcfmt;
+  (void)dest;
+  (void)destfmt;
+  fputs("ERROR: Imaged was not compiled with Babl support", stderr);
+  abort();
+}
+
+Image *imageConvert(Image *src, const char *srcfmt, ImagedKind kind,
+                    const char *destfmt) {
+  (void)src;
+  (void)srcfmt;
+  (void)kind;
+  (void)destfmt;
+  fputs("ERROR: Imaged was not compiled with Babl support", stderr);
+  abort();
+  return NULL;
+}
+#endif
 
 void bimageRotate(Image *im, Image *dst, float deg) {
   float midX, midY;
