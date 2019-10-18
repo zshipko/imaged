@@ -160,6 +160,10 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
 
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   void *px = imageAt(image, x, y);
+  if (px == NULL) {
+    return false;
+  }
+
   size_t channels = image->meta.channels <= 4 ? image->meta.channels : 4;
   switch (image->meta.kind) {
   case IMAGED_KIND_INT:

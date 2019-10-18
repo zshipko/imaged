@@ -1,7 +1,7 @@
 SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c
 OBJ=$(SRC:.c=.o)
 CFLAGS?=-Wall -Wextra
-LDFLAGS?=
+LDFLAGS?=-lpthread
 PIC?=-fPIC
 DEST?=/usr/local
 INTRIN?=yes

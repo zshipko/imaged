@@ -87,6 +87,18 @@ Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 
+#ifdef __SSE__
+#define PIXEL_RED 3
+#define PIXEL_GREEN 2
+#define PIXEL_BLUE 1
+#define PIXEL_ALPHA 0
+#else
+#define PIXEL_RED 0
+#define PIXEL_GREEN 1
+#define PIXEL_BLUE 2
+#define PIXEL_ALPHA 3
+#endif
+
 typedef bool (*imageParallelFn)(uint32_t, uint32_t, Pixel *, void *);
 ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
                               int nthreads, void *userdata);
