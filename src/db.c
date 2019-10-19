@@ -119,8 +119,12 @@ void imagedPrintError(ImagedStatus status, const char *message) {
   fprintf(stderr, "Error: %s - %s\n", message, imagedError(status));
 }
 
+size_t imagedMetaNumPixels(const ImagedMeta *meta) {
+  return meta->width * meta->height;
+}
+
 size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
-  return meta->width * meta->height * (size_t)meta->channels *
+  return imagedMetaNumPixels(meta) * imagedColorNumChannels(meta->color) *
          ((size_t)meta->bits / 8);
 }
 

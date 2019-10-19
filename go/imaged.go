@@ -2,11 +2,12 @@ package imaged
 
 // #cgo CFLAGS: -I../src
 // #cgo amd64 CFLAGS: -msse
-// #cgo LDFLAGS: -L.. -limaged
+// #cgo LDFLAGS: -L.. -limaged -lm -lpthread
+// #cgo pkg-config: babl
 // #include <string.h>
 // #include <stdlib.h>
 // #include "imaged.h"
-// ImagedMeta _meta(size_t w, size_t h, uint8_t channels, ImagedKind kind, uint8_t bits);
+// ImagedMeta _meta(size_t w, size_t h, int color, ImagedKind kind, uint8_t bits);
 import "C"
 
 import (
@@ -55,12 +56,12 @@ func (db *Imaged) Iter() *Iter {
 	}
 }
 
-func (db *Imaged) Set(key string, width, height uint64, channels uint8, t Type) (*Handle, error) {
+func (db *Imaged) Set(key string, width, height uint64, color Color, t Type) (*Handle, error) {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
 
 	ref := C.ImagedHandle{}
-	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(width), C.ulong(height), C.uint8_t(channels), t.kind, C.uint8_t(t.bits)), nil, &ref)
+	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(width), C.ulong(height), C.int(color), t.kind, C.uint8_t(t.bits)), nil, &ref)
 	if rc != C.IMAGED_OK {
 		err := C.GoString(C.imagedError(rc))
 		return nil, errors.New(err)

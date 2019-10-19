@@ -14,18 +14,18 @@ type Context struct {
 	DB *Imaged
 }
 
-func (c *Context) Set(client *worm.Client, key, width, height, channels, ty *worm.Value) error {
+func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.Value) error {
 	keyString := key.ToString()
 	w := uint64(width.ToInt64())
 	h := uint64(height.ToInt64())
-	ch := uint8(channels.ToInt64())
+	cl := Color(color.ToInt64())
 
 	t := U8
 	if x, ok := namesToTypes[strings.ToLower(ty.ToString())]; ok {
 		t = x
 	}
 
-	handle, err := c.DB.Set(keyString, w, h, ch, t)
+	handle, err := c.DB.Set(keyString, w, h, cl, t)
 	if err != nil {
 		return err
 	}

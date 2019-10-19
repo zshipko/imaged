@@ -7,6 +7,31 @@ import (
 	"sync"
 )
 
+type Color int
+
+const (
+	GRAY    Color = 1
+	GRAYA   Color = 2
+	RGB     Color = 3
+	RGBA    Color = 4
+	CMYK    Color = 5
+	CMYKA   Color = 6
+	YCBCR   Color = 7
+	YCBCRA  Color = 8
+	CIELAB  Color = 9
+	CIELABA Color = 10
+	CIELCH  Color = 11
+	CIELCHA Color = 12
+	CIEXYZ  Color = 13
+	CIEXYZA Color = 14
+	YUV     Color = 15
+	YUVA    Color = 16
+	HSL     Color = 17
+	HSLA    Color = 18
+	HSV     Color = 19
+	HSVA    Color = 20
+)
+
 type Type struct {
 	bits uint8
 	kind C.ImagedKind
@@ -55,9 +80,9 @@ func (i *Image) Free() {
 	}
 }
 
-func (i *Image) Meta() (uint64, uint64, uint8, Type) {
+func (i *Image) Meta() (uint64, uint64, Color, Type) {
 	meta := i.ptr.meta
-	return uint64(meta.width), uint64(meta.height), uint8(meta.channels), Type{
+	return uint64(meta.width), uint64(meta.height), Color(meta.color), Type{
 		bits: uint8(meta.bits),
 		kind: meta.kind,
 	}
@@ -72,9 +97,14 @@ func (i *Image) Height() uint64 {
 	return h
 }
 
-func (i *Image) Channels() uint8 {
+func (i *Image) Color() Color {
 	_, _, c, _ := i.Meta()
-	return c
+	return Color(c)
+}
+
+func (i *Image) Channels() int {
+	_, _, c, _ := i.Meta()
+	return int(C.imagedColorNumChannels(C.ImagedColor(c)))
 }
 
 func (i *Image) Type() Type {

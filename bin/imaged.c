@@ -52,12 +52,11 @@ int main(int argc, char *argv[]) {
     ImagedIter *iter = imagedIterNew(db);
 
     while (imagedIterNext(iter) != NULL) {
-      printf("%s\t%lux%lux%u\t%s%d\n", iter->key, iter->handle.image.meta.width,
-             iter->handle.image.meta.height, iter->handle.image.meta.channels,
-             iter->handle.image.meta.kind == IMAGED_KIND_INT
-                 ? "i"
-                 : iter->handle.image.meta.kind == IMAGED_KIND_UINT ? "u" : "f",
-             iter->handle.image.meta.bits);
+      printf("%s\t%Lux%Lux%s\t%s\n", iter->key, iter->handle.image.meta.width,
+             iter->handle.image.meta.height,
+             imagedColorName(iter->handle.image.meta.color),
+             imagedTypeName(iter->handle.image.meta.kind,
+                            iter->handle.image.meta.bits));
     }
 
     imagedIterFree(iter);
@@ -89,12 +88,9 @@ int main(int argc, char *argv[]) {
       imagedPrintError(rc, "Unable to get image");
       return 1;
     }
-    printf("%lux%lux%u\t%s%d\n", handle.image.meta.width,
-           handle.image.meta.height, handle.image.meta.channels,
-           handle.image.meta.kind == IMAGED_KIND_INT
-               ? "i"
-               : handle.image.meta.kind == IMAGED_KIND_UINT ? "u" : "f",
-           handle.image.meta.bits);
+    printf("%s\t%Lux%Lux%s\t%s\n", key, handle.image.meta.width,
+           handle.image.meta.height, imagedColorName(handle.image.meta.color),
+           imagedTypeName(handle.image.meta.kind, handle.image.meta.bits));
   } else if (strncasecmp(cmd, "set", 3) == 0) {
     if (argc < optind + 5) {
       usage();
@@ -104,7 +100,23 @@ int main(int argc, char *argv[]) {
     const char *key = argv[optind++];
     uint64_t width = strtoll(argv[optind++], NULL, 10);
     uint64_t height = strtoll(argv[optind++], NULL, 10);
-    uint8_t channels = atoi(argv[optind++]);
+
+    ImagedColor color = 0;
+
+    for (ImagedColor c = IMAGED_COLOR_GRAY; c <= IMAGED_COLOR_LAST; c++) {
+      if (strncasecmp(argv[optind], imagedColorName(c), strlen(argv[optind])) ==
+          0) {
+        color = c;
+        break;
+      }
+    }
+
+    if (color == 0) {
+      fprintf(stderr, "Invalid color type: %s\n", argv[optind]);
+      return 1;
+    }
+
+    optind += 1;
     uint8_t bits = 8;
     ImagedKind kind = IMAGED_KIND_UINT;
     if (strncasecmp(argv[optind], "u16", 3) == 0) {
@@ -116,14 +128,14 @@ int main(int argc, char *argv[]) {
       bits = 64;
       kind = IMAGED_KIND_FLOAT;
     } else if (strncasecmp(argv[optind], "u8", 2) != 0) {
-      fprintf(stderr, "Invalid data type: %s\n", argv[optind + 3]);
+      fprintf(stderr, "Invalid data type: %s\n", argv[optind]);
       return 1;
     }
 
     ImagedMeta meta = {
         .width = width,
         .height = height,
-        .channels = channels,
+        .color = color,
         .bits = bits,
         .kind = kind,
     };

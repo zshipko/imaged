@@ -49,12 +49,44 @@ typedef enum {
   IMAGED_KIND_FLOAT,
 } ImagedKind;
 
+typedef enum {
+  IMAGED_COLOR_GRAY = 1,
+  IMAGED_COLOR_GRAYA = 2,
+  IMAGED_COLOR_RGB = 3,
+  IMAGED_COLOR_RGBA = 4,
+  IMAGED_COLOR_CMYK = 5,
+  IMAGED_COLOR_CMYKA = 6,
+  IMAGED_COLOR_YCBCR = 7,
+  IMAGED_COLOR_YCBCRA = 8,
+  IMAGED_COLOR_CIELAB = 9,
+  IMAGED_COLOR_CIELABA = 10,
+  IMAGED_COLOR_CIELCH = 11,
+  IMAGED_COLOR_CIELCHA = 12,
+  IMAGED_COLOR_CIEXYZ = 13,
+  IMAGED_COLOR_CIEXYZA = 14,
+  IMAGED_COLOR_YUV = 15,
+  IMAGED_COLOR_YUVA = 16,
+  IMAGED_COLOR_HSL = 17,
+  IMAGED_COLOR_HSLA = 18,
+  IMAGED_COLOR_HSV = 19,
+  IMAGED_COLOR_HSVA = 20,
+  IMAGED_COLOR_LAST = IMAGED_COLOR_HSVA,
+} ImagedColor;
+
+extern size_t imagedColorChannelMap[];
+extern const char *imagedColorNameMap[];
+const char *imagedColorName(ImagedColor color);
+const char *imagedTypeName(ImagedKind kind, uint8_t bits);
+size_t imagedColorNumChannels(ImagedColor color);
+
 typedef struct {
   uint64_t width, height;
-  uint8_t channels, bits;
+  uint8_t bits;
   ImagedKind kind;
+  ImagedColor color;
 } ImagedMeta;
 
+size_t imagedMetaNumPixels(const ImagedMeta *meta);
 size_t imagedMetaTotalBytes(const ImagedMeta *meta);
 
 typedef struct {
@@ -62,7 +94,7 @@ typedef struct {
   void *data;
 } Image;
 
-Image *imageAlloc(uint64_t w, uint64_t h, uint8_t c, ImagedKind kind,
+Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
                   uint8_t bits, const void *data);
 Image *imageClone(const Image *image);
 void imageFree(Image *image);
@@ -113,10 +145,9 @@ ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
   for (y = 0; y < im->meta.height; y++)                                        \
     for (x = 0; x < im->meta.width; x++)
 
-bool imageConvertTo(Image *src, const char *srcfmt, Image *dest,
-                    const char *destfmt);
-
-Image *imageConvert(Image *src, const char *srcfmt, const char *destfmt);
+bool imageConvertTo(Image *src, Image *dest);
+Image *imageConvert(Image *src, ImagedColor color, ImagedKind kind,
+                    uint8_t bits);
 
 typedef struct ImagedHandle {
   int fd;
@@ -171,7 +202,6 @@ void imagedIterReset(ImagedIter *iter);
 
 #ifndef IMAGED_NO_DEFER
 void defer_free(void *data);
-void defer_Image(Image **image);
 void defer_Imaged(Imaged **db);
 void defer_ImagedIter(ImagedIter **iter);
 void defer_ImagedHandle(ImagedHandle *h);
@@ -190,7 +220,7 @@ IMAGED_UNUSED static ezimage_shape imagedMetaToEzimageShape(ImagedMeta meta) {
   ezimage_shape shape = {
       .width = meta.width,
       .height = meta.height,
-      .channels = meta.channels,
+      .channels = imagedColorNumChannels(meta.color),
       .t = {.bits = meta.bits, .kind = (ezimage_kind)meta.kind}};
   return shape;
 }
@@ -200,7 +230,12 @@ imagedMetaFromEzimageShape(ezimage_shape shape) {
   ImagedMeta meta = {
       .width = shape.width,
       .height = shape.height,
-      .channels = shape.channels,
+      .color = shape.channels == 1
+                   ? IMAGED_COLOR_GRAY
+                   : shape.channels == 2
+                         ? IMAGED_COLOR_GRAYA
+                         : shape.channels == 3 ? IMAGED_COLOR_RGB
+                                               : IMAGED_COLOR_RGBA,
       .bits = shape.t.bits,
       .kind = (ImagedKind)shape.t.kind,
   };
@@ -249,10 +284,11 @@ static halide_type_code_t getType(ImagedKind kind) {
 
 IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
                                                halide_buffer_t *buffer) {
+  size_t channels = imagedColorNumChannels(image->meta.color);
   buffer->device = 0;
   buffer->device_interface = NULL;
   buffer->host = image->data;
-  buffer->dimensions = image->meta.channels < 3 ? 2 : 3;
+  buffer->dimensions = channels < 3 ? 2 : 3;
   buffer->dim = malloc(sizeof(halide_buffer_t) * buffer->dimensions);
   assert(buffer->dim);
 
@@ -271,20 +307,20 @@ IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
   } else {
     // channels
     buffer->dim[0].min = 0;
-    buffer->dim[0].extent = image->meta.channels;
+    buffer->dim[0].extent = channels;
     buffer->dim[0].stride = 1;
     buffer->dim[0].flags = 0;
 
     // width
     buffer->dim[1].min = 0;
     buffer->dim[1].extent = image->meta.width;
-    buffer->dim[1].stride = image->meta.channels;
+    buffer->dim[1].stride = channels;
     buffer->dim[1].flags = 0;
 
     // height
     buffer->dim[2].min = 0;
     buffer->dim[2].extent = image->meta.height;
-    buffer->dim[2].stride = image->meta.width * image->meta.channels;
+    buffer->dim[2].stride = image->meta.width * channels;
     buffer->dim[2].flags = 0;
   }
 

@@ -44,25 +44,56 @@ pub enum Type {
     F(u8),
 }
 
-#[repr(u8)]
-pub enum Kind {
-    Int,
-    UInt,
-    Float,
+#[repr(C)]
+pub enum Color {
+    Gray = 1,
+    GrayA = 2,
+    RGB = 3,
+    RGBA = 4,
+    CMYK = 5,
+    CMYKA = 6,
+    YCBCR = 7,
+    YCBCRA = 8,
+    CIELAB = 9,
+    CIELABA = 10,
+    CIELCH = 11,
+    CIELCHA = 12,
+    CIEXYZ = 13,
+    CIEXYZA = 14,
+    YUV = 15,
+    YUVA = 16,
+    HSL = 17,
+    HSLA = 18,
+    HSV = 19,
+    HSVA = 20,
 }
 
-impl Meta {
-    pub fn new(w: usize, h: usize, channels: u8, ty: Type) -> Meta {
-        let (kind, bits) = match ty {
+impl Color {
+    fn ffi(&self) -> ffi::ImagedColor {
+        unsafe {
+            std::mem::transmute_copy(self)
+        }
+    }
+}
+
+impl Type {
+    pub fn info(&self) -> (ffi::ImagedKind, u8) {
+        let (kind, bits) = match self {
             Type::I(x) => (ffi::ImagedKind::IMAGED_KIND_INT, x),
             Type::U(x) => (ffi::ImagedKind::IMAGED_KIND_UINT, x),
             Type::F(x) => (ffi::ImagedKind::IMAGED_KIND_FLOAT, x),
         };
+        (kind, *bits)
+    }
+}
 
+impl Meta {
+    pub fn new(w: usize, h: usize, color: Color, ty: Type) -> Meta {
+        let (kind, bits) = ty.info();
         Meta {
             width: w as u64,
             height: h as u64,
-            channels,
+            color: color.ffi(),
             kind,
             bits,
         }
@@ -78,6 +109,12 @@ impl Meta {
 
     pub fn total_bytes(&self) -> usize {
         return unsafe { ffi::imagedMetaTotalBytes(self) };
+    }
+
+    pub fn channels(&self) -> usize {
+        unsafe {
+            ffi::imagedColorNumChannels(self.color)
+        }
     }
 }
 
@@ -281,13 +318,13 @@ impl<'a> Iterator for KeyIter<'a> {
 }
 
 impl<'a> Image<'a> {
-    pub fn new(w: usize, h: usize, channels: u8, ty: Type) -> Result<Self, Error> {
-        let meta = Meta::new(w, h, channels, ty);
+    pub fn new(w: usize, h: usize, color: Color, ty: Type) -> Result<Self, Error> {
+        let meta = Meta::new(w, h, color, ty);
         let image = unsafe {
             ffi::imageAlloc(
                 meta.width,
                 meta.height,
-                meta.channels,
+                meta.color,
                 meta.kind,
                 meta.bits,
                 std::ptr::null_mut(),
@@ -357,7 +394,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        let data = unsafe { std::slice::from_raw_parts_mut(ptr as *mut T, meta.channels as usize) };
+        let data = unsafe { std::slice::from_raw_parts_mut(ptr as *mut T, meta.channels()) };
 
         Ok(data)
     }
@@ -378,7 +415,7 @@ impl<'a> Image<'a> {
         let meta = self.meta().clone();
 
         self.data_mut()?
-            .chunks_exact_mut(meta.channels as usize)
+            .chunks_exact_mut(meta.channels())
             .enumerate()
             .for_each(|(n, pixel)| {
                 let y = n / meta.width as usize;
@@ -401,9 +438,9 @@ impl<'a> Image<'a> {
 
         let meta = self.meta().clone();
 
-        let b = other.data()?.chunks(meta.channels as usize);
+        let b = other.data()?.chunks(meta.channels());
         self.data_mut()?
-            .chunks_mut(meta.channels as usize)
+            .chunks_mut(meta.channels())
             .zip(b)
             .enumerate()
             .for_each(|(n, (pixel, pixel1))| {
@@ -414,15 +451,11 @@ impl<'a> Image<'a> {
         Ok(())
     }
 
-    pub fn convert_to(&self, srcfmt: &str, dest: &mut Image, destfmt: &str) -> Result<(), Error> {
-        let srcfmt = format!("{}\0", srcfmt);
-        let destfmt = format!("{}\0", destfmt);
+    pub fn convert_to(&self, dest: &mut Image) -> Result<(), Error> {
         let rc = unsafe {
             ffi::imageConvertTo(
                 self.0,
-                srcfmt.as_ptr() as *const i8,
                 dest.0,
-                destfmt.as_ptr() as *const i8,
             )
         };
         if !rc {
@@ -431,14 +464,14 @@ impl<'a> Image<'a> {
         Ok(())
     }
 
-    pub fn convert(&self, srcfmt: &str, destfmt: &str) -> Result<Image, Error> {
-        let srcfmt = format!("{}\0", srcfmt);
-        let destfmt = format!("{}\0", destfmt);
+    pub fn convert(&self, color: Color, t: Type) -> Result<Image, Error> {
+        let (kind, bits) = t.info();
         let dest = unsafe {
             ffi::imageConvert(
                 self.0,
-                srcfmt.as_ptr() as *const i8,
-                destfmt.as_ptr() as *const i8,
+                color.ffi(),
+                kind,
+                bits,
             )
         };
         if dest.is_null() {

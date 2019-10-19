@@ -5,17 +5,23 @@
 #![allow(non_snake_case)]
 
 pub type __uint8_t = ::std::os::raw::c_uchar;
-pub type __uint64_t = ::std::os::raw::c_ulong;
-pub type __ino_t = ::std::os::raw::c_ulong;
-pub type __off_t = ::std::os::raw::c_long;
+pub type __uint16_t = ::std::os::raw::c_ushort;
+pub type __uint32_t = ::std::os::raw::c_uint;
+pub type __int64_t = ::std::os::raw::c_longlong;
+pub type __uint64_t = ::std::os::raw::c_ulonglong;
+pub type __size_t = ::std::os::raw::c_ulong;
 pub type __ssize_t = ::std::os::raw::c_long;
+pub type __ino_t = __uint64_t;
+pub type __off_t = __int64_t;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct dirent {
-    pub d_ino: __ino_t,
+    pub d_fileno: __ino_t,
     pub d_off: __off_t,
-    pub d_reclen: ::std::os::raw::c_ushort,
-    pub d_type: ::std::os::raw::c_uchar,
+    pub d_reclen: __uint16_t,
+    pub d_type: __uint8_t,
+    pub d_namlen: __uint8_t,
+    pub __d_padding: [__uint8_t; 4usize],
     pub d_name: [::std::os::raw::c_char; 256usize],
 }
 #[test]
@@ -31,13 +37,13 @@ fn bindgen_test_layout_dirent() {
         concat!("Alignment of ", stringify!(dirent))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<dirent>())).d_ino as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<dirent>())).d_fileno as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
             stringify!(dirent),
             "::",
-            stringify!(d_ino)
+            stringify!(d_fileno)
         )
     );
     assert_eq!(
@@ -71,8 +77,28 @@ fn bindgen_test_layout_dirent() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<dirent>())).d_name as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<dirent>())).d_namlen as *const _ as usize },
         19usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(dirent),
+            "::",
+            stringify!(d_namlen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<dirent>())).__d_padding as *const _ as usize },
+        20usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(dirent),
+            "::",
+            stringify!(__d_padding)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<dirent>())).d_name as *const _ as usize },
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(dirent),
@@ -83,10 +109,10 @@ fn bindgen_test_layout_dirent() {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct __dirstream {
+pub struct _dirdesc {
     _unused: [u8; 0],
 }
-pub type DIR = __dirstream;
+pub type DIR = _dirdesc;
 pub type __m128 = [f32; 4usize];
 extern "C" {
     pub fn imagedStringPrintf(
@@ -148,20 +174,56 @@ pub enum ImagedKind {
     IMAGED_KIND_UINT = 1,
     IMAGED_KIND_FLOAT = 2,
 }
+impl ImagedColor {
+    pub const IMAGED_COLOR_LAST: ImagedColor = ImagedColor::IMAGED_COLOR_HSVA;
+}
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
+pub enum ImagedColor {
+    IMAGED_COLOR_GRAY = 1,
+    IMAGED_COLOR_GRAYA = 2,
+    IMAGED_COLOR_RGB = 3,
+    IMAGED_COLOR_RGBA = 4,
+    IMAGED_COLOR_CMYK = 5,
+    IMAGED_COLOR_CMYKA = 6,
+    IMAGED_COLOR_YCBCR = 7,
+    IMAGED_COLOR_YCBCRA = 8,
+    IMAGED_COLOR_CIELAB = 9,
+    IMAGED_COLOR_CIELABA = 10,
+    IMAGED_COLOR_CIELCH = 11,
+    IMAGED_COLOR_CIELCHA = 12,
+    IMAGED_COLOR_CIEXYZ = 13,
+    IMAGED_COLOR_CIEXYZA = 14,
+    IMAGED_COLOR_YUV = 15,
+    IMAGED_COLOR_YUVA = 16,
+    IMAGED_COLOR_HSL = 17,
+    IMAGED_COLOR_HSLA = 18,
+    IMAGED_COLOR_HSV = 19,
+    IMAGED_COLOR_HSVA = 20,
+}
+extern "C" {
+    pub fn imagedColorName(color: ImagedColor) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn imagedTypeName(kind: ImagedKind, bits: u8) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn imagedColorNumChannels(color: ImagedColor) -> usize;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedMeta {
     pub width: u64,
     pub height: u64,
-    pub channels: u8,
     pub bits: u8,
     pub kind: ImagedKind,
+    pub color: ImagedColor,
 }
 #[test]
 fn bindgen_test_layout_ImagedMeta() {
     assert_eq!(
         ::std::mem::size_of::<ImagedMeta>(),
-        24usize,
+        32usize,
         concat!("Size of: ", stringify!(ImagedMeta))
     );
     assert_eq!(
@@ -190,18 +252,8 @@ fn bindgen_test_layout_ImagedMeta() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).channels as *const _ as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ImagedMeta),
-            "::",
-            stringify!(channels)
-        )
-    );
-    assert_eq!(
         unsafe { &(*(::std::ptr::null::<ImagedMeta>())).bits as *const _ as usize },
-        17usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(ImagedMeta),
@@ -219,6 +271,19 @@ fn bindgen_test_layout_ImagedMeta() {
             stringify!(kind)
         )
     );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).color as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ImagedMeta),
+            "::",
+            stringify!(color)
+        )
+    );
+}
+extern "C" {
+    pub fn imagedMetaNumPixels(meta: *const ImagedMeta) -> usize;
 }
 extern "C" {
     pub fn imagedMetaTotalBytes(meta: *const ImagedMeta) -> usize;
@@ -233,7 +298,7 @@ pub struct Image {
 fn bindgen_test_layout_Image() {
     assert_eq!(
         ::std::mem::size_of::<Image>(),
-        32usize,
+        40usize,
         concat!("Size of: ", stringify!(Image))
     );
     assert_eq!(
@@ -253,7 +318,7 @@ fn bindgen_test_layout_Image() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<Image>())).data as *const _ as usize },
-        24usize,
+        32usize,
         concat!(
             "Offset of field: ",
             stringify!(Image),
@@ -266,7 +331,7 @@ extern "C" {
     pub fn imageAlloc(
         w: u64,
         h: u64,
-        c: u8,
+        color: ImagedColor,
         kind: ImagedKind,
         bits: u8,
         data: *const ::std::os::raw::c_void,
@@ -340,19 +405,40 @@ extern "C" {
 extern "C" {
     pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
 }
+pub type imageParallelFn =
+    ::std::option::Option<
+        unsafe extern "C" fn(arg1: u32,
+                             arg2: u32,
+                             arg3: *mut Pixel,
+                             arg4: *mut ::std::os::raw::c_void)
+                             -> bool,
+    >;
 extern "C" {
-    pub fn imageConvertTo(
+    pub fn imageEachPixel2(
         src: *mut Image,
-        srcfmt: *const ::std::os::raw::c_char,
-        dest: *mut Image,
-        destfmt: *const ::std::os::raw::c_char,
-    ) -> bool;
+        dst: *mut Image,
+        fn_: imageParallelFn,
+        nthreads: ::std::os::raw::c_int,
+        userdata: *mut ::std::os::raw::c_void,
+    ) -> ImagedStatus;
+}
+extern "C" {
+    pub fn imageEachPixel(
+        im: *mut Image,
+        fn_: imageParallelFn,
+        nthreads: ::std::os::raw::c_int,
+        userdata: *mut ::std::os::raw::c_void,
+    ) -> ImagedStatus;
+}
+extern "C" {
+    pub fn imageConvertTo(src: *mut Image, dest: *mut Image) -> bool;
 }
 extern "C" {
     pub fn imageConvert(
         src: *mut Image,
-        srcfmt: *const ::std::os::raw::c_char,
-        destfmt: *const ::std::os::raw::c_char,
+        color: ImagedColor,
+        kind: ImagedKind,
+        bits: u8,
     ) -> *mut Image;
 }
 #[repr(C)]
@@ -365,7 +451,7 @@ pub struct ImagedHandle {
 fn bindgen_test_layout_ImagedHandle() {
     assert_eq!(
         ::std::mem::size_of::<ImagedHandle>(),
-        40usize,
+        48usize,
         concat!("Size of: ", stringify!(ImagedHandle))
     );
     assert_eq!(
@@ -452,7 +538,7 @@ pub struct ImagedIter {
 fn bindgen_test_layout_ImagedIter() {
     assert_eq!(
         ::std::mem::size_of::<ImagedIter>(),
-        72usize,
+        80usize,
         concat!("Size of: ", stringify!(ImagedIter))
     );
     assert_eq!(
