@@ -32,14 +32,17 @@ shared: $(OBJ)
 	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.so $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) libimaged.a libimaged.so .cflags .ldflags
+	rm -f $(OBJ) libimaged.a libimaged.so .cflags .ldflags imaged.pc
 
-install:
-	mkdir -p $(DEST)/lib/pkgconfig $(DEST)/include $(DEST)/bin
+install-lib:
+	mkdir -p $(DEST)/lib/pkgconfig $(DEST)/include
 	install libimaged.a $(DEST)/lib
 	install src/imaged.h $(DEST)/include
-	install imaged $(DEST)/bin
 	install imaged.pc $(DEST)/lib/pkgconfig
+
+install: install-lib
+	mkdir -p $(DEST)/bin
+	install imaged $(DEST)/bin
 
 uninstall:
 	rm -f $(DEST)/lib/libimaged.a $(DEST)/include/imaged.h $(DEST)/bin/imaged $(DEST)/lib/pkgconfig/imaged.pc
@@ -48,6 +51,10 @@ uninstall:
 rust:
 	cd rust && $(MAKE)
 	cargo build
+
+.PHONY: go
+go:
+	cd go && go build && cd imaged-server && go build
 
 %.o: %.c base
 	$(CC) $(PIC) -Wall -O3 -c $*.c $(CFLAGS) -o $@

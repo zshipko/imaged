@@ -343,47 +343,42 @@ const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
   return babl_format(fmt);
 }
 
+static bool bablInit = false;
+
 bool imageConvertTo(Image *src, Image *dest) {
+  if (!bablInit) {
+    babl_init();
+    atexit(babl_exit);
+    bablInit = true;
+  }
+
   if (dest->meta.width != src->meta.width ||
       dest->meta.height != src->meta.height) {
     return false;
   }
 
-  babl_init();
   const Babl *in = format(src->meta.color, src->meta.kind, src->meta.bits);
   const Babl *out = format(dest->meta.color, dest->meta.kind, dest->meta.bits);
   if (in == NULL || out == NULL) {
-    babl_exit();
     return false;
   }
 
   const Babl *fish = babl_fish(in, out);
   babl_process(fish, src->data, dest->data, src->meta.width * src->meta.height);
-  babl_exit();
   return true;
 }
 
 Image *imageConvert(Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits) {
-  babl_init();
-
-  const Babl *in = format(src->meta.color, src->meta.kind, src->meta.bits);
-  const Babl *out = format(color, kind, bits);
-
-  if (in == NULL || out == NULL) {
-    babl_exit();
-    return NULL;
-  }
-
   Image *dest =
       imageAlloc(src->meta.width, src->meta.height, color, kind, bits, NULL);
   if (dest == NULL) {
-    babl_exit();
     return NULL;
   }
-  const Babl *fish = babl_fish(in, out);
-  babl_process(fish, src->data, dest->data, src->meta.width * src->meta.height);
-  babl_exit();
+  if (!imageConvertTo(src, dest)) {
+    return NULL;
+  }
+
   return dest;
 }
 

@@ -6,11 +6,21 @@ To get started to will need to following:
 
 - GNU Make
 - C compiler
-- [ezimage](https://github.com/zshipko/ezimage)
+- [babl](https://github.com/GNOME/babl)
+  * `apt install libbabl-dev` on Debian based distros
+  * `brew install babl` on macOS
+- [ezimage](https://github.com/zshipko/ezimage) for `imaged` executable
 
-Then just run:
+Once all of the dependencies have been installed:
 
 ```shell
 $ make
 $ [sudo] make install
+```
+
+Or to build the library without the `imaged` executable:
+
+```shell
+$ make lib
+$ [sudo] make install-lib
 ```

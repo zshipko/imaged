@@ -78,6 +78,9 @@ extern const char *imagedColorNameMap[];
 const char *imagedColorName(ImagedColor color);
 const char *imagedTypeName(ImagedKind kind, uint8_t bits);
 size_t imagedColorNumChannels(ImagedColor color);
+bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
+                             ImagedKind *kind, uint8_t *bits);
+bool imagedIsValidType(ImagedKind kind, uint8_t bits);
 
 typedef struct {
   uint64_t width, height;
@@ -249,6 +252,11 @@ IMAGED_UNUSED static Image *imagedReadImage(const char *path) {
     return NULL;
   }
 
+  if (shape.channels > 4) {
+    free(data);
+    return NULL;
+  }
+
   Image *image = malloc(sizeof(Image));
   if (!image) {
     free(data);
@@ -263,6 +271,11 @@ IMAGED_UNUSED static Image *imagedReadImage(const char *path) {
 
 IMAGED_UNUSED static bool imagedWriteImage(const char *path,
                                            const Image *image) {
+  // Only Gray/RGB/RGBA images
+  if (image->meta.color > IMAGED_COLOR_RGBA) {
+    return false;
+  }
+
   ezimage_shape shape = imagedMetaToEzimageShape(image->meta);
   return ezimage_imwrite(path, image->data, &shape);
 }

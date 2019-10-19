@@ -7,3 +7,4 @@ Cargo.lock
 .cflags
 .ldflags
 imaged.pc
+imaged-server

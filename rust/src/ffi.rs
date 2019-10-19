@@ -5,23 +5,18 @@
 #![allow(non_snake_case)]
 
 pub type __uint8_t = ::std::os::raw::c_uchar;
-pub type __uint16_t = ::std::os::raw::c_ushort;
 pub type __uint32_t = ::std::os::raw::c_uint;
-pub type __int64_t = ::std::os::raw::c_longlong;
-pub type __uint64_t = ::std::os::raw::c_ulonglong;
-pub type __size_t = ::std::os::raw::c_ulong;
+pub type __uint64_t = ::std::os::raw::c_ulong;
+pub type __ino_t = ::std::os::raw::c_ulong;
+pub type __off_t = ::std::os::raw::c_long;
 pub type __ssize_t = ::std::os::raw::c_long;
-pub type __ino_t = __uint64_t;
-pub type __off_t = __int64_t;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct dirent {
-    pub d_fileno: __ino_t,
+    pub d_ino: __ino_t,
     pub d_off: __off_t,
-    pub d_reclen: __uint16_t,
-    pub d_type: __uint8_t,
-    pub d_namlen: __uint8_t,
-    pub __d_padding: [__uint8_t; 4usize],
+    pub d_reclen: ::std::os::raw::c_ushort,
+    pub d_type: ::std::os::raw::c_uchar,
     pub d_name: [::std::os::raw::c_char; 256usize],
 }
 #[test]
@@ -37,13 +32,13 @@ fn bindgen_test_layout_dirent() {
         concat!("Alignment of ", stringify!(dirent))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<dirent>())).d_fileno as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<dirent>())).d_ino as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
             stringify!(dirent),
             "::",
-            stringify!(d_fileno)
+            stringify!(d_ino)
         )
     );
     assert_eq!(
@@ -77,28 +72,8 @@ fn bindgen_test_layout_dirent() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<dirent>())).d_namlen as *const _ as usize },
-        19usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(dirent),
-            "::",
-            stringify!(d_namlen)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<dirent>())).__d_padding as *const _ as usize },
-        20usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(dirent),
-            "::",
-            stringify!(__d_padding)
-        )
-    );
-    assert_eq!(
         unsafe { &(*(::std::ptr::null::<dirent>())).d_name as *const _ as usize },
-        24usize,
+        19usize,
         concat!(
             "Offset of field: ",
             stringify!(dirent),
@@ -109,10 +84,10 @@ fn bindgen_test_layout_dirent() {
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct _dirdesc {
+pub struct __dirstream {
     _unused: [u8; 0],
 }
-pub type DIR = _dirdesc;
+pub type DIR = __dirstream;
 pub type __m128 = [f32; 4usize];
 extern "C" {
     pub fn imagedStringPrintf(
@@ -209,6 +184,18 @@ extern "C" {
 }
 extern "C" {
     pub fn imagedColorNumChannels(color: ImagedColor) -> usize;
+}
+extern "C" {
+    pub fn imagedParseColorAndType(
+        color: *const ::std::os::raw::c_char,
+        t: *const ::std::os::raw::c_char,
+        c: *mut ImagedColor,
+        kind: *mut ImagedKind,
+        bits: *mut u8,
+    ) -> bool;
+}
+extern "C" {
+    pub fn imagedIsValidType(kind: ImagedKind, bits: u8) -> bool;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
@@ -405,14 +392,14 @@ extern "C" {
 extern "C" {
     pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
 }
-pub type imageParallelFn =
-    ::std::option::Option<
-        unsafe extern "C" fn(arg1: u32,
-                             arg2: u32,
-                             arg3: *mut Pixel,
-                             arg4: *mut ::std::os::raw::c_void)
-                             -> bool,
-    >;
+pub type imageParallelFn = ::std::option::Option<
+    unsafe extern "C" fn(
+        arg1: u32,
+        arg2: u32,
+        arg3: *mut Pixel,
+        arg4: *mut ::std::os::raw::c_void,
+    ) -> bool,
+>;
 extern "C" {
     pub fn imageEachPixel2(
         src: *mut Image,

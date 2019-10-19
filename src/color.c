@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include "imaged.h"
 
 #include <string.h>
@@ -99,4 +100,69 @@ const char *imagedTypeName(ImagedKind kind, uint8_t bits) {
   }
 
   return NULL;
+}
+
+bool imagedIsValidType(ImagedKind kind, uint8_t bits) {
+  return imagedTypeName(kind, bits) != NULL;
+}
+
+bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
+                             ImagedKind *kind, uint8_t *bits) {
+  if (kind != NULL) {
+    bool foundColor = false;
+    for (ImagedColor d = IMAGED_COLOR_GRAY;
+         !foundColor && d <= IMAGED_COLOR_LAST; d++) {
+      if (strncasecmp(color, imagedColorName(d), strlen(color)) == 0) {
+        *c = d;
+        foundColor = true;
+      }
+    }
+
+    if (!foundColor) {
+      return false;
+    }
+  }
+
+  if (t != NULL) {
+    if (strncasecmp(t, "f32", 3) == 0 || strncasecmp(t, "float", 5) == 0) {
+      *bits = 32;
+      *kind = IMAGED_KIND_FLOAT;
+    } else if (strncasecmp(t, "f16", 3) == 0 ||
+               strncasecmp(t, "half", 4) == 0) {
+      *bits = 16;
+      *kind = IMAGED_KIND_FLOAT;
+    } else if (strncasecmp(t, "f64", 3) == 0 ||
+               strncasecmp(t, "double", 6) == 0) {
+      *bits = 64;
+      *kind = IMAGED_KIND_FLOAT;
+    } else if (strncasecmp(t, "u8", 2) == 0 ||
+               strncasecmp(t, "uint8", 5) == 0) {
+      *bits = 8;
+      *kind = IMAGED_KIND_UINT;
+    } else if (strncasecmp(t, "u16", 3) == 0 ||
+               strncasecmp(t, "uint16", 6) == 0) {
+      *bits = 16;
+      *kind = IMAGED_KIND_UINT;
+    } else if (strncasecmp(t, "u32", 2) == 0 ||
+               strncasecmp(t, "uint32", 6) == 0) {
+      *bits = 32;
+      *kind = IMAGED_KIND_UINT;
+    } else if (strncasecmp(t, "i8", 2) == 0 ||
+               strncasecmp(t, "iint8", 5) == 0) {
+      *bits = 8;
+      *kind = IMAGED_KIND_INT;
+    } else if (strncasecmp(t, "i16", 3) == 0 ||
+               strncasecmp(t, "iint16", 6) == 0) {
+      *bits = 16;
+      *kind = IMAGED_KIND_INT;
+    } else if (strncasecmp(t, "i32", 2) == 0 ||
+               strncasecmp(t, "iint32", 6) == 0) {
+      *bits = 32;
+      *kind = IMAGED_KIND_INT;
+    } else {
+      return false;
+    }
+  }
+
+  return true;
 }

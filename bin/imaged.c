@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #define IMAGED_EZIMAGE
 #include "../src/imaged.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@ static const char *usage_s =
     "Usage: imaged -r [PATH] [COMMAND] [ARGS...]\nCommands:"
     "\n\tlist"
     "\n\tget [KEY]"
-    "\n\tset [KEY] [WIDTH] [HEIGHT] [CHANNELS] [TYPE]"
+    "\n\tset [KEY] [WIDTH] [HEIGHT] [COLOR] [TYPE]"
     "\n\tremove [KEY]"
     "\n\timport [KEY] [PATH]"
     "\n\texport [KEY] [PATH]"
@@ -52,8 +53,8 @@ int main(int argc, char *argv[]) {
     ImagedIter *iter = imagedIterNew(db);
 
     while (imagedIterNext(iter) != NULL) {
-      printf("%s\t%Lux%Lux%s\t%s\n", iter->key, iter->handle.image.meta.width,
-             iter->handle.image.meta.height,
+      printf("%s\t%" PRIu64 "x%" PRIu64 "\t%s\t%s\n", iter->key,
+             iter->handle.image.meta.width, iter->handle.image.meta.height,
              imagedColorName(iter->handle.image.meta.color),
              imagedTypeName(iter->handle.image.meta.kind,
                             iter->handle.image.meta.bits));
@@ -88,8 +89,9 @@ int main(int argc, char *argv[]) {
       imagedPrintError(rc, "Unable to get image");
       return 1;
     }
-    printf("%s\t%Lux%Lux%s\t%s\n", key, handle.image.meta.width,
-           handle.image.meta.height, imagedColorName(handle.image.meta.color),
+    printf("%s\t%" PRIu64 "x%" PRIu64 "\t%s\t%s\n", key,
+           handle.image.meta.width, handle.image.meta.height,
+           imagedColorName(handle.image.meta.color),
            imagedTypeName(handle.image.meta.kind, handle.image.meta.bits));
   } else if (strncasecmp(cmd, "set", 3) == 0) {
     if (argc < optind + 5) {
@@ -102,33 +104,13 @@ int main(int argc, char *argv[]) {
     uint64_t height = strtoll(argv[optind++], NULL, 10);
 
     ImagedColor color = 0;
+    ImagedKind kind = 0;
+    uint8_t bits = 0;
 
-    for (ImagedColor c = IMAGED_COLOR_GRAY; c <= IMAGED_COLOR_LAST; c++) {
-      if (strncasecmp(argv[optind], imagedColorName(c), strlen(argv[optind])) ==
-          0) {
-        color = c;
-        break;
-      }
-    }
-
-    if (color == 0) {
-      fprintf(stderr, "Invalid color type: %s\n", argv[optind]);
-      return 1;
-    }
-
-    optind += 1;
-    uint8_t bits = 8;
-    ImagedKind kind = IMAGED_KIND_UINT;
-    if (strncasecmp(argv[optind], "u16", 3) == 0) {
-      bits = 16;
-    } else if (strncasecmp(argv[optind], "f32", 3) == 0) {
-      bits = 32;
-      kind = IMAGED_KIND_FLOAT;
-    } else if (strncasecmp(argv[optind], "f64", 3) == 0) {
-      bits = 64;
-      kind = IMAGED_KIND_FLOAT;
-    } else if (strncasecmp(argv[optind], "u8", 2) != 0) {
-      fprintf(stderr, "Invalid data type: %s\n", argv[optind]);
+    const char *a = argv[optind++];
+    const char *b = argv[optind];
+    if (!imagedParseColorAndType(a, b, &color, &kind, &bits)) {
+      fprintf(stderr, "Unable to parse color and type: %s %s\n", a, b);
       return 1;
     }
 
