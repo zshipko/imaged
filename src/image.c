@@ -242,7 +242,7 @@ struct imageParallelIterator {
   void *userdata;
 };
 
-void *bimageParallelWrapper(void *_iter) {
+void *imageParallelWrapper(void *_iter) {
   struct imageParallelIterator *iter = (struct imageParallelIterator *)_iter;
   Pixel px;
   uint32_t i, j;
@@ -259,8 +259,8 @@ void *bimageParallelWrapper(void *_iter) {
   return NULL;
 }
 
-ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
-                              int nthreads, void *userdata) {
+ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
+                             int nthreads, void *userdata) {
   if (src == NULL) {
     return IMAGED_ERR;
   }
@@ -302,7 +302,7 @@ ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
     iter.image0 = dst;
     iter.image1 = src;
     iter.f = fn;
-    if (pthread_create(&threads[x], NULL, bimageParallelWrapper, &iter) != 0) {
+    if (pthread_create(&threads[x], NULL, imageParallelWrapper, &iter) != 0) {
       if (tries <= 5) {
         x -= 1;
         tries += 1;
@@ -322,9 +322,9 @@ ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
   return IMAGED_OK;
 }
 
-ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
-                             void *userdata) {
-  return bimageEachPixel2(NULL, im, fn, nthreads, userdata);
+ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
+                            void *userdata) {
+  return imageEachPixel2(NULL, im, fn, nthreads, userdata);
 }
 
 #ifdef IMAGED_BABL
@@ -400,7 +400,7 @@ Image *imageConvert(Image *src, const char *srcfmt, const char *destfmt) {
 }
 #endif
 
-void bimageRotate(Image *im, Image *dst, float deg) {
+void imageRotate(Image *im, Image *dst, float deg) {
   float midX, midY;
   float dx, dy;
   int32_t rotX, rotY;

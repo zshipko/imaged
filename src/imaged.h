@@ -100,10 +100,10 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 #endif
 
 typedef bool (*imageParallelFn)(uint32_t, uint32_t, Pixel *, void *);
-ImagedStatus bimageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
-                              int nthreads, void *userdata);
-ImagedStatus bimageEachPixel(Image *im, imageParallelFn fn, int nthreads,
-                             void *userdata);
+ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
+                             int nthreads, void *userdata);
+ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
+                            void *userdata);
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
   uint64_t x, y;                                                               \
   for (y = _y; y < im->meta.height && y < _y + _h; y += sy)                    \
