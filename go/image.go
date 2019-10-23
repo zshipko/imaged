@@ -1,10 +1,12 @@
 package imaged
 
 // #include "imaged.h"
+// #include <stdlib.h>
 import "C"
 
 import (
 	"sync"
+	"unsafe"
 )
 
 type Color int
@@ -120,6 +122,26 @@ func (i *Image) SetPixel(x, y uint, px *Pixel) bool {
 	return bool(C.imageSetPixel(i.ptr, C.ulong(x), C.ulong(y), &px.inner))
 }
 
+func (i *Image) ConvertTo(other *Image) bool {
+	return bool(C.imageConvertTo(i.ptr, other.ptr))
+}
+
+func (i *Image) Convert(color Color, t Type) *Image {
+	im := C.imageConvert(i.ptr, C.ImagedColor(color), t.kind, C.uchar(t.bits))
+	return &Image{
+		ptr:   im,
+		owner: true,
+	}
+}
+
+func NewImage(width int, height int, color Color, t Type) *Image {
+	im := C.imageAlloc(C.size_t(width), C.size_t(height), C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits), nil)
+	return &Image{
+		ptr:   im,
+		owner: true,
+	}
+}
+
 func EmptyPixel() Pixel {
 	return Pixel{inner: C.pixelEmpty()}
 }
@@ -156,4 +178,21 @@ func (image *Image) EachPixel(f func(x, y uint, px *Pixel)) {
 		}()
 	}
 	wg.Wait()
+}
+
+func ReadImage(filename string, color Color, t Type) *Image {
+	s := C.CString(filename)
+	defer C.free(unsafe.Pointer(s))
+	im := C.imageRead(s, C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits))
+	return &Image{
+		ptr:   im,
+		owner: true,
+	}
+}
+
+func (i *Image) Write(filename string) bool {
+	s := C.CString(filename)
+	defer C.free(unsafe.Pointer(s))
+
+	return C.imageWrite(s, i.ptr) == C.IMAGED_OK
 }
