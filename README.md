@@ -9,7 +9,7 @@ To get started to will need to following:
 - [babl](https://github.com/GNOME/babl)
   * `apt install libbabl-dev` on Debian based distros
   * `brew install babl` on macOS
-- [ezimage](https://github.com/zshipko/ezimage) for `imaged` executable
+- [ezimage](https://github.com/zshipko/ezimage)
 
 Once all of the dependencies have been installed:
 

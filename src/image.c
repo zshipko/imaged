@@ -345,7 +345,7 @@ const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
 
 static bool bablInit = false;
 
-bool imageConvertTo(Image *src, Image *dest) {
+bool imageConvertTo(const Image *src, Image *dest) {
   if (!bablInit) {
     babl_init();
     atexit(babl_exit);
@@ -368,7 +368,7 @@ bool imageConvertTo(Image *src, Image *dest) {
   return true;
 }
 
-Image *imageConvert(Image *src, ImagedColor color, ImagedKind kind,
+Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits) {
   Image *dest =
       imageAlloc(src->meta.width, src->meta.height, color, kind, bits, NULL);

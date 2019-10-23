@@ -315,6 +315,17 @@ fn bindgen_test_layout_Image() {
     );
 }
 extern "C" {
+    pub fn imageRead(
+        filename: *const ::std::os::raw::c_char,
+        color: ImagedColor,
+        kind: ImagedKind,
+        bits: u8,
+    ) -> *mut Image;
+}
+extern "C" {
+    pub fn imageWrite(path: *const ::std::os::raw::c_char, image: *const Image) -> ImagedStatus;
+}
+extern "C" {
     pub fn imageAlloc(
         w: u64,
         h: u64,
@@ -417,11 +428,11 @@ extern "C" {
     ) -> ImagedStatus;
 }
 extern "C" {
-    pub fn imageConvertTo(src: *mut Image, dest: *mut Image) -> bool;
+    pub fn imageConvertTo(src: *const Image, dest: *mut Image) -> bool;
 }
 extern "C" {
     pub fn imageConvert(
-        src: *mut Image,
+        src: *const Image,
         color: ImagedColor,
         kind: ImagedKind,
         bits: u8,

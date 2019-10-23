@@ -1,8 +1,8 @@
 VERSION=0.1
-SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c
+SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c
 OBJ=$(SRC:.c=.o)
-CFLAGS?=-Wall -Wextra `pkg-config --cflags babl`
-LDFLAGS?=-lpthread `pkg-config --libs babl`
+CFLAGS?=-Wall -Wextra `pkg-config --cflags babl ezimage`
+LDFLAGS?=-lpthread `pkg-config --libs babl ezimage`
 PIC?=-fPIC
 DEST?=/usr/local
 
@@ -14,7 +14,7 @@ fresh: src/imaged.h .cflags .ldflags build
 
 .PHONY: bin
 bin: src/imaged.h .cflags $(OBJ)
-	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS) `pkg-config --cflags --libs ezimage`
+	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS)
 
 lib: $(OBJ)
 	$(AR) rcs libimaged.a $(OBJ)

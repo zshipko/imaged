@@ -94,6 +94,10 @@ typedef struct {
   void *data;
 } Image;
 
+Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
+                 uint8_t bits);
+ImagedStatus imageWrite(const char *path, const Image *image);
+
 Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
                   uint8_t bits, const void *data);
 Image *imageClone(const Image *image);
@@ -129,8 +133,8 @@ ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
   for (y = 0; y < im->meta.height; y++)                                        \
     for (x = 0; x < im->meta.width; x++)
 
-bool imageConvertTo(Image *src, Image *dest);
-Image *imageConvert(Image *src, ImagedColor color, ImagedKind kind,
+bool imageConvertTo(const Image *src, Image *dest);
+Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits);
 
 typedef struct ImagedHandle {
@@ -202,71 +206,6 @@ void defer_ImagedHandle(ImagedHandle *h);
 #define $ImagedHandle(v) $(ImagedHandle, ImagedHandle, v)
 #endif
 
-#ifdef IMAGED_EZIMAGE
-#include <ezimage.h>
-IMAGED_UNUSED static ezimage_shape imagedMetaToEzimageShape(ImagedMeta meta) {
-  ezimage_shape shape = {
-      .width = meta.width,
-      .height = meta.height,
-      .channels = imagedColorNumChannels(meta.color),
-      .t = {.bits = meta.bits, .kind = (ezimage_kind)meta.kind}};
-  return shape;
-}
-
-IMAGED_UNUSED static ImagedMeta
-imagedMetaFromEzimageShape(ezimage_shape shape) {
-  ImagedMeta meta = {
-      .width = shape.width,
-      .height = shape.height,
-      .color = shape.channels == 1
-                   ? IMAGED_COLOR_GRAY
-                   : shape.channels == 2
-                         ? IMAGED_COLOR_GRAYA
-                         : shape.channels == 3 ? IMAGED_COLOR_RGB
-                                               : IMAGED_COLOR_RGBA,
-      .bits = shape.t.bits,
-      .kind = (ImagedKind)shape.t.kind,
-  };
-  return meta;
-}
-
-IMAGED_UNUSED static Image *imagedReadImage(const char *path) {
-  ezimage_shape shape;
-  void *data = ezimage_imread(path, NULL, &shape);
-  if (!data) {
-    return NULL;
-  }
-
-  if (shape.channels > 4) {
-    free(data);
-    return NULL;
-  }
-
-  Image *image = malloc(sizeof(Image));
-  if (!image) {
-    free(data);
-    return NULL;
-  }
-
-  image->meta = imagedMetaFromEzimageShape(shape);
-  image->data = data;
-
-  return image;
-}
-
-IMAGED_UNUSED static bool imagedWriteImage(const char *path,
-                                           const Image *image) {
-  // Only Gray/RGB/RGBA images
-  if (image->meta.color > IMAGED_COLOR_RGBA) {
-    return false;
-  }
-
-  ezimage_shape shape = imagedMetaToEzimageShape(image->meta);
-  return ezimage_imwrite(path, image->data, &shape);
-}
-
-#endif // IMAGED_EZIMAGE
-
 #ifdef IMAGED_HALIDE
 #include "HalideRuntime.h"
 static halide_type_code_t getType(ImagedKind kind) {
@@ -288,7 +227,10 @@ IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
   buffer->host = image->data;
   buffer->dimensions = channels < 3 ? 2 : 3;
   buffer->dim = malloc(sizeof(halide_buffer_t) * buffer->dimensions);
-  assert(buffer->dim);
+  if (buffer->dim == NULL) {
+    buffer->host = NULL;
+    return;
+  }
 
   if (buffer->dimensions == 2) {
     // width
