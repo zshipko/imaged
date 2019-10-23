@@ -8,3 +8,4 @@ Cargo.lock
 .ldflags
 imaged.pc
 imaged-server
+test/test

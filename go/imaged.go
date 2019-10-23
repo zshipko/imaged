@@ -1,7 +1,6 @@
 package imaged
 
 // #cgo CFLAGS: -I../src
-// #cgo amd64 CFLAGS: -msse
 // #cgo LDFLAGS: -L.. -limaged -lm -lpthread
 // #cgo pkg-config: babl
 // #include <string.h>

@@ -110,6 +110,8 @@ const char *imagedError(ImagedStatus status) {
     return "invalid key";
   case IMAGED_ERR_INVALID_FILE:
     return "invalid file";
+  case IMAGED_ERR_LOCKED:
+    return "file already locked";
   }
 
   return "unknown";
@@ -127,6 +129,22 @@ size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
   return imagedMetaNumPixels(meta) * imagedColorNumChannels(meta->color) *
          ((size_t)meta->bits / 8);
 }
+
+bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen) {
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  int fd = open(path, O_RDONLY);
+  if (fd < 0) {
+    return false;
+  }
+  bool r = flock(fd, LOCK_EX | LOCK_NB) != 0;
+  if (!r) {
+    flock(fd, LOCK_UN);
+  }
+  close(fd);
+  return r;
+}
+
+bool imagedWait(ImagedStatus status) { return status == IMAGED_ERR_LOCKED; }
 
 void imagedResetLocks(Imaged *db) {
   DIR *dir = opendir(db->root);
@@ -224,7 +242,11 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   if (fd < 0) {
     return IMAGED_ERR;
   }
-  flock(fd, LOCK_EX);
+
+  if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+    close(fd);
+    return IMAGED_ERR_LOCKED;
+  }
 
   size_t map_size = sizeof(ImagedMeta) + imagedMetaTotalBytes(&meta);
   if (lseek(fd, map_size, SEEK_SET) == -1) {
@@ -290,7 +312,10 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR;
   }
 
-  flock(fd, editable ? LOCK_EX : LOCK_SH);
+  if (flock(fd, (editable ? LOCK_EX : LOCK_SH) | LOCK_NB) < 0) {
+    close(fd);
+    return IMAGED_ERR_LOCKED;
+  }
 
   int flags = PROT_READ;
   if (editable) {
@@ -327,7 +352,10 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   if (fd < 0) {
     return IMAGED_ERR_FILE_DOES_NOT_EXIST;
   }
-  flock(fd, LOCK_EX);
+  if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+    close(fd);
+    return IMAGED_ERR_LOCKED;
+  }
   remove(path);
   close_unlock(fd);
   return IMAGED_OK;
@@ -347,7 +375,7 @@ void imagedHandleClose(ImagedHandle *handle) {
     handle->image.data = NULL;
   }
 
-  if (handle->fd > 0) {
+  if (handle->fd >= 0) {
     close_unlock(handle->fd);
     handle->fd = -1;
   }

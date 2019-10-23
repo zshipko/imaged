@@ -5,14 +5,6 @@ CFLAGS?=-Wall -Wextra `pkg-config --cflags babl`
 LDFLAGS?=-lpthread `pkg-config --libs babl`
 PIC?=-fPIC
 DEST?=/usr/local
-INTRIN?=yes
-
-ifeq (yes,$(INTRIN))
-HAS_SSE=$(shell $(CC) -mavx -dM -E - < /dev/null | egrep "SSE" | sort | grep '__SSE__ 1')
-ifneq (,$(HAS_SSE))
-	CFLAGS+= -msse
-endif # HAS_SSE
-endif # INTRIN
 
 $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
@@ -55,6 +47,11 @@ rust:
 .PHONY: go
 go:
 	cd go && go build && cd imaged-server && go build
+
+.PHONY: test
+test: lib
+	@$(CC) $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm -lsubunit -lrt $(LDFLAGS)
+	@./test/test
 
 %.o: %.c base
 	$(CC) $(PIC) -Wall -O3 -c $*.c $(CFLAGS) -o $@

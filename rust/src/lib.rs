@@ -36,6 +36,14 @@ impl Pixel {
     pub fn gray(x: f32) -> Pixel {
         unsafe { ffi::pixelGray(x) }
     }
+
+    pub fn data(&self) -> &[f32] {
+        &self.data
+    }
+
+    pub fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
+    }
 }
 
 pub enum Type {
@@ -69,10 +77,8 @@ pub enum Color {
 }
 
 impl Color {
-    fn ffi(&self) -> ffi::ImagedColor {
-        unsafe {
-            std::mem::transmute_copy(self)
-        }
+    pub fn ffi(&self) -> ffi::ImagedColor {
+        unsafe { std::mem::transmute_copy(self) }
     }
 }
 
@@ -99,7 +105,21 @@ impl Meta {
         }
     }
 
-    pub fn typ(&self) -> Type {
+    pub fn with_color(&self, color: Color) -> Self {
+        let mut meta = self.clone();
+        meta.color = color.ffi();
+        meta
+    }
+
+    pub fn with_type(&self, t: Type) -> Self {
+        let mut meta = self.clone();
+        let info = t.info();
+        meta.kind = info.0;
+        meta.bits = info.1;
+        meta
+    }
+
+    pub fn get_type(&self) -> Type {
         match self.kind {
             ffi::ImagedKind::IMAGED_KIND_INT => Type::I(self.bits),
             ffi::ImagedKind::IMAGED_KIND_UINT => Type::U(self.bits),
@@ -112,9 +132,7 @@ impl Meta {
     }
 
     pub fn channels(&self) -> usize {
-        unsafe {
-            ffi::imagedColorNumChannels(self.color)
-        }
+        unsafe { ffi::imagedColorNumChannels(self.color) }
     }
 }
 
@@ -147,7 +165,10 @@ impl<'a> Drop for KeyIter<'a> {
 
 impl<'a> Handle<'a> {
     pub fn image(&self) -> Image<'a> {
-        Image(&self.0.image as *const ffi::Image as *mut ffi::Image, None)
+        Image(
+            &self.0.image as *const ffi::Image as *mut ffi::Image,
+            Some(self.1),
+        )
     }
 }
 
@@ -198,7 +219,7 @@ impl DB {
         return Ok(KeyIter(iter, self));
     }
 
-    pub fn get<S: AsRef<str>>(&self, key: S, editable: bool) -> Result<Handle, Error> {
+    pub fn get<'a, S: AsRef<str>>(&'a self, key: S, editable: bool) -> Result<Handle<'a>, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
             ffi::imagedGet(
@@ -216,16 +237,20 @@ impl DB {
         Ok(Handle(handle, self))
     }
 
-    pub fn set_image<S: AsRef<str>>(&self, key: S, image: &Image) -> Result<Handle, Error> {
+    pub fn set_image<'a, S: AsRef<str>>(
+        &'a self,
+        key: S,
+        image: &Image,
+    ) -> Result<Handle<'a>, Error> {
         self.set(key, image.meta().clone(), Some(image.data_ptr()))
     }
 
-    pub fn set<S: AsRef<str>>(
-        &self,
+    pub fn set<'a, S: AsRef<str>>(
+        &'a self,
         key: S,
         meta: Meta,
         data: Option<*const c_void>,
-    ) -> Result<Handle, Error> {
+    ) -> Result<Handle<'a>, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
             ffi::imagedSet(
@@ -266,10 +291,6 @@ impl Drop for DB {
     }
 }
 
-extern "C" {
-    fn strlen(_: *const i8) -> usize;
-}
-
 impl<'a> Iter<'a> {
     pub fn reset(&mut self) {
         unsafe { ffi::imagedIterReset(self.0) }
@@ -293,7 +314,7 @@ impl<'a> Iterator for Iter<'a> {
 
         unsafe {
             let iter = &*self.0;
-            let key = std::slice::from_raw_parts(iter.key as *const u8, strlen(iter.key));
+            let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen);
             let key = std::str::from_utf8_unchecked(key);
             Some((key, Image(ptr, Some(self.1))))
         }
@@ -310,7 +331,7 @@ impl<'a> Iterator for KeyIter<'a> {
         }
 
         unsafe {
-            let key = std::slice::from_raw_parts(key as *const u8, strlen(key));
+            let key = std::slice::from_raw_parts(key as *const u8, (&*self.0).keylen);
             let key = std::str::from_utf8_unchecked(key);
             Some(key)
         }
@@ -318,8 +339,7 @@ impl<'a> Iterator for KeyIter<'a> {
 }
 
 impl<'a> Image<'a> {
-    pub fn new(w: usize, h: usize, color: Color, ty: Type) -> Result<Self, Error> {
-        let meta = Meta::new(w, h, color, ty);
+    pub fn new(meta: Meta) -> Result<Self, Error> {
         let image = unsafe {
             ffi::imageAlloc(
                 meta.width,
@@ -335,6 +355,16 @@ impl<'a> Image<'a> {
         }
 
         Ok(Image(image, None))
+    }
+
+    pub fn new_like_with_color(&self, color: Color) -> Result<Self, Error> {
+        let meta = self.meta().clone().with_color(color);
+        Self::new(meta)
+    }
+
+    pub fn new_like_with_type(&self, t: Type) -> Result<Self, Error> {
+        let meta = self.meta().clone().with_type(t);
+        Self::new(meta)
     }
 
     pub fn meta(&self) -> &Meta {
@@ -452,12 +482,7 @@ impl<'a> Image<'a> {
     }
 
     pub fn convert_to(&self, dest: &mut Image) -> Result<(), Error> {
-        let rc = unsafe {
-            ffi::imageConvertTo(
-                self.0,
-                dest.0,
-            )
-        };
+        let rc = unsafe { ffi::imageConvertTo(self.0, dest.0) };
         if !rc {
             return Err(Error::IncorrectImageType);
         }
@@ -466,18 +491,16 @@ impl<'a> Image<'a> {
 
     pub fn convert(&self, color: Color, t: Type) -> Result<Image, Error> {
         let (kind, bits) = t.info();
-        let dest = unsafe {
-            ffi::imageConvert(
-                self.0,
-                color.ffi(),
-                kind,
-                bits,
-            )
-        };
+        let dest = unsafe { ffi::imageConvert(self.0, color.ffi(), kind, bits) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
         Ok(Image(dest, None))
+    }
+
+    pub fn clone<'b>(&self) -> Image<'b> {
+        let img = unsafe { ffi::imageClone(self.0) };
+        Image(img, None)
     }
 }
 

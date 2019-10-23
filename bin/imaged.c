@@ -160,12 +160,22 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    if (!imagedWriteImage(filename, &handle.image)) {
-      fprintf(stderr, "Unable to write image: %s\n", filename);
-      return 1;
+    Image *im = &handle.image;
+
+    if (im->meta.kind != IMAGED_KIND_UINT ||
+        im->meta.color > IMAGED_COLOR_RGBA) {
+      im = imageConvert(im, IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
     }
 
-    puts("OK");
+    if (!imagedWriteImage(filename, im)) {
+      fprintf(stderr, "Unable to write image: %s\n", filename);
+    } else {
+      puts("OK");
+    }
+
+    if (im != &handle.image) {
+      imageFree(im);
+    }
   } else {
     fprintf(stderr, "Invalid command: %s\n", cmd);
     usage();

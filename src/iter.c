@@ -2,6 +2,7 @@
 #include "imaged.h"
 #include <dirent.h>
 #include <stdlib.h>
+#include <string.h>
 
 ImagedIter *imagedIterNew(Imaged *db) {
   ImagedIter *iter = malloc(sizeof(ImagedIter));
@@ -34,18 +35,19 @@ Image *imagedIterNext(ImagedIter *iter) {
     return NULL;
   }
 
+  if (iter->handle.image.data != NULL) {
+    imagedHandleClose(&iter->handle);
+  }
+
   struct dirent *ent = readdir(iter->d);
   if (ent == NULL) {
     return NULL;
   }
   iter->key = ent->d_name;
+  iter->keylen = strlen(iter->key);
 
   if (ent->d_type == DT_DIR) {
     return imagedIterNext(iter);
-  }
-
-  if (iter->handle.image.data != NULL) {
-    imagedHandleClose(&iter->handle);
   }
 
   if (imagedGet(iter->db, ent->d_name, -1, true, &iter->handle) != IMAGED_OK) {

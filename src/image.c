@@ -420,34 +420,23 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
     divisor = 1.0;
   }
 
-#ifdef __SSE__
-  __m128 divi = _mm_load_ps1(&divisor), offs = _mm_load_ps1(&offset);
-#else
   size_t channels = imagedColorNumChannels(im->meta.color), l;
 
   // Ignore alpha channel
   if (channels > 3) {
     channels = 3;
   }
-#endif
 
   IMAGE_ITER_ALL(im, ix, iy) {
     px.data[0] = px.data[1] = px.data[2] = 0.0;
     for (kx = -Ks; kx <= Ks; kx++) {
       for (ky = -Ks; ky <= Ks; ky++) {
         imageGetPixel(im, ix + kx, iy + ky, &p);
-#ifdef __SSE__
-        px.data +=
-            (_mm_load_ps1(&K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)]) / divi) *
-                p.data +
-            offs;
-#else
         for (l = 0; l < channels; l++) {
           px.data[l] +=
               (K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)] / divisor) * p.data[l] +
               offset;
         }
-#endif
       }
     }
 

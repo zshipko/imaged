@@ -10,10 +10,6 @@ extern "C" {
 #include <stdint.h>
 #include <sys/types.h>
 
-#ifdef __SSE__
-#include <immintrin.h>
-#endif
-
 #ifdef _WIN32
 #define IMAGED_PATH_SEP '\\'
 #else
@@ -32,6 +28,7 @@ typedef enum {
   IMAGED_ERR_MAP_FAILED,
   IMAGED_ERR_INVALID_KEY,
   IMAGED_ERR_INVALID_FILE,
+  IMAGED_ERR_LOCKED,
 } ImagedStatus;
 
 const char *imagedError(ImagedStatus status);
@@ -107,11 +104,7 @@ size_t imageIndex(Image *image, size_t x, size_t y);
 void *imageAt(Image *image, size_t x, size_t y);
 
 typedef struct {
-#ifdef __SSE__
-  __m128 data;
-#else
   float data[4];
-#endif
 } Pixel;
 
 void pixelClamp(Pixel *px);
@@ -121,18 +114,6 @@ Pixel pixelRGB(float r, float g, float b);
 Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
-
-#ifdef __SSE__
-#define PIXEL_RED 3
-#define PIXEL_GREEN 2
-#define PIXEL_BLUE 1
-#define PIXEL_ALPHA 0
-#else
-#define PIXEL_RED 0
-#define PIXEL_GREEN 1
-#define PIXEL_BLUE 2
-#define PIXEL_ALPHA 3
-#endif
 
 typedef bool (*imageParallelFn)(uint32_t, uint32_t, Pixel *, void *);
 ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
@@ -158,6 +139,8 @@ typedef struct ImagedHandle {
 } ImagedHandle;
 
 void imagedResetLocks(Imaged *db);
+bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen);
+bool imagedWait(ImagedStatus status);
 
 // Open a new imaged context
 Imaged *imagedOpen(const char *path);
@@ -191,6 +174,7 @@ typedef struct {
   DIR *d;
   struct dirent *ent;
   const char *key;
+  size_t keylen;
   ImagedHandle handle;
 } ImagedIter;
 
@@ -205,6 +189,7 @@ void imagedIterReset(ImagedIter *iter);
 
 #ifndef IMAGED_NO_DEFER
 void defer_free(void *data);
+void defer_Image(Image **db);
 void defer_Imaged(Imaged **db);
 void defer_ImagedIter(ImagedIter **iter);
 void defer_ImagedHandle(ImagedHandle *h);

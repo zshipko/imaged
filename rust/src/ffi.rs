@@ -88,7 +88,6 @@ pub struct __dirstream {
     _unused: [u8; 0],
 }
 pub type DIR = __dirstream;
-pub type __m128 = [f32; 4usize];
 extern "C" {
     pub fn imagedStringPrintf(
         fmt: *const ::std::os::raw::c_char,
@@ -107,6 +106,7 @@ pub enum ImagedStatus {
     IMAGED_ERR_MAP_FAILED = 6,
     IMAGED_ERR_INVALID_KEY = 7,
     IMAGED_ERR_INVALID_FILE = 8,
+    IMAGED_ERR_LOCKED = 9,
 }
 extern "C" {
     pub fn imagedError(status: ImagedStatus) -> *const ::std::os::raw::c_char;
@@ -343,10 +343,9 @@ extern "C" {
     pub fn imageAt(image: *mut Image, x: usize, y: usize) -> *mut ::std::os::raw::c_void;
 }
 #[repr(C)]
-#[repr(align(16))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Pixel {
-    pub data: __m128,
+    pub data: [f32; 4usize],
 }
 #[test]
 fn bindgen_test_layout_Pixel() {
@@ -357,7 +356,7 @@ fn bindgen_test_layout_Pixel() {
     );
     assert_eq!(
         ::std::mem::align_of::<Pixel>(),
-        16usize,
+        4usize,
         concat!("Alignment of ", stringify!(Pixel))
     );
     assert_eq!(
@@ -471,6 +470,16 @@ extern "C" {
     pub fn imagedResetLocks(db: *mut Imaged);
 }
 extern "C" {
+    pub fn imagedKeyIsLocked(
+        db: *mut Imaged,
+        key: *const ::std::os::raw::c_char,
+        keylen: isize,
+    ) -> bool;
+}
+extern "C" {
+    pub fn imagedWait(status: ImagedStatus) -> bool;
+}
+extern "C" {
     pub fn imagedOpen(path: *const ::std::os::raw::c_char) -> *mut Imaged;
 }
 extern "C" {
@@ -519,13 +528,14 @@ pub struct ImagedIter {
     pub d: *mut DIR,
     pub ent: *mut dirent,
     pub key: *const ::std::os::raw::c_char,
+    pub keylen: usize,
     pub handle: ImagedHandle,
 }
 #[test]
 fn bindgen_test_layout_ImagedIter() {
     assert_eq!(
         ::std::mem::size_of::<ImagedIter>(),
-        80usize,
+        88usize,
         concat!("Size of: ", stringify!(ImagedIter))
     );
     assert_eq!(
@@ -574,8 +584,18 @@ fn bindgen_test_layout_ImagedIter() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedIter>())).handle as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImagedIter>())).keylen as *const _ as usize },
         32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ImagedIter),
+            "::",
+            stringify!(keylen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ImagedIter>())).handle as *const _ as usize },
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(ImagedIter),
