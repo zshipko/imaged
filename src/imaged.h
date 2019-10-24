@@ -193,6 +193,8 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);
 // Release ImagedHandle resources including all memory and file descriptors
 void imagedHandleClose(ImagedHandle *handle);
 
+void imagedHandleInit(ImagedHandle *handle);
+
 typedef struct {
   Imaged *db;
   DIR *d;
@@ -223,7 +225,9 @@ void defer_ImagedHandle(ImagedHandle *h);
 #define $Imaged(v) $_(Imaged, v)
 #define $Image(v) $_(Image, v)
 #define $ImagedIter(v) $_(ImagedIter, v)
-#define $ImagedHandle(v) $(ImagedHandle, ImagedHandle, v)
+#define $ImagedHandle(v)                                                       \
+  $(ImagedHandle, ImagedHandle, v);                                            \
+  imagedHandleInit(&v);
 #endif
 
 #ifdef IMAGED_HALIDE

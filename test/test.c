@@ -66,7 +66,7 @@ START_TEST(test_set) {
   data = (float *)handle.image.data;
 
   ck_assert(data != NULL);
-  ck_assert_int_eq(data[123], 0.25);
+  ck_assert_float_eq(data[123], 0.25);
   ck_assert(meta.width == 800);
   ck_assert(meta.height == 600);
   ck_assert(meta.color == IMAGED_COLOR_RGB);
@@ -85,8 +85,9 @@ START_TEST(test_iter) {
 END_TEST
 
 START_TEST(test_remove) {
-  $ImagedHandle(handle);
   ASSERT_OK(imagedRemove(db, "testing", -1));
+
+  $ImagedHandle(handle);
   ck_assert(imagedGet(db, "testing", -1, false, &handle) != IMAGED_OK);
 }
 END_TEST
