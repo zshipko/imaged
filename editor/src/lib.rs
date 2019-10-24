@@ -7,6 +7,8 @@ use glfw::Context;
 
 mod conv;
 
+pub use conv::halide_buffer;
+
 #[derive(Debug)]
 pub enum Error {
     InvalidColor,
@@ -144,7 +146,7 @@ fn make_window<'a>(app: &App, key: &str, image: imaged::Image<'a>) -> Result<Win
         display.set_focus_on_show(true);
         display.show();
 
-        let mut libs = halide_runtime::Manager::new();
+        let libs = halide_runtime::Manager::new();
         libs.load("filters/filters.so");
 
         return Ok(Window {
@@ -160,6 +162,7 @@ fn make_window<'a>(app: &App, key: &str, image: imaged::Image<'a>) -> Result<Win
             libs,
             save: false,
             reset: false,
+            callback: None,
         });
     }
 
@@ -266,6 +269,7 @@ pub struct Window<'a> {
     libs: halide_runtime::Manager,
     save: bool,
     reset: bool,
+    callback: Option<fn(&mut Window) -> Result<(), Error>>,
 }
 
 impl<'a> Window<'a> {
@@ -275,6 +279,23 @@ impl<'a> Window<'a> {
 
     pub fn is_current(&self) -> bool {
         self.display.is_focused()
+    }
+
+    pub fn save(&mut self) {
+        self.save = true
+    }
+
+    pub fn reset(&mut self) {
+        self.reset = true
+    }
+
+    pub fn load_filter(&self, path: &str) -> Result<(), Error> {
+        self.libs.load(path);
+        Ok(())
+    }
+
+    pub fn filter<T: Copy>(&self, path: &str, name: &str) -> Option<halide_runtime::Filter<T>> {
+        self.libs.filter(path, name)
     }
 
     fn update_image(&mut self, db: &imaged::DB) -> Result<(), Error> {
@@ -304,11 +325,6 @@ impl<'a> Window<'a> {
             self.reset = false;
         }
 
-        /*let dst = src
-            .new_like_with_color(imaged::Color::RGB)
-            .map_err(Error::Imaged)?;
-
-        db.set_image("bbb", &dst).map_err(Error::Imaged)?;*/
         Ok(())
     }
 
@@ -337,6 +353,10 @@ impl<'a> Window<'a> {
         Ok(())
     }
 
+    pub fn set_callback(&mut self, f: Option<fn(&mut Window) -> Result<(), Error>>) {
+        self.callback = f
+    }
+
     pub fn draw(&mut self, db: &imaged::DB, axes: &[f32], buttons: &[i32]) -> Result<(), Error> {
         self.display.make_current();
         let mut ctx = self.display.render_context();
@@ -350,6 +370,9 @@ impl<'a> Window<'a> {
 
         let meta = self.image.borrow().meta().clone();
         self.update_image(db)?;
+        if let Some(f) = self.callback {
+            f(self)?;
+        }
         self.draw_cursor(axes, buttons)?;
         unsafe {
             gl::ClearColor(0.3, 0.3, 0.3, 1.0);

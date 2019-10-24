@@ -44,7 +44,11 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits) {
   ezimage_shape shape;
-  void *data = ezimage_imread(filename, NULL, &shape);
+  ezimage_type ty = {
+      .kind = (ezimage_kind)kind,
+      .bits = bits,
+  };
+  void *data = ezimage_imread(filename, &ty, &shape);
   if (!data) {
     return NULL;
   }
