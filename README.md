@@ -1,4 +1,7 @@
-# imaged - image database
+# imaged - image processing and storage
+
+`imaged` provides basic `Image` and `Pixel` types in addition to the `Imaged` image store type, which is used
+to store raw pixel data on disk.
 
 ## Installation
 
@@ -24,3 +27,12 @@ Or to build the library without the `imaged` executable:
 $ make lib
 $ [sudo] make install-lib
 ```
+
+## Bindings
+
+- `./rust`: contains Rust bindings
+- `./go`: contains Go bindings
+
+## GUI
+
+`./editor` contains code for displaying images using GLFW
