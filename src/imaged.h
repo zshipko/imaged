@@ -7,13 +7,13 @@
 using namespace Halide;
 
 template <typename T>
-void interleave_input(T &input, int n, Var x, Var y, Var c) {
+void interleave_input(T &input, Expr n, Var x, Var y, Var c) {
   input.dim(0).set_stride(n).dim(2).set_stride(1);
   input.dim(2).set_bounds(0, n);
 }
 
 template <typename T>
-void interleave_output(T &output, int n, Var x, Var y, Var c) {
+void interleave_output(T &output, Expr n, Var x, Var y, Var c) {
   output.dim(0).set_stride(n).dim(2).set_stride(1);
   output.dim(2).set_bounds(0, n);
   output.reorder(c, x, y).unroll(c);
