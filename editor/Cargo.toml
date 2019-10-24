@@ -6,6 +6,6 @@ edition = "2018"
 
 [dependencies]
 imaged = {path = "../rust"}
-halide-runtime = {path = "../../halide-runtime"}
+halide-runtime = {git = "https://github.com/zshipko/halide-runtime"}
 glfw = "0.33"
 gl = "0.6"
