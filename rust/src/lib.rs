@@ -339,7 +339,7 @@ impl<'a> Iterator for KeyIter<'a> {
 }
 
 impl<'a> Image<'a> {
-    pub fn read<P: AsRef<std::path::Path>>(path: P) -> Result<Image<'a>, Error> {
+    pub fn read_default<P: AsRef<std::path::Path>>(path: P) -> Result<Image<'a>, Error> {
         let path = format!("{}\0", path.as_ref().display());
         let im = unsafe {
             ffi::imageRead(
@@ -354,6 +354,31 @@ impl<'a> Image<'a> {
         }
 
         Ok(Image(im, None))
+    }
+
+    pub fn read<P: AsRef<std::path::Path>>(
+        path: P,
+        x: Option<(Color, Type)>,
+    ) -> Result<Image<'a>, Error> {
+        if let Some((color, t)) = x {
+            let path = format!("{}\0", path.as_ref().display());
+            let (kind, bits) = t.info();
+            let im = unsafe {
+                ffi::imageRead(
+                    path.as_ptr() as *const i8,
+                    std::mem::transmute(color),
+                    std::mem::transmute(kind),
+                    bits,
+                )
+            };
+            if im.is_null() {
+                return Err(Error::NullPointer);
+            }
+
+            Ok(Image(im, None))
+        } else {
+            Self::read_default(path)
+        }
     }
 
     pub fn write<P: AsRef<std::path::Path>>(&self, path: P) -> Result<(), Error> {
