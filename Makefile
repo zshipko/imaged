@@ -9,7 +9,7 @@ DEST?=/usr/local
 $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
 
-ifneq ($(shell uname -s),OpenBSD)
+ifeq ($(shell uname -s),Linux)
 	TEST_LDFLAGS=-lrt -lsubunit
 endif
 
