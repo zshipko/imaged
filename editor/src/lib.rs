@@ -145,6 +145,7 @@ fn make_window<'a>(app: &App, key: &str, image: imaged::Image<'a>) -> Result<Win
         display.set_all_polling(true);
         display.set_focus_on_show(true);
         display.show();
+        display.focus();
 
         let libs = halide_runtime::Manager::new();
         libs.load("filters/filters.so");
@@ -200,7 +201,7 @@ impl<'a> App<'a> {
     }
 
     pub fn create_window(&mut self, key: &str, image: imaged::Image<'a>) -> Result<(), Error> {
-        self.db.set_image(key, &image).map_err(Error::Imaged)?;
+        //self.db.set_image(key, &image).map_err(Error::Imaged)?;
         let window = make_window(self, key, image)?;
         self.windows.insert(key.into(), window);
         Ok(())
@@ -257,8 +258,8 @@ fn handle_event(_win: &Window, _event: glfw::WindowEvent) -> Result<(), Error> {
 }
 
 pub struct Window<'a> {
-    key: String,
-    image: RefCell<imaged::Image<'a>>,
+    pub key: String,
+    pub image: RefCell<imaged::Image<'a>>,
     framebuffer_id: GLuint,
     texture_id: GLuint,
     gl_color: GLuint,

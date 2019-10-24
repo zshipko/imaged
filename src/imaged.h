@@ -1,6 +1,26 @@
 #ifndef __IMAGED_H
 #define __IMAGED_H
 
+#if defined(__cplusplus) && defined(IMAGED_HALIDE_UTIL)
+#include "Halide.h"
+
+using namespace Halide;
+
+template <typename T>
+void interleave_input(T &input, int n, Var x, Var y, Var c) {
+  input.dim(0).set_stride(n).dim(2).set_stride(1);
+  input.dim(2).set_bounds(0, n);
+}
+
+template <typename T>
+void interleave_output(T &output, int n, Var x, Var y, Var c) {
+  output.dim(0).set_stride(n).dim(2).set_stride(1);
+  output.dim(2).set_bounds(0, n);
+  output.reorder(c, x, y).unroll(c);
+}
+
+#else // IMAGED_HALIDE_UTIL
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -208,12 +228,13 @@ void defer_ImagedHandle(ImagedHandle *h);
 
 #ifdef IMAGED_HALIDE
 #include "HalideRuntime.h"
+#include <stdlib.h>
 static halide_type_code_t getType(ImagedKind kind) {
   switch (kind) {
   case IMAGED_KIND_UINT:
     return halide_type_uint;
   case IMAGED_KIND_INT:
-    return halide_type_uint;
+    return halide_type_int;
   case IMAGED_KIND_FLOAT:
     return halide_type_float;
   }
@@ -225,8 +246,8 @@ IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
   buffer->device = 0;
   buffer->device_interface = NULL;
   buffer->host = image->data;
-  buffer->dimensions = channels < 3 ? 2 : 3;
-  buffer->dim = malloc(sizeof(halide_buffer_t) * buffer->dimensions);
+  buffer->dimensions = channels == 1 ? 2 : 3;
+  buffer->dim = malloc(sizeof(halide_dimension_t) * buffer->dimensions);
   if (buffer->dim == NULL) {
     buffer->host = NULL;
     return;
@@ -246,40 +267,46 @@ IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
     buffer->dim[1].flags = 0;
   } else {
     // channels
-    buffer->dim[0].min = 0;
-    buffer->dim[0].extent = channels;
-    buffer->dim[0].stride = 1;
-    buffer->dim[0].flags = 0;
+    buffer->dim[2].min = 0;
+    buffer->dim[2].extent = channels;
+    buffer->dim[2].stride = 1;
+    buffer->dim[2].flags = 0;
 
     // width
-    buffer->dim[1].min = 0;
-    buffer->dim[1].extent = image->meta.width;
-    buffer->dim[1].stride = channels;
-    buffer->dim[1].flags = 0;
+    buffer->dim[0].min = 0;
+    buffer->dim[0].extent = image->meta.width;
+    buffer->dim[0].stride = channels;
+    buffer->dim[0].flags = 0;
 
     // height
-    buffer->dim[2].min = 0;
-    buffer->dim[2].extent = image->meta.height;
-    buffer->dim[2].stride = image->meta.width * channels;
-    buffer->dim[2].flags = 0;
+    buffer->dim[1].min = 0;
+    buffer->dim[1].extent = image->meta.height;
+    buffer->dim[1].stride = image->meta.width * channels;
+    buffer->dim[1].flags = 0;
   }
 
-  struct halide_type_t t;
-  t.code = getType(image->meta.kind);
-  t.bits = image->meta.bits;
-  t.lanes = 1;
-
-  buffer->type = t;
+  buffer->type.code = getType(image->meta.kind);
+  buffer->type.bits = image->meta.bits;
+  buffer->type.lanes = 1;
 }
 
 IMAGED_UNUSED static void imageFreeHalideBuffer(halide_buffer_t *buffer) {
   free(buffer->dim);
 }
 
+static void defer_HalideBuffer(halide_buffer_t *b) {
+  if (b) {
+    imageFreeHalideBuffer(b);
+  }
+}
+
+#define $HalideBuffer(v) $(HalideBuffer, halide_buffer_t, v)
+
 #endif // IMAGED_HALIDE
 
 #ifdef __cplusplus
 }
 #endif
+#endif // IMAGED_HALIDE_UTIL
 
 #endif
