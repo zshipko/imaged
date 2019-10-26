@@ -9,6 +9,10 @@ DEST?=/usr/local
 $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
 
+ifeq ($(shell uname -s),Linux)
+	TEST_LDFLAGS=-lrt -lsubunit
+endif
+
 build: lib bin
 fresh: src/imaged.h .cflags .ldflags build
 
@@ -50,7 +54,7 @@ go:
 
 .PHONY: test
 test: lib
-	@$(CC) $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm -lsubunit -lrt $(LDFLAGS)
+	@$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS)
 	@./test/test
 
 %.o: %.c base

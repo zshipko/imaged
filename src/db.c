@@ -232,6 +232,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
                        ImagedMeta meta, const void *imagedata,
                        ImagedHandle *handle) {
+  imagedHandleInit(handle);
   if (!isValidKey(key, keylen)) {
     return IMAGED_ERR_INVALID_KEY;
   }
@@ -286,6 +287,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
                        bool editable, ImagedHandle *handle) {
+  imagedHandleInit(handle);
   if (!isValidKey(key, keylen)) {
     return IMAGED_ERR_INVALID_KEY;
   }
@@ -359,6 +361,12 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   remove(path);
   close_unlock(fd);
   return IMAGED_OK;
+}
+
+void imagedHandleInit(ImagedHandle *handle) {
+  if (handle) {
+    handle->image.data = NULL;
+  }
 }
 
 void imagedHandleClose(ImagedHandle *handle) {

@@ -30,6 +30,10 @@ size_t imagedColorChannelMap[] = {
 };
 
 size_t imagedColorNumChannels(ImagedColor color) {
+  if (color < 0 || color > IMAGED_COLOR_LAST) {
+    return 0;
+  }
+
   return imagedColorChannelMap[color];
 }
 
@@ -58,6 +62,10 @@ const char *imagedColorNameMap[] = {
 };
 
 const char *imagedColorName(ImagedColor color) {
+  if (color < 0 || color > IMAGED_COLOR_LAST) {
+    return NULL;
+  }
+
   return imagedColorNameMap[color];
 }
 
