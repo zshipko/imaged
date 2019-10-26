@@ -183,8 +183,13 @@ impl<'a> App<'a> {
         })
     }
 
-    pub fn load_filter(&self, path: &str) -> Result<(), Error> {
+    pub fn load(&self, path: &str) -> Result<(), Error> {
         self.libs.load(path);
+        Ok(())
+    }
+
+    pub fn reload(&self, path: &str) -> Result<(), Error> {
+        self.libs.reload(path);
         Ok(())
     }
 

@@ -13,7 +13,7 @@ pub fn main() -> Result<(), Error> {
 
     if args.len() >= 4 {
         let win = app.window(&args[1]).unwrap();
-        app.load_filter(&args[2])?;
+        app.load(&args[2])?;
         let filter =
             app.filter::<unsafe extern "C" fn(
                 *const halide_runtime::Buffer,
