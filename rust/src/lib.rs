@@ -344,8 +344,8 @@ impl<'a> Image<'a> {
         let im = unsafe {
             ffi::imageRead(
                 path.as_ptr() as *const i8,
-                ffi::ImagedColor::IMAGED_COLOR_RGB,
-                ffi::ImagedKind::IMAGED_KIND_UINT,
+                std::mem::transmute(-1),
+                std::mem::transmute(-1),
                 8,
             )
         };
