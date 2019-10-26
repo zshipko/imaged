@@ -24,6 +24,7 @@ pub struct App<'a> {
     joystick: glfw::Joystick,
     ctx: RefCell<glfw::Glfw>,
     windows: BTreeMap<String, Window<'a>>,
+    libs: halide_runtime::Manager,
 }
 
 use imaged::ffi::ImagedColor::*;
@@ -147,9 +148,6 @@ fn make_window<'a>(app: &App, key: &str, image: imaged::Image<'a>) -> Result<Win
         display.show();
         display.focus();
 
-        let libs = halide_runtime::Manager::new();
-        libs.load("filters/filters.so");
-
         return Ok(Window {
             key: key.into(),
             image: RefCell::new(image),
@@ -160,7 +158,6 @@ fn make_window<'a>(app: &App, key: &str, image: imaged::Image<'a>) -> Result<Win
             gl_color,
             gl_internal,
             framebuffer_id,
-            libs,
             save: false,
             reset: false,
             callback: None,
@@ -176,12 +173,23 @@ impl<'a> App<'a> {
         let mut ctx = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
         ctx.window_hint(glfw::WindowHint::Visible(true));
         let joystick = ctx.get_joystick(glfw::JoystickId::Joystick1);
+        let libs = halide_runtime::Manager::new();
         Ok(App {
             db: imaged,
             joystick,
             ctx: RefCell::new(ctx),
             windows: BTreeMap::new(),
+            libs,
         })
+    }
+
+    pub fn load_filter(&self, path: &str) -> Result<(), Error> {
+        self.libs.load(path);
+        Ok(())
+    }
+
+    pub fn filter<T: Copy>(&self, path: &str, name: &str) -> Option<halide_runtime::Filter<T>> {
+        self.libs.filter(path, name)
     }
 
     pub fn window(&self, key: &str) -> Option<&Window<'a>> {
@@ -267,7 +275,6 @@ pub struct Window<'a> {
     gl_type: GLuint,
     display: glfw::Window,
     event: std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>,
-    libs: halide_runtime::Manager,
     save: bool,
     reset: bool,
     callback: Option<fn(&mut Window) -> Result<(), Error>>,
@@ -288,15 +295,6 @@ impl<'a> Window<'a> {
 
     pub fn reset(&mut self) {
         self.reset = true
-    }
-
-    pub fn load_filter(&self, path: &str) -> Result<(), Error> {
-        self.libs.load(path);
-        Ok(())
-    }
-
-    pub fn filter<T: Copy>(&self, path: &str, name: &str) -> Option<halide_runtime::Filter<T>> {
-        self.libs.filter(path, name)
     }
 
     fn update_image(&mut self, db: &imaged::DB) -> Result<(), Error> {

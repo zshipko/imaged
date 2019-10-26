@@ -13,9 +13,9 @@ pub fn main() -> Result<(), Error> {
 
     if args.len() >= 4 {
         let win = app.window(&args[1]).unwrap();
-        win.load_filter(&args[2])?;
+        app.load_filter(&args[2])?;
         let filter =
-            win.filter::<unsafe extern "C" fn(
+            app.filter::<unsafe extern "C" fn(
                 *const halide_runtime::Buffer,
                 *mut halide_runtime::Buffer,
             ) -> i32>(&args[2], &args[3]);
