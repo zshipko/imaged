@@ -10,7 +10,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static void mkdir_all(const char *dir) {
+static const char _header[4] = "imgd";
+static size_t _header_size = sizeof(_header);
+
+static void mkdirAll(const char *dir) {
   char tmp[PATH_MAX];
   char *p = NULL;
   size_t len;
@@ -181,7 +184,7 @@ Imaged *imagedOpen(const char *path) {
     return NULL;
   }
 
-  mkdir_all(path);
+  mkdirAll(path);
 
   Imaged *db = malloc(sizeof(Imaged));
   if (db == NULL) {
@@ -245,7 +248,8 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_LOCKED;
   }
 
-  size_t map_size = sizeof(ImagedMeta) + imagedMetaTotalBytes(&meta);
+  size_t map_size =
+      _header_size + sizeof(ImagedMeta) + imagedMetaTotalBytes(&meta);
   if (lseek(fd, map_size, SEEK_SET) == -1) {
     close_unlock(fd);
     return IMAGED_ERR_SEEK;
@@ -263,10 +267,12 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   bzero(data, map_size);
-  memcpy(data, &meta, sizeof(ImagedMeta));
+  memcpy(data, _header, _header_size);
+  memcpy(data + _header_size, &meta, sizeof(ImagedMeta));
 
   if (imagedata != NULL) {
-    memcpy(data + sizeof(ImagedMeta), imagedata, imagedMetaTotalBytes(&meta));
+    memcpy(data + _header_size + sizeof(ImagedMeta), imagedata,
+           imagedMetaTotalBytes(&meta));
   }
 
   if (handle == NULL) {
@@ -276,7 +282,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   handle->fd = fd;
   handle->image.meta = meta;
-  handle->image.data = data + sizeof(ImagedMeta);
+  handle->image.data = data + _header_size + sizeof(ImagedMeta);
 
   return IMAGED_OK;
 }
@@ -296,8 +302,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   size_t map_size = st.st_size;
-  if (map_size <= sizeof(ImagedMeta)) {
-    unlink(path);
+  if (map_size <= _header_size + sizeof(ImagedMeta)) {
     return IMAGED_ERR_INVALID_FILE;
   }
 
@@ -325,14 +330,22 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_MAP_FAILED;
   }
 
-  handle->fd = fd;
-  memcpy(&handle->image.meta, data, sizeof(ImagedMeta));
-  handle->image.data = data + sizeof(ImagedMeta);
+  if (strncmp(data, _header, _header_size) != 0) {
+    munmap(data, map_size);
+    close_unlock(fd);
+    return IMAGED_ERR_INVALID_FILE;
+  }
 
-  if (imagedMetaTotalBytes(&handle->image.meta) + sizeof(ImagedMeta) + 1 !=
+  handle->fd = fd;
+
+  memcpy(&handle->image.meta, data + _header_size, sizeof(ImagedMeta));
+  handle->image.data = data + _header_size + sizeof(ImagedMeta);
+
+  if (imagedMetaTotalBytes(&handle->image.meta) + _header_size +
+          sizeof(ImagedMeta) + 1 !=
       (size_t)st.st_size) {
+
     imagedHandleClose(handle);
-    unlink(path);
     return IMAGED_ERR_INVALID_FILE;
   }
 
@@ -350,10 +363,20 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   if (fd < 0) {
     return IMAGED_ERR_FILE_DOES_NOT_EXIST;
   }
+
+  char header[4];
+  int n;
+  if ((n = read(fd, &header, _header_size)) != 4 ||
+      strncmp(header, _header, _header_size) != 0) {
+    close(fd);
+    return IMAGED_ERR_INVALID_FILE;
+  }
+
   if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
     close(fd);
     return IMAGED_ERR_LOCKED;
   }
+
   remove(path);
   close_unlock(fd);
   return IMAGED_OK;
@@ -372,8 +395,8 @@ void imagedHandleClose(ImagedHandle *handle) {
 
   if (handle->image.data != NULL) {
     void *ptr = handle->image.data - sizeof(ImagedMeta);
-    size_t size =
-        sizeof(ImagedMeta) + imagedMetaTotalBytes(&handle->image.meta);
+    size_t size = _header_size + sizeof(ImagedMeta) +
+                  imagedMetaTotalBytes(&handle->image.meta);
     msync(ptr, size, MS_SYNC);
     munmap(ptr, size);
     handle->image.data = NULL;

@@ -10,8 +10,6 @@
 #define ASSERT_OK(x) ck_assert_int_eq(x, IMAGED_OK)
 #define ASSERT_NOT_OK(x) ck_assert_int_eq(x, IMAGED_ERR)
 
-char temp[] = "test/test";
-
 Imaged *db;
 
 static void init_test_db() {
@@ -66,7 +64,7 @@ START_TEST(test_set) {
   data = (float *)handle.image.data;
 
   ck_assert(data != NULL);
-  ck_assert_float_eq(data[123], 0.25);
+  ck_assert(data[123] == 0.25);
   ck_assert(meta.width == 800);
   ck_assert(meta.height == 600);
   ck_assert(meta.color == IMAGED_COLOR_RGB);

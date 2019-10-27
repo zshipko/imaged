@@ -532,6 +532,9 @@ extern "C" {
 extern "C" {
     pub fn imagedHandleClose(handle: *mut ImagedHandle);
 }
+extern "C" {
+    pub fn imagedHandleInit(handle: *mut ImagedHandle);
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedIter {
