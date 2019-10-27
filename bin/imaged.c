@@ -22,7 +22,7 @@ static void usage() { fputs(usage_s, stderr); }
 int main(int argc, char *argv[]) {
   int opt;
 
-  const char *root = "/tmp/imaged";
+  const char *root = NULL;
 
   while ((opt = getopt(argc, argv, "r:")) != -1) {
     switch (opt) {
