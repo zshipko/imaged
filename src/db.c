@@ -169,15 +169,11 @@ void imagedResetLocks(Imaged *db) {
   closedir(dir);
 }
 
-#ifdef _WIN32
-static char defaultRoot[] = "\\tmp\\imaged";
-#else
-static char defaultRoot[] = "/tmp/imaged";
-#endif
+static char cwdBuf[PATH_MAX];
 
 Imaged *imagedOpen(const char *path) {
   if (path == NULL) {
-    path = defaultRoot;
+    path = getcwd(cwdBuf, PATH_MAX - 1);
   }
 
   char *root = strndup(path, strlen(path));
