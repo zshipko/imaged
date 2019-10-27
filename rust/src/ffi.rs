@@ -488,6 +488,13 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn imagedIsValidFile(
+        db: *mut Imaged,
+        key: *const ::std::os::raw::c_char,
+        keylen: isize,
+    ) -> bool;
+}
+extern "C" {
     pub fn imagedWait(status: ImagedStatus) -> bool;
 }
 extern "C" {

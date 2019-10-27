@@ -99,3 +99,17 @@ func (db *Imaged) Remove(key string) error {
 
 	return nil
 }
+
+func (db *Imaged) IsLocked(key string) bool {
+	cKey := C.CString(key)
+	defer C.free(unsafe.Pointer(cKey))
+
+	return bool(C.imagedKeyIsLocked(db.ptr, cKey, C.ssize_t(len(key))))
+}
+
+func (db *Imaged) IsValidFile(key string) bool {
+	cKey := C.CString(key)
+	defer C.free(unsafe.Pointer(cKey))
+
+	return bool(C.imagedIsValidFile(db.ptr, cKey, C.ssize_t(len(key))))
+}

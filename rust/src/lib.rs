@@ -237,6 +237,14 @@ impl DB {
         Ok(Handle(handle, self))
     }
 
+    pub fn is_locked(&self, key: &str) -> bool {
+        unsafe { ffi::imagedKeyIsLocked(self.0, key.as_ptr() as *const i8, key.len() as isize) }
+    }
+
+    pub fn file_is_valid(&self, key: &str) -> bool {
+        unsafe { ffi::imagedIsValidFile(self.0, key.as_ptr() as *const i8, key.len() as isize) }
+    }
+
     pub fn set_image<'a, S: AsRef<str>>(
         &'a self,
         key: S,

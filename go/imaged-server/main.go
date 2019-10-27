@@ -3,16 +3,18 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"crypto/tls"
 
 	"github.com/zshipko/worm"
 
-	"github.com/zshipko/imaged/go"
+	imaged "github.com/zshipko/imaged/go"
 )
 
 func main() {
-	root := flag.String("root", "/tmp/imaged", "Root path")
+	wd, _ := os.Getwd()
+	root := flag.String("root", wd, "Root path")
 	addr := flag.String("addr", "127.0.0.1:9991", "Address to listen on")
 	certFile := flag.String("cert", "", "SSL certificate path")
 	keyFile := flag.String("key", "", "SSL key path")
