@@ -1,6 +1,6 @@
 #include "imaged.h"
 
-Pixel pixelEmpty() {
+Pixel pixelEmpty(void) {
   Pixel px = {.data = {0.0, 0.0, 0.0, 0.0}};
   return px;
 }

@@ -54,7 +54,7 @@ typedef enum {
 const char *imagedError(ImagedStatus status);
 void imagedPrintError(ImagedStatus status, const char *message);
 
-typedef struct ImagedHandle ImagedHandle;
+struct ImagedHandle;
 
 typedef struct {
   char *root;
@@ -132,7 +132,7 @@ typedef struct {
 } Pixel;
 
 void pixelClamp(Pixel *px);
-Pixel pixelEmpty();
+Pixel pixelEmpty(void);
 Pixel pixelGray(float r);
 Pixel pixelRGB(float r, float g, float b);
 Pixel pixelRGBA(float r, float g, float b, float a);
