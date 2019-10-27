@@ -133,6 +133,35 @@ size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
          ((size_t)meta->bits / 8);
 }
 
+bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
+  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  int fd = open(path, O_RDONLY);
+  if (fd < 0) {
+    return false;
+  }
+
+  struct stat st;
+  stat(path, &st);
+
+  char header[4];
+  if (read(fd, header, 4) != 4 || strncmp(header, _header, _header_size) != 0) {
+    close(fd);
+    return false;
+  }
+
+  ImagedMeta meta;
+
+  if (read(fd, &meta, sizeof(ImagedMeta)) != sizeof(ImagedMeta)) {
+    close(fd);
+    return false;
+  }
+
+  close(fd);
+
+  return imagedMetaTotalBytes(&meta) + _header_size + sizeof(ImagedMeta) + 1 ==
+         (size_t)st.st_size;
+}
+
 bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen) {
   $(free, char, *path) = pathJoin(db->root, key, keylen);
   int fd = open(path, O_RDONLY);

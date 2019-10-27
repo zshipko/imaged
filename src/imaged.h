@@ -164,6 +164,7 @@ typedef struct ImagedHandle {
 
 void imagedResetLocks(Imaged *db);
 bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen);
+bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen);
 bool imagedWait(ImagedStatus status);
 
 // Open a new imaged context
