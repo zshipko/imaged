@@ -51,6 +51,7 @@ rust:
 .PHONY: go
 go:
 	cd go && go build && cd imaged-server && go build
+	cp go/imaged-server/imaged-server .
 
 .PHONY: test
 test: lib

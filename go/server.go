@@ -4,7 +4,12 @@ package imaged
 import "C"
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/zshipko/worm"
@@ -131,6 +136,44 @@ func (c *Context) SetPixel(client *worm.Client, key, x, y *worm.Value, px ...*wo
 	}
 
 	return client.WriteOK()
+}
+
+func tempFileName(prefix, suffix string) string {
+	randBytes := make([]byte, 16)
+	rand.Read(randBytes)
+	return filepath.Join(os.TempDir(), prefix+hex.EncodeToString(randBytes)+suffix)
+}
+
+func (c *Context) Export(client *worm.Client, key, fmt *worm.Value) error {
+	handle, err := c.DB.Get(key.ToString())
+	if err != nil {
+		return err
+	}
+	defer handle.Close()
+
+	img := handle.Image()
+
+	tmp := tempFileName("imaged", "."+fmt.ToString())
+
+	if !img.Write(tmp) {
+		return errors.New("Unable to write image")
+	}
+
+	f, err := os.Open(tmp)
+	if err != nil {
+		return errors.New("File was not written")
+	}
+	defer f.Close()
+	defer os.Remove(tmp)
+
+	info, err := f.Stat()
+	if err != nil {
+		return errors.New("Unable to get file information")
+	}
+
+	client.WriteStringHeader(int(info.Size()))
+	_, err = io.Copy(f, client.Input)
+	return err
 }
 
 var typesToNames = map[Type]string{

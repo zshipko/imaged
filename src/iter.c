@@ -67,8 +67,9 @@ const char *imagedIterNextKey(ImagedIter *iter) {
     return NULL;
   }
   iter->key = ent->d_name;
+  iter->keylen = strlen(iter->key);
 
-  if (ent->d_type == DT_DIR) {
+  if (ent->d_type == DT_DIR || !imagedIsValidFile(iter->db, ent->d_name, -1)) {
     return imagedIterNextKey(iter);
   }
 
