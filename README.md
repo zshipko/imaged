@@ -1,7 +1,4 @@
-# imaged - image processing and storage
-
-`imaged` provides basic `Image` and `Pixel` types in addition to the `Imaged` image store type, which is used
-to store raw pixel data on disk.
+# imaged - image processing and storage framework
 
 ## Installation
 
