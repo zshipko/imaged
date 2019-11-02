@@ -1,6 +1,7 @@
 package imaged
 
 // #include "imaged.h"
+// #include <stdlib.h>
 import "C"
 
 import (
@@ -10,7 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+	"unsafe"
 
 	"github.com/zshipko/worm"
 )
@@ -23,14 +24,20 @@ func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.V
 	keyString := key.ToString()
 	w := uint64(width.ToInt64())
 	h := uint64(height.ToInt64())
-	cl := Color(color.ToInt64())
 
-	t := U8
-	if x, ok := namesToTypes[strings.ToLower(ty.ToString())]; ok {
-		t = x
+	colorStr := C.CString(color.ToString())
+	typeStr := C.CString(ty.ToString())
+	defer C.free(unsafe.Pointer(colorStr))
+	defer C.free(unsafe.Pointer(typeStr))
+
+	var cl C.ImagedColor
+	var t C.ImagedKind
+	var bits C.uint8_t
+	if !bool(C.imagedParseColorAndType(colorStr, typeStr, &cl, &t, &bits)) {
+		return client.WriteError("invalid color/type")
 	}
 
-	handle, err := c.DB.Set(keyString, w, h, cl, t)
+	handle, err := c.DB.Set(keyString, w, h, Color(cl), Type{bits: uint8(bits), kind: t})
 	if err != nil {
 		return err
 	}
@@ -55,12 +62,13 @@ func (c *Context) List(client *worm.Client) error {
 	names := []*worm.Value{}
 	for iter.Next() {
 		w, h, c, t := iter.Image().Meta()
+		typeName := C.GoString(C.imagedTypeName(t.kind, C.uint8_t(t.bits)))
 		entry := []*worm.Value{
 			worm.New(iter.Key()),
 			worm.New(w),
 			worm.New(h),
 			worm.New(int(c)),
-			worm.New(typesToNames[t]),
+			worm.New(typeName),
 		}
 		names = append(names, worm.New(entry))
 	}
@@ -174,18 +182,4 @@ func (c *Context) Export(client *worm.Client, key, fmt *worm.Value) error {
 	client.WriteStringHeader(int(info.Size()))
 	_, err = io.Copy(f, client.Input)
 	return err
-}
-
-var typesToNames = map[Type]string{
-	U8:  "u8",
-	U16: "u16",
-	F32: "f32",
-	F64: "f64",
-}
-
-var namesToTypes = map[string]Type{
-	"u8":  U8,
-	"u16": U16,
-	"f32": F32,
-	"f64": F64,
 }
