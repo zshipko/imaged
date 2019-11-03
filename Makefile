@@ -1,10 +1,22 @@
 VERSION=0.1
 SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c
 OBJ=$(SRC:.c=.o)
-CFLAGS?=-Wall -Wextra `pkg-config --cflags babl ezimage`
-LDFLAGS?=-lpthread `pkg-config --libs babl ezimage`
+
+RAW?=1
+PKGS?= babl ezimage
+
+ifeq ($(RAW),1)
+	PKGS += libraw
+endif
+
+CFLAGS?=-Wall -Wextra `pkg-config --cflags $(PKGS)`
+LDFLAGS?=-lpthread `pkg-config --libs $(PKGS)`
 PIC?=-fPIC
 DEST?=/usr/local
+
+ifneq ($(RAW),1)
+	CFLAGS += -DIMAGED_NO_RAW
+endif
 
 $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
@@ -22,7 +34,7 @@ bin: src/imaged.h .cflags $(OBJ)
 
 lib: $(OBJ)
 	$(AR) rcs libimaged.a $(OBJ)
-	@printf "Name: imaged\nDescription: Imaging storage library\nVersion: $(VERSION)\nLibs: -L$(DEST)/lib -limaged $(LDFLAGS)\nCflags: -I/usr/local/include -I$(DEST)/include\nRequires: babl\n" > imaged.pc
+	@printf "Name: imaged\nDescription: Imaging storage library\nVersion: $(VERSION)\nLibs: -L$(DEST)/lib -limaged $(LDFLAGS)\nCflags: -I/usr/local/include -I$(DEST)/include\nRequires: $(PKGS)\n" > imaged.pc
 
 shared: $(OBJ)
 	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.so $(OBJ) $(LDFLAGS)

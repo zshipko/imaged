@@ -41,8 +41,51 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
   return ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
 }
 
-Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
-                 uint8_t bits) {
+#ifndef IMAGED_NO_RAW
+#include <libraw/libraw.h>
+static Image *imageReadRAW(const char *filename) {
+  libraw_data_t *ctx = libraw_init(0);
+  if (!ctx) {
+    return NULL;
+  }
+
+  if (libraw_open_file(ctx, filename) != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  if (libraw_unpack(ctx) != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  if (libraw_dcraw_process(ctx) != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  int errcode = LIBRAW_SUCCESS;
+  libraw_processed_image_t *raw = libraw_dcraw_make_mem_image(ctx, &errcode);
+  if (raw == NULL || errcode != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  Image *image = imageAlloc(raw->width, raw->height, IMAGED_COLOR_RGB,
+                            IMAGED_KIND_UINT, raw->bits, raw->data);
+  if (image == NULL) {
+    goto err1;
+  }
+
+  libraw_dcraw_clear_mem(raw);
+  return image;
+
+err1:
+  libraw_dcraw_clear_mem(raw);
+err:
+  libraw_close(ctx);
+  return NULL;
+}
+#endif
+
+static Image *imageReadFile(const char *filename, ImagedKind kind,
+                            uint8_t bits) {
   ezimage_shape shape;
   ezimage_type ty = {
       .kind = (ezimage_kind)kind,
@@ -50,6 +93,7 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
   };
   void *data = ezimage_imread(filename, &ty, &shape);
   if (!data) {
+
     return NULL;
   }
 
@@ -66,6 +110,24 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
 
   image->meta = imagedMetaFromEzimageShape(shape);
   image->data = data;
+
+  return image;
+}
+
+Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
+                 uint8_t bits) {
+  Image *image = imageReadFile(filename, kind, bits);
+  if (image == NULL) {
+#ifndef IMAGED_NO_RAW
+    image = imageReadRAW(filename);
+#else
+    return NULL;
+#endif
+  }
+
+  if (image == NULL) {
+    return NULL;
+  }
 
   if ((image->meta.color != color || color < 0) ||
       (image->meta.kind != kind || kind < 0) ||
