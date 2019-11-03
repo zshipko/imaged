@@ -118,6 +118,7 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits);
 ImagedStatus imageWrite(const char *path, const Image *image);
 
+Image *imageNew(ImagedMeta meta);
 Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
                   uint8_t bits, const void *data);
 Image *imageClone(const Image *image);
@@ -156,6 +157,8 @@ ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
 bool imageConvertTo(const Image *src, Image *dest);
 Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits);
+bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
+                         uint8_t bits);
 
 typedef struct ImagedHandle {
   int fd;

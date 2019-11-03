@@ -13,29 +13,43 @@
 
 #include <babl/babl.h>
 
-Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
-                  uint8_t bits, const void *data) {
+Image *imageNew(ImagedMeta meta) {
   Image *image = malloc(sizeof(Image));
   if (!image) {
     return NULL;
   }
 
-  image->meta.width = w;
-  image->meta.height = h;
-  image->meta.color = color;
-  image->meta.kind = kind;
-  image->meta.bits = bits;
+  image->meta = meta;
 
-  size_t channels = imagedColorNumChannels(color);
+  size_t channels = imagedColorNumChannels(meta.color);
 
-  image->data = calloc(w * h * channels, bits / 8);
+  image->data = calloc(meta.width * meta.height * channels, meta.bits / 8);
   if (image->data == NULL) {
     free(image);
     return NULL;
   }
 
+  return image;
+}
+
+Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
+                  uint8_t bits, const void *data) {
+  ImagedMeta meta = {
+      .width = w,
+      .height = h,
+      .color = color,
+      .kind = kind,
+      .bits = bits,
+  };
+
+  Image *image = imageNew(meta);
+  if (image == NULL) {
+    return NULL;
+  }
+
   if (data) {
-    memcpy(image->data, data, w * h * channels * (bits / 8));
+    memcpy(image->data, data,
+           w * h * imagedColorNumChannels(meta.color) * (meta.bits / 8));
   }
 
   return image;
@@ -380,6 +394,24 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
   }
 
   return dest;
+}
+
+bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
+                         uint8_t bits) {
+
+  Image *tmp = *src;
+  if (!tmp) {
+    return false;
+  }
+
+  *src = imageConvert(*src, color, kind, bits);
+  if (*src == NULL) {
+    *src = tmp;
+    return false;
+  }
+
+  imageFree(tmp);
+  return true;
 }
 
 void imageRotate(Image *im, Image *dst, float deg) {
