@@ -2,21 +2,25 @@ VERSION=0.1
 SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c
 OBJ=$(SRC:.c=.o)
 
-RAW?=1
-PKGS?= babl ezimage
+RAW=1
+PKGS= babl ezimage
+FLAGS=
+HAS_RAW?=$(shell pkg-config --cflags --libs libraw)
 
 ifeq ($(RAW),1)
+ifneq ($(HAS_RAW),)
 	PKGS += libraw
+else
+	FLAGS += -DIMAGED_NO_RAW
+endif
+else
+	FLAGS += -DIMAGED_NO_RAW
 endif
 
-CFLAGS?=-Wall -Wextra `pkg-config --cflags $(PKGS)`
+CFLAGS?=-Wall -Wextra `pkg-config --cflags $(PKGS)` $(FLAGS)
 LDFLAGS?=-lpthread `pkg-config --libs $(PKGS)`
 PIC?=-fPIC
 DEST?=/usr/local
-
-ifneq ($(RAW),1)
-	CFLAGS += -DIMAGED_NO_RAW
-endif
 
 $(shell echo $(CFLAGS) > .cflags)
 $(shell echo $(LDFALGS) > .ldflags)
