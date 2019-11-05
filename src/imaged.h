@@ -19,7 +19,7 @@ void interleave_output(T &output, Expr n, Var x, Var y, Var c) {
   output.reorder(c, x, y).unroll(c);
 }
 
-#else // IMAGED_HALIDE_UTIL
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -235,6 +235,10 @@ void defer_ImagedHandle(ImagedHandle *h);
   imagedHandleInit(&v);
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 #ifdef IMAGED_HALIDE
 #include "HalideRuntime.h"
 #include <stdlib.h>
@@ -254,9 +258,10 @@ IMAGED_UNUSED static void imageNewHalideBuffer(Image *image,
   size_t channels = imagedColorNumChannels(image->meta.color);
   buffer->device = 0;
   buffer->device_interface = NULL;
-  buffer->host = image->data;
+  buffer->host = (uint8_t *)image->data;
   buffer->dimensions = channels == 1 ? 2 : 3;
-  buffer->dim = malloc(sizeof(halide_dimension_t) * buffer->dimensions);
+  buffer->dim = (halide_dimension_t *)malloc(sizeof(halide_dimension_t) *
+                                             buffer->dimensions);
   if (buffer->dim == NULL) {
     buffer->host = NULL;
     return;
@@ -303,7 +308,7 @@ IMAGED_UNUSED static void imageFreeHalideBuffer(halide_buffer_t *buffer) {
   free(buffer->dim);
 }
 
-static void defer_HalideBuffer(halide_buffer_t *b) {
+IMAGED_UNUSED static void defer_HalideBuffer(halide_buffer_t *b) {
   if (b) {
     imageFreeHalideBuffer(b);
   }
@@ -312,10 +317,5 @@ static void defer_HalideBuffer(halide_buffer_t *b) {
 #define $HalideBuffer(v) $(HalideBuffer, halide_buffer_t, v)
 
 #endif // IMAGED_HALIDE
-
-#ifdef __cplusplus
-}
-#endif
-#endif // IMAGED_HALIDE_UTIL
 
 #endif

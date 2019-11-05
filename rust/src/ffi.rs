@@ -323,7 +323,13 @@ extern "C" {
     ) -> *mut Image;
 }
 extern "C" {
+    pub fn imageReadDefault(filename: *const ::std::os::raw::c_char) -> *mut Image;
+}
+extern "C" {
     pub fn imageWrite(path: *const ::std::os::raw::c_char, image: *const Image) -> ImagedStatus;
+}
+extern "C" {
+    pub fn imageNew(meta: ImagedMeta) -> *mut Image;
 }
 extern "C" {
     pub fn imageAlloc(
@@ -437,6 +443,14 @@ extern "C" {
         kind: ImagedKind,
         bits: u8,
     ) -> *mut Image;
+}
+extern "C" {
+    pub fn imageConvertInPlace(
+        src: *mut *mut Image,
+        color: ImagedColor,
+        kind: ImagedKind,
+        bits: u8,
+    ) -> bool;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]

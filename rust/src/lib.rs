@@ -2,6 +2,11 @@ use std::ffi::c_void;
 
 pub mod ffi;
 
+mod conv;
+
+#[cfg(feature = "halide")]
+pub use conv::halide_buffer;
+
 #[derive(Debug)]
 pub enum Error {
     CannotOpenDB,

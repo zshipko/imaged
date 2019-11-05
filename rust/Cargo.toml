@@ -5,6 +5,11 @@ authors = ["Zach Shipko <zachshipko@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional=true}
 
 [build-dependencies]
 pkg-config = "0.3"
+
+[features]
+default = ["halide"]
+halide = ["halide-runtime"]
