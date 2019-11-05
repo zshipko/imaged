@@ -88,6 +88,10 @@ impl Color {
     pub fn ffi(&self) -> ffi::ImagedColor {
         unsafe { std::mem::transmute_copy(self) }
     }
+
+    pub fn channels(&self) -> usize {
+        unsafe { ffi::imagedColorNumChannels(self.ffi()) }
+    }
 }
 
 impl Type {
