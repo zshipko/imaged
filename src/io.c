@@ -139,3 +139,7 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
 
   return image;
 }
+
+Image *imageReadDefault(const char *filename) {
+  return imageRead(filename, -1, -1, 0);
+}

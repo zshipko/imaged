@@ -116,6 +116,7 @@ typedef struct {
 
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits);
+Image *imageReadDefault(const char *filename);
 ImagedStatus imageWrite(const char *path, const Image *image);
 
 Image *imageNew(ImagedMeta meta);
