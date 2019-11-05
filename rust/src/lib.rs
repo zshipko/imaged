@@ -7,6 +7,9 @@ mod conv;
 #[cfg(feature = "halide")]
 pub use conv::halide_buffer;
 
+#[cfg(feature = "halide")]
+pub use halide_runtime as halide;
+
 #[cfg(feature = "viewer")]
 pub mod viewer;
 
