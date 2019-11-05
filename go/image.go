@@ -134,6 +134,18 @@ func (i *Image) Convert(color Color, t Type) *Image {
 	}
 }
 
+func (i *Image) ResizeTo(other *Image) {
+	C.imageResizeTo(i.ptr, other.ptr)
+}
+
+func (i *Image) Resize(width, height uint) *Image {
+	im := C.imageResize(i.ptr, C.size_t(width), C.size_t(height))
+	return &Image{
+		ptr:   im,
+		owner: true,
+	}
+}
+
 func NewImage(width int, height int, color Color, t Type) *Image {
 	im := C.imageAlloc(C.size_t(width), C.size_t(height), C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits), nil)
 	return &Image{

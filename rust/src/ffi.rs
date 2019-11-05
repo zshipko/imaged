@@ -5,7 +5,6 @@
 #![allow(non_snake_case)]
 
 pub type __uint8_t = ::std::os::raw::c_uchar;
-pub type __uint32_t = ::std::os::raw::c_uint;
 pub type __uint64_t = ::std::os::raw::c_ulong;
 pub type __ino_t = ::std::os::raw::c_ulong;
 pub type __off_t = ::std::os::raw::c_long;
@@ -408,31 +407,6 @@ extern "C" {
 extern "C" {
     pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
 }
-pub type imageParallelFn = ::std::option::Option<
-    unsafe extern "C" fn(
-        arg1: u32,
-        arg2: u32,
-        arg3: *mut Pixel,
-        arg4: *mut ::std::os::raw::c_void,
-    ) -> bool,
->;
-extern "C" {
-    pub fn imageEachPixel2(
-        src: *mut Image,
-        dst: *mut Image,
-        fn_: imageParallelFn,
-        nthreads: ::std::os::raw::c_int,
-        userdata: *mut ::std::os::raw::c_void,
-    ) -> ImagedStatus;
-}
-extern "C" {
-    pub fn imageEachPixel(
-        im: *mut Image,
-        fn_: imageParallelFn,
-        nthreads: ::std::os::raw::c_int,
-        userdata: *mut ::std::os::raw::c_void,
-    ) -> ImagedStatus;
-}
 extern "C" {
     pub fn imageConvertTo(src: *const Image, dest: *mut Image) -> bool;
 }
@@ -451,6 +425,12 @@ extern "C" {
         kind: ImagedKind,
         bits: u8,
     ) -> bool;
+}
+extern "C" {
+    pub fn imageResizeTo(src: *mut Image, dest: *mut Image);
+}
+extern "C" {
+    pub fn imageResize(src: *mut Image, x: usize, y: usize) -> *mut Image;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]

@@ -571,6 +571,19 @@ impl<'a> Image<'a> {
         Ok(Image(dest, None))
     }
 
+    pub fn resize_to(&self, dest: &mut Image) -> Result<(), Error> {
+        unsafe { ffi::imageResizeTo(self.0, dest.0) };
+        Ok(())
+    }
+
+    pub fn resize(&self, width: usize, height: usize) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageResize(self.0, width, height) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+        Ok(Image(dest, None))
+    }
+
     pub fn clone<'b>(&self) -> Image<'b> {
         let img = unsafe { ffi::imageClone(self.0) };
         Image(img, None)
