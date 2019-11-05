@@ -241,6 +241,7 @@ ImagedStatus imagedDestroy(Imaged *db) {
     imagedRemove(db, iter->key, -1);
   }
 
+  rmdir(db->root);
   return IMAGED_OK;
 }
 
