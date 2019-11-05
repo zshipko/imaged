@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::collections::BTreeMap;
-use std::path::Path;
 
 use gl::types::*;
 use glfw::Context as GLFWContext;
@@ -17,9 +16,9 @@ pub enum Error {
     Glfw(glfw::Error),
 }
 
-pub struct Context<'a> {
+pub struct Context {
     gl: RefCell<glfw::Glfw>,
-    windows: BTreeMap<String, Window<'a>>,
+    windows: BTreeMap<String, Window>,
 }
 
 use crate::ffi::ImagedColor::*;
@@ -44,13 +43,11 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
         crate::ffi::ImagedKind::IMAGED_KIND_INT => match image.meta().bits {
             8 => gl::BYTE,
             16 => gl::SHORT,
-            32 => gl::INT,
             _ => return Err(Error::InvalidBits),
         },
         crate::ffi::ImagedKind::IMAGED_KIND_UINT => match image.meta().bits {
             8 => gl::UNSIGNED_BYTE,
             16 => gl::UNSIGNED_SHORT,
-            32 => gl::UNSIGNED_INT,
             _ => return Err(Error::InvalidBits),
         },
         crate::ffi::ImagedKind::IMAGED_KIND_FLOAT => match image.meta().bits {
@@ -60,33 +57,25 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     };
 
     let internal = match (color, kind) {
-        (gl::RED, gl::BYTE) => gl::R8I,
-        (gl::RED, gl::SHORT) => gl::R16I,
-        (gl::RED, gl::INT) => gl::R32I,
+        (gl::RED, gl::BYTE) => gl::R8,
+        (gl::RED, gl::SHORT) => gl::R16,
         (gl::RED, gl::UNSIGNED_BYTE) => gl::R8UI,
         (gl::RED, gl::UNSIGNED_SHORT) => gl::R16UI,
-        (gl::RED, gl::UNSIGNED_INT) => gl::R32UI,
         (gl::RED, gl::FLOAT) => gl::R32F,
-        (gl::RG, gl::BYTE) => gl::RG8I,
-        (gl::RG, gl::SHORT) => gl::RG16I,
-        (gl::RG, gl::INT) => gl::RG32I,
-        (gl::RG, gl::UNSIGNED_BYTE) => gl::RG8UI,
-        (gl::RG, gl::UNSIGNED_SHORT) => gl::RG16UI,
-        (gl::RG, gl::UNSIGNED_INT) => gl::RG32UI,
+        (gl::RG, gl::BYTE) => gl::RG8,
+        (gl::RG, gl::SHORT) => gl::RG16,
+        (gl::RG, gl::UNSIGNED_BYTE) => gl::RG8,
+        (gl::RG, gl::UNSIGNED_SHORT) => gl::RG16,
         (gl::RG, gl::FLOAT) => gl::RG32F,
-        (gl::RGB, gl::BYTE) => gl::RGB8I,
-        (gl::RGB, gl::SHORT) => gl::RGB16I,
-        (gl::RGB, gl::INT) => gl::RGB32I,
-        (gl::RGB, gl::UNSIGNED_BYTE) => gl::RGB8UI,
-        (gl::RGB, gl::UNSIGNED_SHORT) => gl::RGB16UI,
-        (gl::RGB, gl::UNSIGNED_INT) => gl::RGB32UI,
+        (gl::RGB, gl::BYTE) => gl::RGB8,
+        (gl::RGB, gl::SHORT) => gl::RGB16,
+        (gl::RGB, gl::UNSIGNED_BYTE) => gl::RGB,
+        (gl::RGB, gl::UNSIGNED_SHORT) => gl::RGB16,
         (gl::RGB, gl::FLOAT) => gl::RGB32F,
-        (gl::RGBA, gl::BYTE) => gl::RGBA8I,
-        (gl::RGBA, gl::SHORT) => gl::RGBA16I,
-        (gl::RGBA, gl::INT) => gl::RGBA32I,
-        (gl::RGBA, gl::UNSIGNED_BYTE) => gl::RGBA8UI,
-        (gl::RGBA, gl::UNSIGNED_SHORT) => gl::RGBA16UI,
-        (gl::RGBA, gl::UNSIGNED_INT) => gl::RGBA32UI,
+        (gl::RGBA, gl::BYTE) => gl::RGBA,
+        (gl::RGBA, gl::SHORT) => gl::RGBA16,
+        (gl::RGBA, gl::UNSIGNED_BYTE) => gl::RGBA,
+        (gl::RGBA, gl::UNSIGNED_SHORT) => gl::RGBA16,
         (gl::RGBA, gl::FLOAT) => gl::RGBA32F,
         _ => return Err(Error::InvalidColor),
     };
@@ -110,7 +99,7 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     return Ok((texture_id, internal, kind, color));
 }
 
-fn make_window<'a>(app: &Context, key: &str, image: crate::Image<'a>) -> Result<Window<'a>, Error> {
+fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Window, Error> {
     let meta = image.meta();
     if let Some((mut display, event)) = app.gl.borrow().create_window(
         meta.width as u32,
@@ -159,8 +148,8 @@ fn make_window<'a>(app: &Context, key: &str, image: crate::Image<'a>) -> Result<
     Err(Error::UnableToCreateWindow)
 }
 
-impl<'a> Context<'a> {
-    pub fn new<P: AsRef<Path>>() -> Result<Self, Error> {
+impl Context {
+    pub fn new() -> Result<Self, Error> {
         let mut gl = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
         gl.window_hint(glfw::WindowHint::Visible(true));
         Ok(Context {
@@ -169,15 +158,19 @@ impl<'a> Context<'a> {
         })
     }
 
-    pub fn get_window(&self, key: &str) -> Option<&Window<'a>> {
+    pub fn get_window(&self, key: &str) -> Option<&Window> {
         self.windows.get(key)
     }
 
-    pub fn get_window_mut(&mut self, key: &str) -> Option<&mut Window<'a>> {
+    pub fn get_window_mut(&mut self, key: &str) -> Option<&mut Window> {
         self.windows.get_mut(key)
     }
 
-    pub fn create_window(&mut self, key: &str, image: crate::Image<'a>) -> Result<(), Error> {
+    pub fn num_windows(&self) -> usize {
+        self.windows.len()
+    }
+
+    pub fn create_window(&mut self, key: &str, image: crate::Image) -> Result<(), Error> {
         let window = make_window(self, key, image)?;
         self.windows.insert(key.into(), window);
         Ok(())
@@ -187,6 +180,7 @@ impl<'a> Context<'a> {
         &mut self,
         func: F,
     ) -> Result<(), Error> {
+        self.gl.borrow_mut().poll_events();
         let mut remove = Vec::new();
         for (key, win) in self.windows.iter_mut() {
             if win.should_close() {
@@ -215,8 +209,6 @@ impl<'a> Context<'a> {
             self.windows.remove(&r);
         }
 
-        self.gl.borrow_mut().poll_events();
-
         ::std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60));
         Ok(())
     }
@@ -227,13 +219,19 @@ impl<'a> Context<'a> {
                 WindowEvent::Key(Key::Escape, _, _, _) => Ok(false),
                 _ => Ok(true),
             })?;
+
+            if self.num_windows() == 0 {
+                break;
+            }
         }
+
+        Ok(())
     }
 }
 
-pub struct Window<'a> {
+pub struct Window {
     pub key: String,
-    pub image: RefCell<crate::Image<'a>>,
+    pub image: RefCell<crate::Image>,
     framebuffer_id: GLuint,
     texture_id: GLuint,
     gl_color: GLuint,
@@ -243,7 +241,7 @@ pub struct Window<'a> {
     event: RefCell<std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>>,
 }
 
-impl<'a> Window<'a> {
+impl Window {
     pub fn should_close(&self) -> bool {
         self.display.should_close()
     }
@@ -254,13 +252,13 @@ impl<'a> Window<'a> {
 
     pub fn draw(&mut self) -> Result<(), Error> {
         self.display.make_current();
-        let mut gl = self.display.render_context();
+        let mut ctx = self.display.render_context();
 
         gl::load_with(|symbol| self.display.get_proc_address(symbol));
 
         let meta = self.image.borrow().meta().clone();
         unsafe {
-            gl::ClearColor(0.3, 0.3, 0.3, 1.0);
+            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             gl::BindTexture(gl::TEXTURE_2D, self.texture_id);
@@ -302,7 +300,8 @@ impl<'a> Window<'a> {
             gl::BindFramebuffer(gl::READ_FRAMEBUFFER, 0);
         }
 
-        gl.swap_buffers();
+        ctx.swap_buffers();
+
         Ok(())
     }
 }

@@ -25,7 +25,7 @@ pub struct DB(*mut ffi::Imaged);
 pub struct Iter<'a>(*mut ffi::ImagedIter, &'a DB);
 pub struct KeyIter<'a>(*mut ffi::ImagedIter, &'a DB);
 pub struct Handle<'a>(ffi::ImagedHandle, &'a DB);
-pub struct Image<'a>(*mut ffi::Image, Option<&'a DB>);
+pub struct Image(*mut ffi::Image, bool);
 pub use ffi::Pixel;
 
 impl Pixel {
@@ -62,6 +62,7 @@ pub enum Type {
 
 #[repr(C)]
 pub enum Color {
+    Unknown = 0,
     Gray = 1,
     GrayA = 2,
     RGB = 3,
@@ -148,10 +149,10 @@ impl Meta {
     }
 }
 
-impl<'a> Drop for Image<'a> {
+impl Drop for Image {
     fn drop(&mut self) {
         match self.1 {
-            None => unsafe { ffi::imageFree(self.0) },
+            true => unsafe { ffi::imageFree(self.0) },
             _ => (),
         }
     }
@@ -176,11 +177,8 @@ impl<'a> Drop for KeyIter<'a> {
 }
 
 impl<'a> Handle<'a> {
-    pub fn image(&self) -> Image<'a> {
-        Image(
-            &self.0.image as *const ffi::Image as *mut ffi::Image,
-            Some(self.1),
-        )
+    pub fn image(&self) -> Image {
+        Image(&self.0.image as *const ffi::Image as *mut ffi::Image, false)
     }
 }
 
@@ -324,7 +322,7 @@ impl<'a> KeyIter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (&'a str, Image<'a>);
+    type Item = (&'a str, Image);
 
     fn next(&mut self) -> Option<Self::Item> {
         let ptr = unsafe { ffi::imagedIterNext(self.0) };
@@ -336,7 +334,7 @@ impl<'a> Iterator for Iter<'a> {
             let iter = &*self.0;
             let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen);
             let key = std::str::from_utf8_unchecked(key);
-            Some((key, Image(ptr, Some(self.1))))
+            Some((key, Image(ptr, false)))
         }
     }
 }
@@ -358,47 +356,33 @@ impl<'a> Iterator for KeyIter<'a> {
     }
 }
 
-impl<'a> Image<'a> {
-    pub fn read_default<P: AsRef<std::path::Path>>(path: P) -> Result<Image<'a>, Error> {
+impl Image {
+    pub fn read_default<P: AsRef<std::path::Path>>(path: P) -> Result<Image, Error> {
         let path = format!("{}\0", path.as_ref().display());
+        let im = unsafe { ffi::imageReadDefault(path.as_ptr() as *const i8) };
+        if im.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(im, true))
+    }
+
+    pub fn read<P: AsRef<std::path::Path>>(path: P, color: Color, t: Type) -> Result<Image, Error> {
+        let path = format!("{}\0", path.as_ref().display());
+        let (kind, bits) = t.info();
         let im = unsafe {
             ffi::imageRead(
                 path.as_ptr() as *const i8,
-                std::mem::transmute(-1),
-                std::mem::transmute(-1),
-                8,
+                std::mem::transmute(color as i32),
+                std::mem::transmute(kind as i32),
+                bits,
             )
         };
         if im.is_null() {
             return Err(Error::NullPointer);
         }
 
-        Ok(Image(im, None))
-    }
-
-    pub fn read<P: AsRef<std::path::Path>>(
-        path: P,
-        x: Option<(Color, Type)>,
-    ) -> Result<Image<'a>, Error> {
-        if let Some((color, t)) = x {
-            let path = format!("{}\0", path.as_ref().display());
-            let (kind, bits) = t.info();
-            let im = unsafe {
-                ffi::imageRead(
-                    path.as_ptr() as *const i8,
-                    std::mem::transmute(color),
-                    std::mem::transmute(kind),
-                    bits,
-                )
-            };
-            if im.is_null() {
-                return Err(Error::NullPointer);
-            }
-
-            Ok(Image(im, None))
-        } else {
-            Self::read_default(path)
-        }
+        Ok(Image(im, true))
     }
 
     pub fn write<P: AsRef<std::path::Path>>(&self, path: P) -> Result<(), Error> {
@@ -427,7 +411,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        Ok(Image(image, None))
+        Ok(Image(image, true))
     }
 
     pub fn new_like_with_color(&self, color: Color) -> Result<Self, Error> {
@@ -568,7 +552,7 @@ impl<'a> Image<'a> {
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
-        Ok(Image(dest, None))
+        Ok(Image(dest, true))
     }
 
     pub fn resize_to(&self, dest: &mut Image) -> Result<(), Error> {
@@ -581,12 +565,12 @@ impl<'a> Image<'a> {
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
-        Ok(Image(dest, None))
+        Ok(Image(dest, true))
     }
 
-    pub fn clone<'b>(&self) -> Image<'b> {
+    pub fn clone(&self) -> Image {
         let img = unsafe { ffi::imageClone(self.0) };
-        Image(img, None)
+        Image(img, true)
     }
 }
 

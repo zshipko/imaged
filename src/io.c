@@ -93,7 +93,6 @@ static Image *imageReadFile(const char *filename, ImagedKind kind,
   };
   void *data = ezimage_imread(filename, &ty, &shape);
   if (!data) {
-
     return NULL;
   }
 
@@ -129,12 +128,22 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
     return NULL;
   }
 
-  if ((image->meta.color != color || color < 0) ||
-      (image->meta.kind != kind || kind < 0) ||
-      (image->meta.bits != bits || bits == 0)) {
-    Image *tmp = imageConvert(image, color, kind, bits);
-    imageFree(image);
-    return tmp;
+  if (color < 0 || color > IMAGED_COLOR_LAST) {
+    color = IMAGED_COLOR_RGB;
+  }
+
+  if (kind < 0 || kind > IMAGED_KIND_FLOAT) {
+    kind = IMAGED_KIND_UINT;
+  }
+
+  if (bits == 0) {
+    bits = 8;
+  }
+
+  if (image->meta.color != color || image->meta.kind != kind ||
+      image->meta.bits != bits) {
+    imageConvertInPlace(&image, color, kind, bits);
+    return image;
   }
 
   return image;
