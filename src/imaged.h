@@ -141,11 +141,6 @@ Pixel pixelRGBA(float r, float g, float b, float a);
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 
-typedef bool (*imageParallelFn)(uint32_t, uint32_t, Pixel *, void *);
-ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
-                             int nthreads, void *userdata);
-ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
-                            void *userdata);
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
   uint64_t x, y;                                                               \
   for (y = _y; y < im->meta.height && y < _y + _h; y += sy)                    \
@@ -160,6 +155,9 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits);
 bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
                          uint8_t bits);
+
+void imageResizeTo(Image *src, Image *dest);
+Image *imageResize(Image *src, size_t x, size_t y);
 
 typedef struct ImagedHandle {
   int fd;

@@ -101,25 +101,28 @@ void *imageAt(Image *image, size_t x, size_t y) {
 
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   size_t channels = imagedColorNumChannels(image->meta.color);
-  bool hasAlpha = channels == 4;
   pixel->data[3] = 1.0;
   void *px = imageAt(image, x, y);
+  if (!px) {
+    return false;
+  }
+
   switch (image->meta.kind) {
   case IMAGED_KIND_INT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] = norm(((int8_t *)px)[i % channels], INT8_MIN, INT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] =
             norm(((int16_t *)px)[i % channels], INT16_MIN, INT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] =
             norm(((uint32_t *)px)[i % channels], INT32_MIN, INT32_MAX);
       }
@@ -131,17 +134,17 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGED_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] = norm(((uint8_t *)px)[i % channels], 0, UINT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
-        pixel->data[i] = norm(((uint8_t *)px)[i % channels], 0, UINT16_MAX);
+      for (size_t i = 0; i < channels && i < 4; i++) {
+        pixel->data[i] = norm(((uint16_t *)px)[i % channels], 0, UINT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] = norm(((uint32_t *)px)[i % channels], 0, UINT32_MAX);
       }
       break;
@@ -152,12 +155,12 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGED_KIND_FLOAT:
     switch (image->meta.bits) {
     case 32:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] = ((float *)px)[i % channels];
       }
       break;
     case 64:
-      for (size_t i = 0; i < (hasAlpha ? 4 : 3); i++) {
+      for (size_t i = 0; i < channels && i < 4; i++) {
         pixel->data[i] = (float)((double *)px)[i % channels];
       }
       break;
@@ -250,98 +253,6 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   return true;
 }
 
-struct imageParallelIterator {
-  uint32_t x0, y0, x1, y1;
-  Image *image0, *image1;
-  imageParallelFn f;
-  void *userdata;
-};
-
-void *imageParallelWrapper(void *_iter) {
-  struct imageParallelIterator *iter = (struct imageParallelIterator *)_iter;
-  Pixel px;
-  uint32_t i, j;
-  for (j = iter->y0; j < iter->y1; j++) {
-    for (i = iter->x0; i < iter->x1; i++) {
-      if (imageGetPixel(iter->image1, i, j, &px)) {
-        if (iter->f(i, j, &px, iter->userdata)) {
-          imageSetPixel(iter->image0, i, j, &px);
-        }
-      }
-    }
-  }
-
-  return NULL;
-}
-
-ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
-                             int nthreads, void *userdata) {
-  if (src == NULL) {
-    return IMAGED_ERR;
-  }
-
-  if (dst == NULL) {
-    dst = src;
-  }
-
-  if (nthreads <= 0) {
-    nthreads = sysconf(_SC_NPROCESSORS_ONLN);
-  } else if (nthreads == 1) {
-    uint64_t i, j;
-    Pixel px;
-    for (j = 0; j < src->meta.height; j++) {
-      for (i = 0; i < src->meta.width; i++) {
-        if (imageGetPixel(src, i, j, &px)) {
-          if (fn(i, j, &px, userdata)) {
-            imageSetPixel(dst, i, j, &px);
-          }
-        }
-      }
-    }
-    return IMAGED_OK;
-  }
-
-  pthread_t threads[nthreads];
-  int tries = 1, n;
-  uint64_t height, x;
-
-  height = src->meta.height / nthreads;
-
-  for (x = 0; x < (size_t)nthreads; x++) {
-    struct imageParallelIterator iter;
-    iter.x1 = src->meta.width;
-    iter.x0 = 0;
-    iter.y1 = height * x;
-    iter.y0 = height;
-    iter.userdata = userdata;
-    iter.image0 = dst;
-    iter.image1 = src;
-    iter.f = fn;
-    if (pthread_create(&threads[x], NULL, imageParallelWrapper, &iter) != 0) {
-      if (tries <= 5) {
-        x -= 1;
-        tries += 1;
-      } else {
-        return IMAGED_ERR;
-      }
-    } else {
-      tries = 1;
-    }
-  }
-
-  for (n = 0; n < nthreads; n++) {
-    // Maybe do something if this fails?
-    pthread_join(threads[n], NULL);
-  }
-
-  return IMAGED_OK;
-}
-
-ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
-                            void *userdata) {
-  return imageEachPixel2(NULL, im, fn, nthreads, userdata);
-}
-
 const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
   const char *colorName = imagedColorName(color);
   const char *typeName = imagedTypeName(kind, bits);
@@ -429,8 +340,8 @@ void imageRotate(Image *im, Image *dst, float deg) {
     dx = i + 0.5 - midX;
     dy = j + 0.5 - midY;
 
-    rotX = (uint32_t)(midX + dx * cos(angle) - dy * sin(angle));
-    rotY = (uint32_t)(midY + dx * sin(angle) + dy * cos(angle));
+    rotX = (uint64_t)(midX + dx * cos(angle) - dy * sin(angle));
+    rotY = (uint64_t)(midY + dx * sin(angle) + dy * cos(angle));
     if (rotX >= 0 && rotY >= 0) {
       if (imageGetPixel(im, rotX, rotY, &px)) {
         imageSetPixel(dst, i, j, &px);
@@ -475,4 +386,34 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
     pixelClamp(&px);
     imageSetPixel(dst, ix, iy, &px);
   }
+}
+
+void imageResizeTo(Image *src, Image *dest) {
+  double targetWidth = (double)dest->meta.width;
+  double sourceWidth = (double)src->meta.width;
+  double targetHeight = (double)dest->meta.height;
+  double sourceHeight = (double)src->meta.height;
+
+  double xr = sourceWidth / targetWidth;
+  double yr = sourceHeight / targetHeight;
+
+  Pixel px = pixelEmpty();
+  IMAGE_ITER_ALL(dest, x, y) {
+    size_t xx = floor((double)x * xr);
+    size_t yy = round((double)y * yr);
+    if (imageGetPixel(src, xx, yy, &px)) {
+      imageSetPixel(dest, x, y, &px);
+    }
+  }
+}
+
+Image *imageResize(Image *src, size_t x, size_t y) {
+  Image *dest =
+      imageAlloc(x, y, src->meta.color, src->meta.kind, src->meta.bits, NULL);
+  if (dest == NULL) {
+    return dest;
+  }
+
+  imageResizeTo(src, dest);
+  return dest;
 }
