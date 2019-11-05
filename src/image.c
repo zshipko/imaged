@@ -405,7 +405,7 @@ void imageResizeTo(Image *src, Image *dest) {
   Pixel px = pixelEmpty();
   IMAGE_ITER_ALL(dest, x, y) {
     size_t xx = floor((double)x * xr);
-    size_t yy = round((double)y * yr);
+    size_t yy = floor((double)y * yr);
     if (imageGetPixel(src, xx, yy, &px)) {
       imageSetPixel(dest, x, y, &px);
     }
