@@ -5,11 +5,14 @@ authors = ["Zach Shipko <zachshipko@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional=true}
+halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional = true}
+glfw = {version = "0.33", optional = true}
+gl = {version = "0.6", optional = true}
 
 [build-dependencies]
 pkg-config = "0.3"
 
 [features]
-default = ["halide"]
+default = ["halide", "viewer"]
 halide = ["halide-runtime"]
+viewer = ["glfw", "gl"]

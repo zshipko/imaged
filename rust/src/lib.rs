@@ -7,6 +7,9 @@ mod conv;
 #[cfg(feature = "halide")]
 pub use conv::halide_buffer;
 
+#[cfg(feature = "viewer")]
+pub mod viewer;
+
 #[derive(Debug)]
 pub enum Error {
     CannotOpenDB,
