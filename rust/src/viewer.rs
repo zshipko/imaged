@@ -142,6 +142,7 @@ fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Wind
             gl_color,
             gl_internal,
             framebuffer_id,
+            initialized: false,
         });
     }
 
@@ -188,7 +189,7 @@ impl Context {
                 continue;
             }
 
-            if !win.is_current() {
+            if win.initialized && !win.is_focused() {
                 continue;
             }
 
@@ -246,6 +247,7 @@ pub struct Window {
     gl_type: GLuint,
     display: glfw::Window,
     event: RefCell<std::sync::mpsc::Receiver<(f64, glfw::WindowEvent)>>,
+    initialized: bool,
 }
 
 impl Window {
@@ -253,7 +255,7 @@ impl Window {
         self.display.should_close()
     }
 
-    pub fn is_current(&self) -> bool {
+    pub fn is_focused(&self) -> bool {
         self.display.is_focused()
     }
 
@@ -308,7 +310,7 @@ impl Window {
         }
 
         ctx.swap_buffers();
-
+        self.initialized = true;
         Ok(())
     }
 }
