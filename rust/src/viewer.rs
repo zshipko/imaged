@@ -213,11 +213,14 @@ impl Context {
         Ok(())
     }
 
-    pub fn run(mut self) -> Result<(), Error> {
+    pub fn run<F: Fn(&mut crate::Image, WindowEvent) -> Result<bool, Error>>(
+        mut self,
+        callback: F,
+    ) -> Result<(), Error> {
         loop {
-            self.tick(|_, event| match event {
+            self.tick(|image, event| match event {
                 WindowEvent::Key(Key::Escape, _, _, _) => Ok(false),
-                _ => Ok(true),
+                _ => callback(image, event),
             })?;
 
             if self.num_windows() == 0 {
@@ -227,6 +230,10 @@ impl Context {
 
         Ok(())
     }
+}
+
+pub fn empty_callback(_: &mut crate::Image, _: WindowEvent) -> Result<bool, Error> {
+    Ok(true)
 }
 
 pub struct Window {
