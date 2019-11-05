@@ -158,6 +158,8 @@ bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
 
 void imageResizeTo(Image *src, Image *dest);
 Image *imageResize(Image *src, size_t x, size_t y);
+Image *imageScale(Image *src, double scale_x, double scale_y);
+Image *imageConsume(Image *x, Image **dest);
 
 typedef struct ImagedHandle {
   int fd;

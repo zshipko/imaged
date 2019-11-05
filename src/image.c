@@ -310,19 +310,7 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
 bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
                          uint8_t bits) {
 
-  Image *tmp = *src;
-  if (!tmp) {
-    return false;
-  }
-
-  *src = imageConvert(*src, color, kind, bits);
-  if (*src == NULL) {
-    *src = tmp;
-    return false;
-  }
-
-  imageFree(tmp);
-  return true;
+  return imageConsume(imageConvert(*src, color, kind, bits), src) != NULL;
 }
 
 void imageRotate(Image *im, Image *dst, float deg) {
@@ -386,6 +374,23 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
     pixelClamp(&px);
     imageSetPixel(dst, ix, iy, &px);
   }
+}
+
+Image *imageConsume(Image *x, Image **dest) {
+  if (!dest) {
+    return x;
+  }
+
+  imageFree(*dest);
+  *dest = x;
+  return *dest;
+}
+
+Image *imageScale(Image *src, double scale_x, double scale_y) {
+  double targetWidth = (double)src->meta.width * scale_x;
+  double targetHeight = (double)src->meta.height * scale_y;
+
+  return imageResize(src, (size_t)targetWidth, (size_t)targetHeight);
 }
 
 void imageResizeTo(Image *src, Image *dest) {

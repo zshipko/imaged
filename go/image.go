@@ -146,6 +146,14 @@ func (i *Image) Resize(width, height uint) *Image {
 	}
 }
 
+func (i *Image) Scale(x, y float64) *Image {
+	im := C.imageScale(i.ptr, C.double(x), C.double(y))
+	return &Image{
+		ptr:   im,
+		owner: true,
+	}
+}
+
 func NewImage(width int, height int, color Color, t Type) *Image {
 	im := C.imageAlloc(C.size_t(width), C.size_t(height), C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits), nil)
 	return &Image{

@@ -432,6 +432,12 @@ extern "C" {
 extern "C" {
     pub fn imageResize(src: *mut Image, x: usize, y: usize) -> *mut Image;
 }
+extern "C" {
+    pub fn imageScale(src: *mut Image, scale_x: f64, scale_y: f64) -> *mut Image;
+}
+extern "C" {
+    pub fn imageConsume(x: *mut Image, dest: *mut *mut Image) -> *mut Image;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedHandle {

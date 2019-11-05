@@ -555,6 +555,15 @@ impl Image {
         Ok(Image(dest, true))
     }
 
+    pub fn scale(&self, x: f64, y: f64) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageScale(self.0, x, y) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(dest, true))
+    }
+
     pub fn resize_to(&self, dest: &mut Image) -> Result<(), Error> {
         unsafe { ffi::imageResizeTo(self.0, dest.0) };
         Ok(())
