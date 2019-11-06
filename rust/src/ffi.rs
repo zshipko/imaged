@@ -387,6 +387,12 @@ fn bindgen_test_layout_Pixel() {
     );
 }
 extern "C" {
+    pub fn imageGetPixel(image: *mut Image, x: usize, y: usize, pixel: *mut Pixel) -> bool;
+}
+extern "C" {
+    pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
+}
+extern "C" {
     pub fn pixelClamp(px: *mut Pixel);
 }
 extern "C" {
@@ -402,10 +408,25 @@ extern "C" {
     pub fn pixelRGBA(r: f32, g: f32, b: f32, a: f32) -> Pixel;
 }
 extern "C" {
-    pub fn imageGetPixel(image: *mut Image, x: usize, y: usize, pixel: *mut Pixel) -> bool;
+    pub fn pixelAdd(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
-    pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
+    pub fn pixelSub(src: *const Pixel, dest: *mut Pixel);
+}
+extern "C" {
+    pub fn pixelMul(src: *const Pixel, dest: *mut Pixel);
+}
+extern "C" {
+    pub fn pixelDiv(src: *const Pixel, dest: *mut Pixel);
+}
+extern "C" {
+    pub fn pixelEq(a: *const Pixel, b: *const Pixel) -> bool;
+}
+extern "C" {
+    pub fn pixelEqAll(a: *const Pixel, v: f32) -> bool;
+}
+extern "C" {
+    pub fn pixelSum(a: *const Pixel) -> f32;
 }
 extern "C" {
     pub fn imageConvertTo(src: *const Image, dest: *mut Image) -> bool;

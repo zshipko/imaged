@@ -101,30 +101,34 @@ void *imageAt(Image *image, size_t x, size_t y) {
 
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   size_t channels = imagedColorNumChannels(image->meta.color);
+  if (channels > 4) {
+    channels = 4;
+  }
+
   pixel->data[3] = 1.0;
   void *px = imageAt(image, x, y);
   if (!px) {
     return false;
   }
 
+  size_t i = 0;
+
   switch (image->meta.kind) {
   case IMAGED_KIND_INT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = norm(((int8_t *)px)[i % channels], INT8_MIN, INT8_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((int8_t *)px)[i], INT8_MIN, INT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] =
-            norm(((int16_t *)px)[i % channels], INT16_MIN, INT16_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((int16_t *)px)[i], INT16_MIN, INT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] =
-            norm(((uint32_t *)px)[i % channels], INT32_MIN, INT32_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((uint32_t *)px)[i], INT32_MIN, INT32_MAX);
       }
       break;
     default:
@@ -134,18 +138,18 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGED_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = norm(((uint8_t *)px)[i % channels], 0, UINT8_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((uint8_t *)px)[i], 0, UINT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = norm(((uint16_t *)px)[i % channels], 0, UINT16_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((uint16_t *)px)[i], 0, UINT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = norm(((uint32_t *)px)[i % channels], 0, UINT32_MAX);
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = norm(((uint32_t *)px)[i], 0, UINT32_MAX);
       }
       break;
     default:
@@ -155,13 +159,13 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGED_KIND_FLOAT:
     switch (image->meta.bits) {
     case 32:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = ((float *)px)[i % channels];
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = ((float *)px)[i];
       }
       break;
     case 64:
-      for (size_t i = 0; i < channels && i < 4; i++) {
-        pixel->data[i] = (float)((double *)px)[i % channels];
+      for (i = 0; i < channels; i++) {
+        pixel->data[i] = (float)((double *)px)[i];
       }
       break;
     default:
@@ -187,22 +191,27 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     channels = 4;
   }
 
+  size_t i = 0;
+
   switch (image->meta.kind) {
   case IMAGED_KIND_INT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((int8_t *)px)[i] = (int8_t)denorm(pixel->data[i], INT8_MIN, INT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((int16_t *)px)[i] =
             (int16_t)denorm(pixel->data[i], INT16_MIN, INT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((int32_t *)px)[i] =
             (int32_t)denorm(pixel->data[i], INT32_MIN, INT32_MAX);
       }
@@ -214,17 +223,20 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   case IMAGED_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, UINT8_MAX);
       }
       break;
     case 16:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((uint16_t *)px)[i] = (uint16_t)denorm(pixel->data[i], 0, UINT16_MAX);
       }
       break;
     case 32:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((uint32_t *)px)[i] = (uint32_t)denorm(pixel->data[i], 0, UINT32_MAX);
       }
       break;
@@ -235,12 +247,14 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   case IMAGED_KIND_FLOAT:
     switch (image->meta.bits) {
     case 32:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((float *)px)[i] = (float)pixel->data[i];
       }
       break;
     case 64:
-      for (size_t i = 0; i < channels; i++) {
+
+      for (i = 0; i < channels; i++) {
         ((double *)px)[i] = (double)pixel->data[i];
       }
       break;
@@ -351,7 +365,7 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
     divisor = 1.0;
   }
 
-  size_t channels = imagedColorNumChannels(im->meta.color), l;
+  size_t channels = imagedColorNumChannels(im->meta.color);
 
   // Ignore alpha channel
   if (channels > 3) {
@@ -362,15 +376,17 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
     px.data[0] = px.data[1] = px.data[2] = 0.0;
     for (kx = -Ks; kx <= Ks; kx++) {
       for (ky = -Ks; ky <= Ks; ky++) {
-        imageGetPixel(im, ix + kx, iy + ky, &p);
-        for (l = 0; l < channels; l++) {
-          px.data[l] +=
-              (K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)] / divisor) * p.data[l] +
-              offset;
+        if (imageGetPixel(im, ix + kx, iy + ky, &p)) {
+#define X(l)                                                                   \
+  px.data[l] +=                                                                \
+      (K[(kx + Ks) + (ky + Ks) * (2 * Ks + 1)] / divisor) * p.data[l] + offset
+          X(0);
+          X(1);
+          X(2);
+#undef X
         }
       }
     }
-
     pixelClamp(&px);
     imageSetPixel(dst, ix, iy, &px);
   }
@@ -402,11 +418,36 @@ void imageResizeTo(Image *src, Image *dest) {
   double xr = sourceWidth / targetWidth;
   double yr = sourceHeight / targetHeight;
 
-  Pixel px = pixelEmpty();
+  Pixel px = pixelEmpty(), tmp = pixelEmpty();
   IMAGE_ITER_ALL(dest, x, y) {
     size_t xx = floor((double)x * xr);
     size_t yy = floor((double)y * yr);
-    if (imageGetPixel(src, xx, yy, &px)) {
+    size_t count = 0;
+
+#define X(yy)                                                                  \
+  if (imageGetPixel(src, xx - 1, yy, &tmp)) {                                  \
+    pixelAdd(&tmp, &px);                                                       \
+    count += 1;                                                                \
+  }                                                                            \
+  if (imageGetPixel(src, xx, yy, &tmp)) {                                      \
+    pixelAdd(&tmp, &px);                                                       \
+    count += 1;                                                                \
+  }                                                                            \
+  if (imageGetPixel(src, xx + 1, yy, &tmp)) {                                  \
+    pixelAdd(&tmp, &px);                                                       \
+    count += 1;                                                                \
+  }
+    X(yy - 1);
+    X(yy);
+    X(yy + 1);
+#undef X
+
+    if (count > 0) {
+      px.data[0] /= (float)count;
+      px.data[1] /= (float)count;
+      px.data[2] /= (float)count;
+      px.data[3] /= (float)count;
+
       imageSetPixel(dest, x, y, &px);
     }
   }

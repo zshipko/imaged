@@ -31,6 +31,46 @@ pub struct Handle<'a>(ffi::ImagedHandle, &'a DB);
 pub struct Image(*mut ffi::Image, bool);
 pub use ffi::Pixel;
 
+impl std::ops::Add for Pixel {
+    type Output = Pixel;
+    fn add(self, mut other: Pixel) -> Pixel {
+        unsafe {
+            ffi::pixelAdd(&self, &mut other);
+        }
+        other
+    }
+}
+
+impl std::ops::Sub for Pixel {
+    type Output = Pixel;
+    fn sub(self, mut other: Pixel) -> Pixel {
+        unsafe {
+            ffi::pixelSub(&self, &mut other);
+        }
+        other
+    }
+}
+
+impl std::ops::Mul for Pixel {
+    type Output = Pixel;
+    fn mul(self, mut other: Pixel) -> Pixel {
+        unsafe {
+            ffi::pixelMul(&self, &mut other);
+        }
+        other
+    }
+}
+
+impl std::ops::Div for Pixel {
+    type Output = Pixel;
+    fn div(self, mut other: Pixel) -> Pixel {
+        unsafe {
+            ffi::pixelDiv(&self, &mut other);
+        }
+        other
+    }
+}
+
 impl Pixel {
     pub fn new() -> Pixel {
         unsafe { ffi::pixelEmpty() }
@@ -48,8 +88,8 @@ impl Pixel {
         unsafe { ffi::pixelGray(x) }
     }
 
-    pub fn data(&self) -> &[f32] {
-        &self.data
+    pub fn data(&self) -> [f32; 4] {
+        self.data
     }
 
     pub fn data_mut(&mut self) -> &mut [f32] {

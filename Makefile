@@ -32,6 +32,9 @@ endif
 build: lib bin
 fresh: src/imaged.h .cflags .ldflags build
 
+debug:
+	$(MAKE) CFLAGS="$(CFLAGS) -Rpass-missed=loop-vectorize"
+
 .PHONY: bin
 bin: src/imaged.h .cflags $(OBJ)
 	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS)

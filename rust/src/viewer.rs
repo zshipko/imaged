@@ -177,7 +177,7 @@ impl Context {
         Ok(())
     }
 
-    pub fn tick<F: Fn(&mut crate::Image, WindowEvent) -> Result<bool, Error>>(
+    pub fn tick<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
         &mut self,
         func: F,
     ) -> Result<(), Error> {
@@ -197,7 +197,7 @@ impl Context {
                 let mut event = win.event.borrow_mut();
                 let f = glfw::flush_messages(&mut event);
                 for (_, event) in f {
-                    if !func(&mut win.image.borrow_mut(), event)? {
+                    if !func(&win.key, &mut win.image.borrow_mut(), event)? {
                         win.display.set_should_close(true)
                     }
                 }
@@ -214,14 +214,14 @@ impl Context {
         Ok(())
     }
 
-    pub fn run<F: Fn(&mut crate::Image, WindowEvent) -> Result<bool, Error>>(
+    pub fn run<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
         mut self,
         callback: F,
     ) -> Result<(), Error> {
         loop {
-            self.tick(|image, event| match event {
+            self.tick(|name, image, event| match event {
                 WindowEvent::Key(Key::Escape, _, _, _) => Ok(false),
-                _ => callback(image, event),
+                _ => callback(name, image, event),
             })?;
 
             if self.num_windows() == 0 {
@@ -233,8 +233,19 @@ impl Context {
     }
 }
 
-pub fn empty_callback(_: &mut crate::Image, _: WindowEvent) -> Result<bool, Error> {
+pub fn ignore(_: &str, _: &mut crate::Image, _: WindowEvent) -> Result<bool, Error> {
     Ok(true)
+}
+
+pub fn update_callback<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
+    db: crate::DB,
+    callback: F,
+) -> impl Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error> {
+    move |name, image, event| {
+        let handle = db.get(name, false).map_err(Error::Imaged)?;
+        let _ = handle.image().convert_to(image);
+        callback(name, image, event)
+    }
 }
 
 pub struct Window {

@@ -133,13 +133,21 @@ typedef struct {
   float data[4];
 } Pixel;
 
+bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
+bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
+
 void pixelClamp(Pixel *px);
 Pixel pixelEmpty(void);
 Pixel pixelGray(float r);
 Pixel pixelRGB(float r, float g, float b);
 Pixel pixelRGBA(float r, float g, float b, float a);
-bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
-bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
+void pixelAdd(const Pixel *src, Pixel *dest);
+void pixelSub(const Pixel *src, Pixel *dest);
+void pixelMul(const Pixel *src, Pixel *dest);
+void pixelDiv(const Pixel *src, Pixel *dest);
+bool pixelEq(const Pixel *a, const Pixel *b);
+bool pixelEqAll(const Pixel *a, float v);
+float pixelSum(const Pixel *a);
 
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
   uint64_t x, y;                                                               \
