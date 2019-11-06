@@ -183,6 +183,10 @@ impl Meta {
         }
     }
 
+    pub fn get_color(&self) -> Color {
+        unsafe { std::mem::transmute(self.color) }
+    }
+
     pub fn total_bytes(&self) -> usize {
         return unsafe { ffi::imagedMetaTotalBytes(self) };
     }
