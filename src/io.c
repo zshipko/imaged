@@ -133,11 +133,11 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
   }
 
   if (kind < 0 || kind > IMAGED_KIND_FLOAT) {
-    kind = IMAGED_KIND_UINT;
+    kind = IMAGED_KIND_FLOAT;
   }
 
   if (bits == 0) {
-    bits = 8;
+    bits = 32;
   }
 
   if (image->meta.color != color || image->meta.kind != kind ||
