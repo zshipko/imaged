@@ -585,6 +585,15 @@ impl Image {
         Ok(())
     }
 
+    pub fn convert_in_place(&mut self, color: Color, t: Type) -> Result<(), Error> {
+        let (kind, bits) = t.info();
+        let rc = unsafe { ffi::imageConvertInPlace(&mut self.0, color.ffi(), kind, bits) };
+        if !rc {
+            return Err(Error::IncorrectImageType);
+        }
+        Ok(())
+    }
+
     pub fn convert_to(&self, dest: &mut Image) -> Result<(), Error> {
         let rc = unsafe { ffi::imageConvertTo(self.0, dest.0) };
         if !rc {

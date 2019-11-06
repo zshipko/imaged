@@ -323,6 +323,14 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
 
 bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
                          uint8_t bits) {
+  if (!src) {
+    return false;
+  }
+
+  if ((*src)->meta.color == color && (*src)->meta.kind == kind &&
+      (*src)->meta.bits == bits) {
+    return true;
+  }
 
   return imageConsume(imageConvert(*src, color, kind, bits), src) != NULL;
 }
