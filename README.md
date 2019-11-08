@@ -29,7 +29,3 @@ $ [sudo] make install-lib
 
 - `./rust`: contains Rust bindings
 - `./go`: contains Go bindings
-
-## GUI
-
-`./editor` contains code for displaying images using GLFW
