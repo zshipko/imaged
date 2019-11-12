@@ -53,6 +53,9 @@ static Image *imageReadRAW(const char *filename) {
     goto err;
   }
 
+  ctx->params.output_bps = 16;
+  ctx->params.use_rawspeed = 1;
+
   if (libraw_unpack(ctx) != LIBRAW_SUCCESS) {
     goto err;
   }
