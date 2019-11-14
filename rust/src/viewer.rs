@@ -59,8 +59,8 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     let internal = match (color, kind) {
         (gl::RED, gl::BYTE) => gl::R8,
         (gl::RED, gl::SHORT) => gl::R16,
-        (gl::RED, gl::UNSIGNED_BYTE) => gl::R8UI,
-        (gl::RED, gl::UNSIGNED_SHORT) => gl::R16UI,
+        (gl::RED, gl::UNSIGNED_BYTE) => gl::R8,
+        (gl::RED, gl::UNSIGNED_SHORT) => gl::R16,
         (gl::RED, gl::FLOAT) => gl::R32F,
         (gl::RG, gl::BYTE) => gl::RG8,
         (gl::RG, gl::SHORT) => gl::RG16,
@@ -81,6 +81,8 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     };
 
     unsafe {
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::TexImage2D(
             gl::TEXTURE_2D,
             0,
@@ -92,8 +94,6 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
             kind,
             image.data_ptr(),
         );
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::BindTexture(gl::TEXTURE_2D, 0);
     }
     return Ok((texture_id, internal, kind, color));
@@ -315,7 +315,7 @@ impl Window {
                 meta.width as i32,
                 meta.height as i32,
                 gl::COLOR_BUFFER_BIT,
-                gl::LINEAR,
+                gl::NEAREST,
             );
             gl::BindFramebuffer(gl::READ_FRAMEBUFFER, 0);
         }
