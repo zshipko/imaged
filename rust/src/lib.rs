@@ -97,6 +97,7 @@ impl Pixel {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Type {
     I(u8),
     U(u8),
@@ -104,6 +105,7 @@ pub enum Type {
 }
 
 #[repr(C)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Color {
     Unknown = 0,
     Gray = 1,
@@ -488,23 +490,48 @@ impl Image {
     }
 
     pub fn data<T>(&self) -> Result<&[T], Error> {
-        if std::mem::size_of::<T>() != self.elem_size() {
+        let size = std::mem::size_of::<T>();
+        if size != self.elem_size() {
             return Err(Error::IncorrectImageType);
         }
 
         let data = unsafe {
-            std::slice::from_raw_parts((&*self.0).data as *const T, self.meta().total_bytes())
+            std::slice::from_raw_parts(
+                (&*self.0).data as *const T,
+                self.meta().total_bytes() / size,
+            )
+        };
+        Ok(data)
+    }
+
+    pub fn buffer(&self) -> Result<&[u8], Error> {
+        let data = unsafe {
+            std::slice::from_raw_parts((&*self.0).data as *const u8, self.meta().total_bytes())
         };
         Ok(data)
     }
 
     pub fn data_mut<T>(&mut self) -> Result<&mut [T], Error> {
-        if std::mem::size_of::<T>() != self.elem_size() {
+        let size = std::mem::size_of::<T>();
+        if size != self.elem_size() {
             return Err(Error::IncorrectImageType);
         }
 
         let data = unsafe {
-            std::slice::from_raw_parts_mut((&mut *self.0).data as *mut T, self.meta().total_bytes())
+            std::slice::from_raw_parts_mut(
+                (&mut *self.0).data as *mut T,
+                self.meta().total_bytes() / size,
+            )
+        };
+        Ok(data)
+    }
+
+    pub fn buffer_mut(&mut self) -> Result<&mut [u8], Error> {
+        let data = unsafe {
+            std::slice::from_raw_parts_mut(
+                (&mut *self.0).data as *mut u8,
+                self.meta().total_bytes(),
+            )
         };
         Ok(data)
     }

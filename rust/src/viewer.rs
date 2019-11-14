@@ -101,13 +101,22 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
 
 fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Window, Error> {
     let meta = image.meta();
-    if let Some((mut display, event)) = app.gl.borrow().create_window(
+
+    let mut gl = app.gl.borrow_mut();
+    if let Some((mut display, event)) = gl.create_window(
         meta.width as u32,
         meta.height as u32,
         key,
         glfw::WindowMode::Windowed,
     ) {
         display.make_current();
+
+        let bits = Some(image.meta().bits as u32);
+
+        gl.window_hint(glfw::WindowHint::RedBits(bits));
+        gl.window_hint(glfw::WindowHint::GreenBits(bits));
+        gl.window_hint(glfw::WindowHint::BlueBits(bits));
+        gl.window_hint(glfw::WindowHint::AlphaBits(bits));
 
         gl::load_with(|symbol| display.get_proc_address(symbol));
 

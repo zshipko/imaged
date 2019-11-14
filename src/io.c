@@ -146,7 +146,6 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
   if (image->meta.color != color || image->meta.kind != kind ||
       image->meta.bits != bits) {
     imageConvertInPlace(&image, color, kind, bits);
-    return image;
   }
 
   return image;
