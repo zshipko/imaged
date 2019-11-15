@@ -115,6 +115,7 @@ typedef struct {
 } Image;
 
 void imageRAWUseAutoBrightness(bool b);
+void imageRAWUseAutoWhiteBalance(bool b);
 
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits);

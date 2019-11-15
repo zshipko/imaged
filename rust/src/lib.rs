@@ -670,6 +670,10 @@ pub fn use_raw_auto_brighness(b: bool) {
     unsafe { ffi::imageRAWUseAutoBrightness(b) }
 }
 
+pub fn use_raw_auto_white_balance(b: bool) {
+    unsafe { ffi::imageRAWUseAutoWhiteBalance(b) }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;

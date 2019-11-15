@@ -317,6 +317,9 @@ extern "C" {
     pub fn imageRAWUseAutoBrightness(b: bool);
 }
 extern "C" {
+    pub fn imageRAWUseAutoWhiteBalance(b: bool);
+}
+extern "C" {
     pub fn imageRead(
         filename: *const ::std::os::raw::c_char,
         color: ImagedColor,
