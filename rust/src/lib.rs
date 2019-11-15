@@ -666,6 +666,10 @@ impl Image {
     }
 }
 
+pub fn use_raw_auto_brighness(b: bool) {
+    unsafe { ffi::imageRAWUseAutoBrightness(b) }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
