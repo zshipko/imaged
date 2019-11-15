@@ -317,7 +317,7 @@ extern "C" {
     pub fn imageRAWUseAutoBrightness(b: bool);
 }
 extern "C" {
-    pub fn imageRAWUseAutoWhiteBalance(b: bool);
+    pub fn imageRAWUseCameraWhiteBalance(b: bool);
 }
 extern "C" {
     pub fn imageRead(
