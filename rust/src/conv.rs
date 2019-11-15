@@ -1,4 +1,5 @@
-#[cfg(feature = "halide")]
+#![cfg(feature = "halide")]
+
 pub fn halide_buffer(im: &crate::Image) -> halide_runtime::Buffer {
     let meta = im.meta();
 
@@ -11,4 +12,10 @@ pub fn halide_buffer(im: &crate::Image) -> halide_runtime::Buffer {
         halide_runtime::Type(kind, meta.bits),
         im.data_ptr() as *mut u8,
     )
+}
+
+impl<'a> From<&'a crate::Image> for halide_runtime::Buffer {
+    fn from(x: &'a crate::Image) -> halide_runtime::Buffer {
+        halide_buffer(x)
+    }
 }
