@@ -114,6 +114,8 @@ typedef struct {
   void *data;
 } Image;
 
+void imageRAWUseAutoBrightness(bool b);
+
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits);
 Image *imageReadDefault(const char *filename);

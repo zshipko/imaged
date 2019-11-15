@@ -41,8 +41,13 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
   return ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
 }
 
+bool imaged_raw_auto_bright = true;
+
+void imageRAWUseAutoBrightness(bool b) { imaged_raw_auto_bright = b; }
+
 #ifndef IMAGED_NO_RAW
 #include <libraw/libraw.h>
+
 static Image *imageReadRAW(const char *filename) {
   libraw_data_t *ctx = libraw_init(0);
   if (!ctx) {
@@ -55,6 +60,7 @@ static Image *imageReadRAW(const char *filename) {
 
   ctx->params.output_bps = 16;
   ctx->params.use_rawspeed = 1;
+  ctx->params.no_auto_bright = imaged_raw_auto_bright == false;
 
   if (libraw_unpack(ctx) != LIBRAW_SUCCESS) {
     goto err;
