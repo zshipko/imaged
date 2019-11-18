@@ -6,8 +6,8 @@ edition = "2018"
 
 [dependencies]
 halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional = true}
-glfw = {version = "0.33", optional = true}
-gl = {version = "0.6", optional = true}
+glfw = {version = "0.34", optional = true}
+gl = {version = "0.14", optional = true}
 
 [build-dependencies]
 pkg-config = "0.3"
