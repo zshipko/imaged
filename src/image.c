@@ -335,6 +335,58 @@ bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
   return imageConsume(imageConvert(*src, color, kind, bits), src) != NULL;
 }
 
+Image *imageConvertACES0(Image *src) {
+  Image *dest = imageAlloc(src->meta.width, src->meta.height,
+                           IMAGED_COLOR_CIEXYZ, IMAGED_KIND_FLOAT, 32, NULL);
+  if (!dest) {
+    return NULL;
+  }
+
+  float r, g, b;
+  float *data = dest->data;
+  for (size_t i = 0; i < dest->meta.width * dest->meta.height *
+                             imagedColorNumChannels(dest->meta.color);
+       i += 3) {
+    r = data[i];
+    g = data[i + 1];
+    b = data[i + 2];
+
+    data[i] = 1.0498110175 * r + 0.0000000000 * g + -0.0000974845 * b;
+    data[i + 1] = -0.4959030231 * r + 1.3733130458 * g + 0.0982400361 * b;
+    data[i + 2] = 0.0000000000 * r + 0.0000000000 * g + 0.9912520182 * b;
+  }
+
+  dest->meta.color = IMAGED_COLOR_RGB;
+
+  return dest;
+}
+
+Image *imageConvertACES1(Image *src) {
+  Image *dest = imageAlloc(src->meta.width, src->meta.height,
+                           IMAGED_COLOR_CIEXYZ, IMAGED_KIND_FLOAT, 32, NULL);
+  if (!dest) {
+    return NULL;
+  }
+
+  float r, g, b;
+  float *data = dest->data;
+  for (size_t i = 0; i < dest->meta.width * dest->meta.height *
+                             imagedColorNumChannels(dest->meta.color);
+       i += 3) {
+    r = data[i];
+    g = data[i + 1];
+    b = data[i + 2];
+
+    data[i] = 1.6410233797 * r + -0.3248032942 * g + -0.2364246952 * b;
+    data[i + 1] = -0.6636628587 * r + 1.6153315917 * g + 0.0167563477 * b;
+    data[i + 2] = 0.0117218943 * r + -0.0082844420 * g + 0.9883948585 * b;
+  }
+
+  dest->meta.color = IMAGED_COLOR_RGB;
+
+  return dest;
+}
+
 void imageRotate(Image *im, Image *dst, float deg) {
   float midX, midY;
   float dx, dy;

@@ -454,6 +454,12 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn imageConvertACES0(src: *mut Image) -> *mut Image;
+}
+extern "C" {
+    pub fn imageConvertACES1(src: *mut Image) -> *mut Image;
+}
+extern "C" {
     pub fn imageResizeTo(src: *mut Image, dest: *mut Image);
 }
 extern "C" {

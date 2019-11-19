@@ -638,6 +638,24 @@ impl Image {
         Ok(Image(dest, true))
     }
 
+    pub fn convert_aces0(&self) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageConvertACES0(self.0) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(dest, true))
+    }
+
+    pub fn convert_aces1(&self) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageConvertACES1(self.0) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(dest, true))
+    }
+
     pub fn scale(&self, x: f64, y: f64) -> Result<Image, Error> {
         let dest = unsafe { ffi::imageScale(self.0, x, y) };
         if dest.is_null() {
