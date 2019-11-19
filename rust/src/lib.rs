@@ -656,6 +656,24 @@ impl Image {
         Ok(Image(dest, true))
     }
 
+    pub fn convert_aces0_to_xyz(&self) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageConvertACES0ToXYZ(self.0) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(dest, true))
+    }
+
+    pub fn convert_aces1_to_xyz(&self) -> Result<Image, Error> {
+        let dest = unsafe { ffi::imageConvertACES1ToXYZ(self.0) };
+        if dest.is_null() {
+            return Err(Error::NullPointer);
+        }
+
+        Ok(Image(dest, true))
+    }
+
     pub fn scale(&self, x: f64, y: f64) -> Result<Image, Error> {
         let dest = unsafe { ffi::imageScale(self.0, x, y) };
         if dest.is_null() {

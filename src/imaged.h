@@ -167,7 +167,9 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
 bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
                          uint8_t bits);
 Image *imageConvertACES0(Image *src);
+Image *imageConvertACES0ToXYZ(Image *src);
 Image *imageConvertACES1(Image *src);
+Image *imageConvertACES1ToXYZ(Image *src);
 
 void imageResizeTo(Image *src, Image *dest);
 Image *imageResize(Image *src, size_t x, size_t y);

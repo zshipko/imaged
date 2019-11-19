@@ -457,7 +457,13 @@ extern "C" {
     pub fn imageConvertACES0(src: *mut Image) -> *mut Image;
 }
 extern "C" {
+    pub fn imageConvertACES0ToXYZ(src: *mut Image) -> *mut Image;
+}
+extern "C" {
     pub fn imageConvertACES1(src: *mut Image) -> *mut Image;
+}
+extern "C" {
+    pub fn imageConvertACES1ToXYZ(src: *mut Image) -> *mut Image;
 }
 extern "C" {
     pub fn imageResizeTo(src: *mut Image, dest: *mut Image);
