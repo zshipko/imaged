@@ -10,10 +10,11 @@ Image *imageConvertACES0ToXYZ(Image *src) {
 
   float r, g, b;
   float *data = dest->data;
+  float *srcdata = src->data;
   for (size_t i = 0; i < imagedMetaNumPixels(&src->meta) * 3; i += 3) {
-    r = data[i];
-    g = data[i + 1];
-    b = data[i + 2];
+    r = srcdata[i];
+    g = srcdata[i + 1];
+    b = srcdata[i + 2];
     data[i] = 0.9525523959 * r + 0.0000000000 * g + 0.0000936786 * b;
     data[i + 1] = 0.3439664498 * r + 0.7281660966 * g + -0.0721325464 * b;
     data[i + 2] = 0.0000000000 * r + 0.0000000000 * g + 1.0088251844 * b;
@@ -54,10 +55,11 @@ Image *imageConvertACES1ToXYZ(Image *src) {
 
   float r, g, b;
   float *data = dest->data;
+  float *srcdata = src->data;
   for (size_t i = 0; i < imagedMetaNumPixels(&src->meta) * 3; i += 3) {
-    r = data[i];
-    g = data[i + 1];
-    b = data[i + 2];
+    r = srcdata[i];
+    g = srcdata[i + 1];
+    b = srcdata[i + 2];
 
     data[i] = 0.6624541811 * r + 0.1340042065 * g + 0.1561876870 * b;
     data[i + 1] = 0.2722287168 * r + 0.6740817658 * g + 0.0536895174 * b;
@@ -68,8 +70,7 @@ Image *imageConvertACES1ToXYZ(Image *src) {
 }
 
 Image *imageConvertACES1(Image *src) {
-  Image *dest = imageAlloc(src->meta.width, src->meta.height,
-                           IMAGED_COLOR_CIEXYZ, IMAGED_KIND_FLOAT, 32, NULL);
+  Image *dest = imageConvert(src, IMAGED_COLOR_CIEXYZ, IMAGED_KIND_FLOAT, 32);
   if (!dest) {
     return NULL;
   }
