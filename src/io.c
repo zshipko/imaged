@@ -41,7 +41,7 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
   return ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
 }
 
-static bool imaged_raw_auto_bright = true;
+static bool imaged_raw_auto_bright = false;
 static bool imaged_raw_camera_wb = false;
 
 void imageRAWUseAutoBrightness(bool b) { imaged_raw_auto_bright = b; }
@@ -64,6 +64,7 @@ static Image *imageReadRAW(const char *filename) {
   ctx->params.use_rawspeed = 1;
   ctx->params.no_auto_bright = imaged_raw_auto_bright == false;
   ctx->params.use_camera_wb = imaged_raw_camera_wb == true;
+  ctx->params.use_auto_wb = imaged_raw_camera_wb == false;
 
   if (libraw_unpack(ctx) != LIBRAW_SUCCESS) {
     goto err;

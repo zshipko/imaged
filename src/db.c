@@ -303,6 +303,8 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   if (handle == NULL) {
     close_unlock(fd);
+    handle->fd = -1;
+    handle->image.data = NULL;
     return IMAGED_OK;
   }
 
@@ -411,7 +413,8 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
 
 void imagedHandleInit(ImagedHandle *handle) {
   if (handle) {
-    handle->image.data = NULL;
+    bzero(&handle->image, sizeof(Image));
+    handle->fd = -1;
   }
 }
 
@@ -420,11 +423,11 @@ void imagedHandleClose(ImagedHandle *handle) {
     return;
   }
 
-  if (handle->image.data != NULL) {
-    void *ptr = handle->image.data - sizeof(ImagedMeta);
+  if (handle->image.data != NULL && handle->fd >= 0) {
+    void *ptr = handle->image.data - _header_size - sizeof(ImagedMeta);
     size_t size = _header_size + sizeof(ImagedMeta) +
                   imagedMetaTotalBytes(&handle->image.meta);
-    msync(ptr, size, MS_SYNC);
+    // msync(ptr, size, MS_SYNC);
     munmap(ptr, size);
     handle->image.data = NULL;
   }

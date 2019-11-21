@@ -53,9 +53,8 @@ START_TEST(test_set) {
 
   $ImagedHandle(handle);
   ck_assert(imagedSet(db, "testing", -1, meta, NULL, &handle) == IMAGED_OK);
-
   float *data = (float *)handle.image.data;
-
+  ck_assert(data);
   data[123] = 0.25;
   imagedHandleClose(&handle);
 
@@ -133,5 +132,6 @@ int main(void) {
   srunner_run_all(sr, CK_NORMAL);
   number_failed = srunner_ntests_failed(sr);
   srunner_free(sr);
+  imagedClose(db);
   return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
