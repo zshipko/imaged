@@ -335,6 +335,20 @@ bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
   return imageConsume(imageConvert(*src, color, kind, bits), src) != NULL;
 }
 
+void imageAdjustGamma(Image *src, float gamma) {
+  Pixel px = pixelEmpty();
+#define X(i) px.data[i] = pow(px.data[i], 1.0 / gamma)
+  IMAGE_ITER_ALL(src, x, y) {
+    imageGetPixel(src, x, y, &px);
+    X(0);
+    X(1);
+    X(2);
+    X(3);
+    imageSetPixel(src, x, y, &px);
+  }
+#undef X
+}
+
 void imageRotate(Image *im, Image *dst, float deg) {
   float midX, midY;
   float dx, dy;

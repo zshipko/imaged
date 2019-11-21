@@ -161,6 +161,7 @@ float pixelSum(const Pixel *a);
   for (y = 0; y < im->meta.height; y++)                                        \
     for (x = 0; x < im->meta.width; x++)
 
+void imageAdjustGamma(Image *src, float gamma);
 bool imageConvertTo(const Image *src, Image *dest);
 Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits);

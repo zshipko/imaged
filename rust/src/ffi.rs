@@ -435,6 +435,9 @@ extern "C" {
     pub fn pixelSum(a: *const Pixel) -> f32;
 }
 extern "C" {
+    pub fn imageAdjustGamma(src: *mut Image, gamma: f32);
+}
+extern "C" {
     pub fn imageConvertTo(src: *const Image, dest: *mut Image) -> bool;
 }
 extern "C" {

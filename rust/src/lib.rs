@@ -638,6 +638,11 @@ impl Image {
         Ok(Image(dest, true))
     }
 
+    pub fn adjust_gamma(&self, g: f32) -> Result<(), Error> {
+        unsafe { ffi::imageAdjustGamma(self.0, g) };
+        Ok(())
+    }
+
     pub fn convert_aces0(&self) -> Result<Image, Error> {
         let dest = unsafe { ffi::imageConvertACES0(self.0) };
         if dest.is_null() {
