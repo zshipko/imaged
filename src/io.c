@@ -87,11 +87,14 @@ static Image *imageReadRAW(const char *filename) {
   }
 
   libraw_dcraw_clear_mem(raw);
+  libraw_free_image(ctx);
+  libraw_close(ctx);
   return image;
 
 err1:
   libraw_dcraw_clear_mem(raw);
 err:
+  libraw_free_image(ctx);
   libraw_close(ctx);
   return NULL;
 }

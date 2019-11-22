@@ -267,7 +267,16 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   return true;
 }
 
+#include <pthread.h>
+static bool bablInit = false;
+
 const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
+  if (!bablInit) {
+    babl_init();
+    atexit(babl_exit);
+    bablInit = true;
+  }
+
   const char *colorName = imagedColorName(color);
   const char *typeName = imagedTypeName(kind, bits);
 
@@ -282,15 +291,7 @@ const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
   return babl_format(fmt);
 }
 
-static bool bablInit = false;
-
 bool imageConvertTo(const Image *src, Image *dest) {
-  if (!bablInit) {
-    babl_init();
-    atexit(babl_exit);
-    bablInit = true;
-  }
-
   if (dest->meta.width != src->meta.width ||
       dest->meta.height != src->meta.height) {
     return false;
