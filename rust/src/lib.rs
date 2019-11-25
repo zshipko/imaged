@@ -31,6 +31,9 @@ pub struct Handle<'a>(ffi::ImagedHandle, &'a DB);
 pub struct Image(*mut ffi::Image, bool);
 pub use ffi::Pixel;
 
+unsafe impl Sync for Image {}
+unsafe impl Send for Image {}
+
 impl std::ops::Add for Pixel {
     type Output = Pixel;
     fn add(self, mut other: Pixel) -> Pixel {
