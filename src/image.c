@@ -471,6 +471,7 @@ void imageResizeTo(Image *src, Image *dest) {
       px.data[2] /= (float)count;
       px.data[3] /= (float)count;
 
+      pixelClamp(&px);
       imageSetPixel(dest, x, y, &px);
     }
   }
