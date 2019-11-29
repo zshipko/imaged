@@ -27,6 +27,10 @@ size_t imagedColorChannelMap[] = {
     4, // HSLA
     3, // HSV
     4, // HSVA
+    3, // xyY
+    4, // xyYA
+    3, // HCY
+    4, // HCYA
 };
 
 size_t imagedColorNumChannels(ImagedColor color) {
@@ -59,6 +63,10 @@ const char *imagedColorNameMap[] = {
     "HSLA",              // HSLA
     "HSV",               // HSV
     "HSVA",              // HSVA
+    "CIE xyY",           // CIEXYY
+    "CIE xyY alpha",     // CIEXYYA
+    "HCY",               // HCY
+    "HCYA",              // HCYA
 };
 
 const char *imagedColorName(ImagedColor color) {
@@ -155,16 +163,15 @@ bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
                strncasecmp(t, "uint32", 6) == 0) {
       *bits = 32;
       *kind = IMAGED_KIND_UINT;
-    } else if (strncasecmp(t, "i8", 2) == 0 ||
-               strncasecmp(t, "iint8", 5) == 0) {
+    } else if (strncasecmp(t, "i8", 2) == 0 || strncasecmp(t, "int8", 5) == 0) {
       *bits = 8;
       *kind = IMAGED_KIND_INT;
     } else if (strncasecmp(t, "i16", 3) == 0 ||
-               strncasecmp(t, "iint16", 6) == 0) {
+               strncasecmp(t, "int16", 6) == 0) {
       *bits = 16;
       *kind = IMAGED_KIND_INT;
     } else if (strncasecmp(t, "i32", 2) == 0 ||
-               strncasecmp(t, "iint32", 6) == 0) {
+               strncasecmp(t, "int32", 6) == 0) {
       *bits = 32;
       *kind = IMAGED_KIND_INT;
     } else {

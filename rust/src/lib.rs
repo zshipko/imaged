@@ -131,6 +131,10 @@ pub enum Color {
     HSLA = 18,
     HSV = 19,
     HSVA = 20,
+    CIEXYY = 21,
+    CIEXYYA = 22,
+    HCY = 23,
+    HCYA = 24,
 }
 
 impl Color {
