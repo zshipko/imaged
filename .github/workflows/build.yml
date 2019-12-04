@@ -11,7 +11,7 @@ jobs:
     - uses: actions-rs/cargo@v1
     - uses: actions/checkout@v1
     - name: Dependencies
-      run: sudo apt-get install git libtiff-dev libraw-dev libbabl-dev make check libsubunit-dev golang-go
+      run: sudo apt-get install git libtiff-dev libraw-dev libbabl-dev make check libsubunit-dev libglfw-dev golang-go
     - name: Build ezimage
       run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
     - name: make
