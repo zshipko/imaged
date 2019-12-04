@@ -1,6 +1,12 @@
 # imaged - image processing and storage framework
 
-`imaged` provides a simple interface for working with images. This includes the ability to encode/decode many popular formats and methods of storing image data on disk for use in multiple applications.
+`imaged` provides a simple interface for working with image data across applications.
+
+## Features
+
+- Share image data safely between processes
+- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage)
+- Convert between colorspaces using [babl](https://github.com/GNOME/babl)
 
 ## Installation
 
