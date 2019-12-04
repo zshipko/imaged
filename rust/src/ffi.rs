@@ -149,7 +149,7 @@ pub enum ImagedKind {
     IMAGED_KIND_FLOAT = 2,
 }
 impl ImagedColor {
-    pub const IMAGED_COLOR_LAST: ImagedColor = ImagedColor::IMAGED_COLOR_HSVA;
+    pub const IMAGED_COLOR_LAST: ImagedColor = ImagedColor::IMAGED_COLOR_HCYA;
 }
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
@@ -174,6 +174,10 @@ pub enum ImagedColor {
     IMAGED_COLOR_HSLA = 18,
     IMAGED_COLOR_HSV = 19,
     IMAGED_COLOR_HSVA = 20,
+    IMAGED_COLOR_CIEXYY = 21,
+    IMAGED_COLOR_CIEXYYA = 22,
+    IMAGED_COLOR_HCY = 23,
+    IMAGED_COLOR_HCYA = 24,
 }
 extern "C" {
     pub fn imagedColorName(color: ImagedColor) -> *const ::std::os::raw::c_char;

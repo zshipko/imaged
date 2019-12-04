@@ -32,6 +32,10 @@ const (
 	HSLA    Color = 18
 	HSV     Color = 19
 	HSVA    Color = 20
+	CIEXYY  Color = 21
+	CIEXYYA Color = 22
+	HCY     Color = 23
+	HCYA    Color = 24
 )
 
 type Type struct {
@@ -55,6 +59,11 @@ var U8 = Type{
 var U16 = Type{
 	bits: 16,
 	kind: C.IMAGED_KIND_UINT,
+}
+
+var F16 = Type{
+	bits: 32,
+	kind: C.IMAGED_KIND_FLOAT,
 }
 
 var F32 = Type{

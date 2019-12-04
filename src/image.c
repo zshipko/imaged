@@ -345,6 +345,7 @@ void imageAdjustGamma(Image *src, float gamma) {
     X(1);
     X(2);
     X(3);
+    pixelClamp(&px);
     imageSetPixel(src, x, y, &px);
   }
 #undef X
@@ -471,6 +472,7 @@ void imageResizeTo(Image *src, Image *dest) {
       px.data[2] /= (float)count;
       px.data[3] /= (float)count;
 
+      pixelClamp(&px);
       imageSetPixel(dest, x, y, &px);
     }
   }

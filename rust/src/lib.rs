@@ -131,6 +131,10 @@ pub enum Color {
     HSLA = 18,
     HSV = 19,
     HSVA = 20,
+    CIEXYY = 21,
+    CIEXYYA = 22,
+    HCY = 23,
+    HCYA = 24,
 }
 
 impl Color {
@@ -571,7 +575,10 @@ impl Image {
         unsafe { ffi::imageSetPixel(self.0, x, y, px) }
     }
 
-    pub fn for_each<T, F: Fn((usize, usize), &mut [T])>(&mut self, f: F) -> Result<(), Error> {
+    pub fn for_each<T, F: FnMut((usize, usize), &mut [T])>(
+        &mut self,
+        mut f: F,
+    ) -> Result<(), Error> {
         if std::mem::size_of::<T>() != self.elem_size() {
             return Err(Error::IncorrectImageType);
         }
@@ -589,10 +596,10 @@ impl Image {
         Ok(())
     }
 
-    pub fn for_each2<T, F: Fn((usize, usize), &mut [T], &[T])>(
+    pub fn for_each2<T, F: FnMut((usize, usize), &mut [T], &[T])>(
         &mut self,
         other: &Image,
-        f: F,
+        mut f: F,
     ) -> Result<(), Error> {
         if std::mem::size_of::<T>() != self.elem_size()
             || std::mem::size_of::<T>() != other.elem_size()
