@@ -15,7 +15,7 @@ jobs:
             toolchain: nightly
             override: true
     - name: Dependencies
-      run: brew update && brew install tiff libraw babl check
+      run: brew update && brew install libtiff libraw babl check
     - name: Build ezimage
       run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
     - name: make
