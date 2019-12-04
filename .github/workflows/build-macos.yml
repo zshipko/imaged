@@ -1,0 +1,26 @@
+name: Build MacOS
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install latest Rust nightly
+      uses: actions-rs/toolchain@v1
+      with:
+            toolchain: nightly
+            override: true
+    - name: Dependencies
+      run: brew update && brew install libtiff libraw babl check pkg-config
+    - name: Build ezimage
+      run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
+    - name: make
+      run: make && sudo make install
+    - name: make test
+      run: make test
+    - name: Rust
+      run: cargo test
+    - name: Go
+      run: go build go/...
