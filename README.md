@@ -15,9 +15,12 @@ To get started to will need to following:
 - GNU Make
 - C compiler
 - [babl](https://github.com/GNOME/babl)
-  * `apt install libbabl-dev` on Debian based distros
-  * `brew install babl` on macOS
+  * `apt install libbabl-dev` (on Debian based distros)
+  * `brew install babl` (on macOS)
 - [ezimage](https://github.com/zshipko/ezimage)
+  * `git clone https://github.com/zshipko/ezimage`
+  * `make`
+  * `[sudo] make install`
 
 Once all of the dependencies have been installed:
 
@@ -26,32 +29,39 @@ $ make
 $ [sudo] make install
 ```
 
-Or to build the library without the `imaged` executable:
+Or to build the library without the `imaged` utility:
 
 ```shell
 $ make lib
 $ [sudo] make install-lib
 ```
 
-## Bindings
-
-- `./rust`: contains Rust bindings
-- `./go`: contains Go bindings
-
-## Command-line
+## imaged utility
 
 Run `imaged --help` for more information
 
-## Library
+## Bindings
+
+- [Rust](https://github.com/zshipko/imaged/tree/master/rust)
+- [Go](https://github.com/zshipko/imaged/tree/master/go)
+
+## libimaged
 
 ```c
+#include <imaged.h>
+#include <stdio.h>
+
 int main(void){
-  // Open the current directory, this will allow you to locate and iterate over `imgd` files in the specified directory
-  // Using $Imaged will automatically free `db` when it goes out of scope
+  // Open the current directory, this will allow you to locate and iterate over
+  // `imgd` files in the specified directory
   $Imaged(db) = imagedOpen(".");
   if (db == NULL){
     return 1;
   }
+
+
+  // Note: Using $Imaged will automatically free `db` when it goes out of scope,
+  // you can also use imagedClose if you don't like the `$` syntax
 
   // Create a new floating-point imgd file
   ImagedMeta meta = {
@@ -63,7 +73,9 @@ int main(void){
   };
 
   // $ImagedHandle will automatically free `handle` when it goes out of scope
-  $ImagedHandle(handle);
+  $ImagedHandle(handle); // when not using the `$` syntax, you will need to use
+                         // imagedHandleInit to initialize a handle, and
+                         // imagedHandleClose to free it
 
   // Set a new image named "test"
   if (imagedSet(db, "test", -1, meta, NULL, &handle) != IMAGED_OK){
@@ -72,7 +84,9 @@ int main(void){
 
   // Set the center pixel
   Pixel px = pixelRGB(1.0, 0, 0);
-  imageSet(&handle.image, 400, 300, &px);
+  if (imageSet(&handle.image, 400, 300, &px) != IMAGED_OK){
+    // handle out of bounds error
+  }
 
   // NOTE: the image is automatically saved, since you set the image data on
   // disk directly!
