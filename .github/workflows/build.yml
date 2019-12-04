@@ -1,0 +1,24 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions-rs/cargo@v1
+    - uses: actions/checkout@v1
+    - name: Dependencies
+      run: sudo apt-get git libtiff-dev libraw-dev libbabl-dev make check libsubunit-dev golang-go
+    - name: Build ezimage
+      run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
+    - name: make
+      run: make && sudo make install
+    - name: make test
+      run: make test
+    - name: Rust
+      run: cargo test
+    - name: Go
+      run: go build go/...
