@@ -1,3 +1,5 @@
+#![cfg(feature = "viewer")]
+
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
