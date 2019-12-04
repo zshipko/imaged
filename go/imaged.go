@@ -14,10 +14,12 @@ import (
 	"unsafe"
 )
 
+// Imaged is used to keep track of raw image data on disk
 type Imaged struct {
 	ptr *C.Imaged
 }
 
+// Open an Imaged instance, Close should always be called when finished
 func Open(path string) (*Imaged, error) {
 	tmp := C.CString(path)
 	defer C.free(unsafe.Pointer(tmp))
@@ -32,6 +34,7 @@ func Open(path string) (*Imaged, error) {
 	}, nil
 }
 
+// Close an Imaged instance
 func (db *Imaged) Close() {
 	if db.ptr == nil {
 		return
@@ -40,6 +43,7 @@ func (db *Imaged) Close() {
 	db.ptr = nil
 }
 
+// Destroy all images in the DB
 func (db *Imaged) Destroy() {
 	if db.ptr == nil {
 		return
@@ -48,6 +52,7 @@ func (db *Imaged) Destroy() {
 	db.ptr = nil
 }
 
+// Iter returns a new iterator
 func (db *Imaged) Iter() *Iter {
 	iter := C.imagedIterNew(db.ptr)
 	return &Iter{
@@ -55,7 +60,8 @@ func (db *Imaged) Iter() *Iter {
 	}
 }
 
-func (db *Imaged) Set(key string, width, height uint64, color Color, t Type) (*Handle, error) {
+// Create a new key with the specified size and metadata
+func (db *Imaged) Create(key string, width, height uint64, color Color, t Type) (*Handle, error) {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
 
@@ -71,6 +77,24 @@ func (db *Imaged) Set(key string, width, height uint64, color Color, t Type) (*H
 	}, nil
 }
 
+// Set an existing image to the specified key
+func (db *Imaged) Set(image *Image) (*Handle, error) {
+	cKey := C.CString(key)
+	defer C.free(unsafe.Pointer(cKey))
+
+	ref := C.ImagedHandle{}
+	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(image.Width()), C.ulong(image.Height()), C.int(image.Color()), image.Type().Kind(), C.uint8_t(image.Type().Bits())), image.inner.data, &ref)
+	if rc != C.IMAGED_OK {
+		err := C.GoString(C.imagedError(rc))
+		return nil, errors.New(err)
+	}
+
+	return &Handle{
+		ref: ref,
+	}, nil
+}
+
+// Get an image
 func (db *Imaged) Get(key string) (*Handle, error) {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
@@ -87,6 +111,7 @@ func (db *Imaged) Get(key string) (*Handle, error) {
 	}, nil
 }
 
+// Remove an image
 func (db *Imaged) Remove(key string) error {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
@@ -100,6 +125,7 @@ func (db *Imaged) Remove(key string) error {
 	return nil
 }
 
+// IsLocked checks if an image is locked
 func (db *Imaged) IsLocked(key string) bool {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
@@ -107,6 +133,7 @@ func (db *Imaged) IsLocked(key string) bool {
 	return bool(C.imagedKeyIsLocked(db.ptr, cKey, C.ssize_t(len(key))))
 }
 
+// IsValidFile checks if the specified key is a valid imgd file
 func (db *Imaged) IsValidFile(key string) bool {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
