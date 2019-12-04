@@ -8,10 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions-rs/cargo@v1
     - uses: actions/checkout@v1
+    - uses: actions-rs/cargo@v1
+    - uses: cedrickring/golang-action@1.4.1
     - name: Dependencies
-      run: sudo apt-get install git libtiff-dev libraw-dev libbabl-dev make check libsubunit-dev golang-go xorg-dev libglu1-mesa-dev
+      run: sudo apt-get install git libtiff-dev libraw-dev libbabl-dev make check libsubunit-dev xorg-dev libglu1-mesa-dev
     - name: Build ezimage
       run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
     - name: make
