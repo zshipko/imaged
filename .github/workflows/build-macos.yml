@@ -1,0 +1,28 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install latest Rust nightly
+      uses: actions-rs/toolchain@v1
+      with:
+            toolchain: nightly
+            override: true
+    - name: Dependencies
+      run: brew update && brew install tiff libraw babl check
+    - name: Build ezimage
+      run: git clone https://github.com/zshipko/ezimage && cd ezimage && make && sudo make install
+    - name: make
+      run: make && sudo make install
+    - name: make test
+      run: make test
+    - name: Rust
+      run: cargo test
+    - name: Go
+      run: go build go/...
