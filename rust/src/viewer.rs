@@ -159,6 +159,7 @@ fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Wind
 }
 
 impl Context {
+    /// Create a new viewer context
     pub fn new() -> Result<Self, Error> {
         let mut gl = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
         gl.window_hint(glfw::WindowHint::Visible(true));
@@ -168,24 +169,29 @@ impl Context {
         })
     }
 
+    /// Get window by name
     pub fn get_window(&self, key: &str) -> Option<&Window> {
         self.windows.get(key)
     }
 
+    /// Get mutable window by name
     pub fn get_window_mut(&mut self, key: &str) -> Option<&mut Window> {
         self.windows.get_mut(key)
     }
 
+    /// Get number of active windows
     pub fn num_windows(&self) -> usize {
         self.windows.len()
     }
 
+    /// Create a new window
     pub fn create_window(&mut self, key: &str, image: crate::Image) -> Result<(), Error> {
         let window = make_window(self, key, image)?;
         self.windows.insert(key.into(), window);
         Ok(())
     }
 
+    /// Execute one iteration
     pub fn tick<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
         &mut self,
         func: F,
@@ -223,6 +229,7 @@ impl Context {
         Ok(())
     }
 
+    /// Run until all windows are closed
     pub fn run<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
         mut self,
         callback: F,
@@ -242,10 +249,12 @@ impl Context {
     }
 }
 
+/// Ignore window events
 pub fn ignore(_: &str, _: &mut crate::Image, _: WindowEvent) -> Result<bool, Error> {
     Ok(true)
 }
 
+/// Respond to window events using `callback`
 pub fn update_callback<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error>>(
     db: crate::DB,
     callback: F,
@@ -257,6 +266,7 @@ pub fn update_callback<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<boo
     }
 }
 
+/// Window is used to display an Image
 pub struct Window {
     pub key: String,
     pub image: RefCell<crate::Image>,
@@ -271,14 +281,17 @@ pub struct Window {
 }
 
 impl Window {
+    /// Returns true when the window is ready to close
     pub fn should_close(&self) -> bool {
         self.display.should_close()
     }
 
+    /// Returns true when the window is currently being used
     pub fn is_focused(&self) -> bool {
         self.display.is_focused()
     }
 
+    /// Actually draw the image to the window
     pub fn draw(&mut self) -> Result<(), Error> {
         self.display.make_current();
         let mut ctx = self.display.render_context();
