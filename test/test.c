@@ -100,6 +100,63 @@ START_TEST(test_imaged_reset) {
 }
 END_TEST
 
+START_TEST(test_pixel) {
+  Pixel a = pixelEmpty();
+  Pixel b = pixelRGBA(0.0, 0.0, 0.0, 0.0);
+  ck_assert(pixelEqAll(&a, 0.0f));
+  ck_assert(pixelEq(&a, &b));
+
+  a.data[0] = 1.0;
+  a.data[1] = 1.0;
+  a.data[2] = 1.0;
+
+  ck_assert(pixelSum(&a) == 3.0f);
+}
+END_TEST;
+
+START_TEST(test_image) {
+  $Image(im) =
+      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
+  ck_assert(im != NULL);
+  ck_assert(im->meta.width == 800);
+  ck_assert(im->meta.height == 600);
+  ck_assert(im->meta.color == IMAGED_COLOR_RGB);
+  ck_assert(im->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(im->meta.bits == 32);
+  ck_assert(imagedColorNumChannels(im->meta.color) == 3);
+
+  Pixel p = pixelRGB(1.0, 0.5, 0.75), q;
+  imageSetPixel(im, 400, 300, &p);
+
+  imageGetPixel(im, 400, 300, &q);
+
+  ck_assert(pixelEq(&p, &q));
+}
+END_TEST;
+
+START_TEST(test_image_convert) {
+  $Image(a) =
+      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
+  $Image(b) = imageConvert(a, IMAGED_COLOR_RGBA, IMAGED_KIND_UINT, 16);
+
+  ck_assert(b->meta.width == 800);
+  ck_assert(b->meta.height == 600);
+  ck_assert(b->meta.color == IMAGED_COLOR_RGBA);
+  ck_assert(b->meta.kind == IMAGED_KIND_UINT);
+  ck_assert(b->meta.bits == 16);
+  ck_assert(imagedColorNumChannels(b->meta.color) == 4);
+
+  Pixel p, q;
+
+  imageGetPixel(a, 400, 300, &p);
+  imageGetPixel(b, 400, 300, &q);
+  ck_assert(pixelEq(&p, &q));
+}
+END_TEST;
+
+START_TEST(test_image_resize) {}
+END_TEST;
+
 #define BASIC(name) tcase_add_test(basic, name);
 
 Suite *imaged_test_suite() {
@@ -115,6 +172,10 @@ Suite *imaged_test_suite() {
   BASIC(test_iter);
   BASIC(test_remove);
   BASIC(test_imaged_reset);
+  BASIC(test_pixel);
+  BASIC(test_image);
+  BASIC(test_image_convert);
+  BASIC(test_image_resize);
 
   suite_add_tcase(s, basic);
   return s;
