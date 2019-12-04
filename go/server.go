@@ -21,8 +21,8 @@ type Context struct {
 	DB *Imaged
 }
 
-// Set command
-func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.Value) error {
+// Create command
+func (c *Context) Create(client *worm.Client, key, width, height, color, ty *worm.Value) error {
 	keyString := key.ToString()
 	w := uint64(width.ToInt64())
 	h := uint64(height.ToInt64())
@@ -39,7 +39,7 @@ func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.V
 		return client.WriteError("invalid color/type")
 	}
 
-	handle, err := c.DB.Set(keyString, w, h, Color(cl), Type{bits: uint8(bits), kind: t})
+	handle, err := c.DB.Create(keyString, w, h, Color(cl), Type{bits: uint8(bits), kind: t})
 	if err != nil {
 		return err
 	}

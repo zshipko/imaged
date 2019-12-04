@@ -78,12 +78,12 @@ func (db *Imaged) Create(key string, width, height uint64, color Color, t Type) 
 }
 
 // Set an existing image to the specified key
-func (db *Imaged) Set(image *Image) (*Handle, error) {
+func (db *Imaged) Set(key string, image *Image) (*Handle, error) {
 	cKey := C.CString(key)
 	defer C.free(unsafe.Pointer(cKey))
 
 	ref := C.ImagedHandle{}
-	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(image.Width()), C.ulong(image.Height()), C.int(image.Color()), image.Type().Kind(), C.uint8_t(image.Type().Bits())), image.inner.data, &ref)
+	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(image.Width()), C.ulong(image.Height()), C.int(image.Color()), C.ImagedKind(image.Type().Kind()), C.uint8_t(image.Type().Bits())), image.ptr.data, &ref)
 	if rc != C.IMAGED_OK {
 		err := C.GoString(C.imagedError(rc))
 		return nil, errors.New(err)

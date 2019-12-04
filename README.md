@@ -84,12 +84,12 @@ int main(void){
 
   // Set the center pixel
   Pixel px = pixelRGB(1.0, 0, 0);
-  if (imageSet(&handle.image, 400, 300, &px) != IMAGED_OK){
+  if (imageSetPixel(&handle.image, 400, 300, &px) != IMAGED_OK){
     // handle out of bounds error
   }
 
-  // NOTE: the image is automatically saved, since you set the image data on
-  // disk directly!
+  // NOTE: the image is automatically saved, since we were working directly with data
+  // from disk!
 
   return 0;
 }
