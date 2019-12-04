@@ -7,11 +7,11 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Install latest Rust nightly
-      uses: actions-rs/toolchain@v1
-      with:
-            toolchain: nightly
-            override: true
+   #- name: Install latest Rust nightly
+    # uses: actions-rs/toolchain@v1
+    # with:
+          # toolchain: nightly
+          # override: true
     - name: Dependencies
       run: brew update && brew install libtiff libraw babl check pkg-config
     - name: Build ezimage
@@ -20,7 +20,7 @@ jobs:
       run: make && sudo make install
     - name: make test
       run: make test
-    - name: Rust
-      run: cargo test
-    - name: Go
-      run: go build go/...
+  #- name: Rust
+  #    run: cargo test
+  #  - name: Go
+  #    run: go build go/...
