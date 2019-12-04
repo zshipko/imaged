@@ -19,6 +19,6 @@ jobs:
     - name: make test
       run: make test
     - name: Rust
-      run: cargo test --features=halide
+      run: cargo test --no-default-features --features=halide
     - name: Go
       run: go build go/...
