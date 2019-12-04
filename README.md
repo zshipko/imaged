@@ -36,7 +36,7 @@ $ make lib
 $ sudo make install-lib
 ```
 
-To include `imaged` in your application it's easiest to use pkg-config: `pkg-config --cflags --libs imaged`
+To include `imaged` in your application you can use pkg-config: `pkg-config --cflags --libs imaged`
 
 ## imaged utility
 
