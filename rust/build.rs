@@ -1,4 +1,11 @@
 fn main() {
+    let make = std::env::var("MAKE").unwrap_or("make".to_string());
+
+    std::process::Command::new(make)
+        .current_dir("..")
+        .output()
+        .unwrap();
+
     println!("cargo:rustc-link-search=native=..");
     println!("cargo:rustc-link-search=native=.");
 
