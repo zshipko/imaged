@@ -16,6 +16,12 @@ static void init_test_db() {
   mkdir("test/db", 0755);
   remove("test/db/data.mdb");
   remove("test/db/lock.mdb");
+
+  remove("test/out.png");
+  remove("test/out.jpeg");
+  remove("test/out.a.exr");
+  remove("test/out.b.exr");
+  remove("test/out.hdr");
 }
 
 START_TEST(test_image_size) {
@@ -52,6 +58,7 @@ START_TEST(test_set) {
   };
 
   $ImagedHandle(handle);
+  ck_assert(imagedKeyIsLocked(db, "testing", -1) == false);
   ck_assert(imagedSet(db, "testing", -1, meta, NULL, &handle) == IMAGED_OK);
   float *data = (float *)handle.image.data;
   ck_assert(data);
@@ -111,6 +118,12 @@ START_TEST(test_pixel) {
   a.data[2] = 1.0;
 
   ck_assert(pixelSum(&a) == 3.0f);
+  ck_assert(!pixelEq(&a, &b));
+
+  a.data[0] = 2.0;
+  ck_assert(pixelSum(&a) == 4.0f);
+  pixelClamp(&a);
+  ck_assert(pixelSum(&a) == 3.0f);
 }
 END_TEST;
 
@@ -154,7 +167,41 @@ START_TEST(test_image_convert) {
 }
 END_TEST;
 
-START_TEST(test_image_resize) {}
+START_TEST(test_image_resize) {
+  $Image(a) =
+      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
+  $Image(b) = imageScale(a, 2.0f, 2.0f);
+  ck_assert(b->meta.width == 1600);
+  ck_assert(b->meta.height == 1200);
+  ck_assert(b->meta.color == IMAGED_COLOR_RGB);
+  ck_assert(b->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(b->meta.bits == 32);
+}
+END_TEST;
+
+START_TEST(test_image_io) {
+  $Image(a) = imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
+  ck_assert(a->meta.color == IMAGED_COLOR_RGB);
+  ck_assert(a->meta.kind == IMAGED_KIND_UINT);
+  ck_assert(a->meta.bits == 8);
+
+  ASSERT_OK(imageWrite("test/out.png", a));
+  ASSERT_OK(imageWrite("test/out.jpeg", a));
+}
+END_TEST;
+
+START_TEST(test_image_io_exr) {
+  $Image(a) =
+      imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32);
+  ck_assert(a->meta.color == IMAGED_COLOR_RGB);
+  ck_assert(a->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(a->meta.bits == 32);
+  $Image(b) = imageConvert(a, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 16);
+
+  ASSERT_OK(imageWrite("test/out.a.exr", a));
+  ASSERT_OK(imageWrite("test/out.b.exr", b));
+  ASSERT_OK(imageWrite("test/out.hdr", a));
+}
 END_TEST;
 
 #define BASIC(name) tcase_add_test(basic, name);
@@ -176,6 +223,8 @@ Suite *imaged_test_suite() {
   BASIC(test_image);
   BASIC(test_image_convert);
   BASIC(test_image_resize);
+  BASIC(test_image_io);
+  BASIC(test_image_io_exr);
 
   suite_add_tcase(s, basic);
   return s;
