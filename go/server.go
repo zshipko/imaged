@@ -16,10 +16,12 @@ import (
 	"github.com/zshipko/worm"
 )
 
+// Context defines the resources the server needs access to
 type Context struct {
 	DB *Imaged
 }
 
+// Set command
 func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.Value) error {
 	keyString := key.ToString()
 	w := uint64(width.ToInt64())
@@ -46,6 +48,7 @@ func (c *Context) Set(client *worm.Client, key, width, height, color, ty *worm.V
 	return client.WriteOK()
 }
 
+// Remove command
 func (c *Context) Remove(client *worm.Client, key *worm.Value) error {
 	keyString := key.ToString()
 
@@ -56,6 +59,7 @@ func (c *Context) Remove(client *worm.Client, key *worm.Value) error {
 	return client.WriteOK()
 }
 
+// List command
 func (c *Context) List(client *worm.Client) error {
 	iter := c.DB.Iter()
 	defer iter.Close()
@@ -75,6 +79,7 @@ func (c *Context) List(client *worm.Client) error {
 	return client.WriteValue(worm.New(names))
 }
 
+// RemoveAll command
 func (c *Context) RemoveAll(client *worm.Client) error {
 	iter := c.DB.Iter()
 	defer iter.Close()
@@ -87,6 +92,7 @@ func (c *Context) RemoveAll(client *worm.Client) error {
 	return client.WriteOK()
 }
 
+// GetPixel command
 func (c *Context) GetPixel(client *worm.Client, key, x, y *worm.Value) error {
 	keyStr := key.ToString()
 	xPos := x.ToInt64()
@@ -111,6 +117,7 @@ func (c *Context) GetPixel(client *worm.Client, key, x, y *worm.Value) error {
 	return nil
 }
 
+// SetPixel command
 func (c *Context) SetPixel(client *worm.Client, key, x, y *worm.Value, px ...*worm.Value) error {
 	keyStr := key.ToString()
 	xPos := x.ToInt64()
@@ -152,6 +159,7 @@ func tempFileName(prefix, suffix string) string {
 	return filepath.Join(os.TempDir(), prefix+hex.EncodeToString(randBytes)+suffix)
 }
 
+// Export command
 func (c *Context) Export(client *worm.Client, key, fmt *worm.Value) error {
 	handle, err := c.DB.Get(key.ToString())
 	if err != nil {
