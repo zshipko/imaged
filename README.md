@@ -20,20 +20,20 @@ To get started to will need to following:
 - [ezimage](https://github.com/zshipko/ezimage)
   * `git clone https://github.com/zshipko/ezimage`
   * `make`
-  * `[sudo] make install`
+  * `sudo make install`
 
 Once all of the dependencies have been installed:
 
 ```shell
 $ make
-$ [sudo] make install
+$ sudo make install
 ```
 
 Or to build the library without the `imaged` utility:
 
 ```shell
 $ make lib
-$ [sudo] make install-lib
+$ sudo make install-lib
 ```
 
 To include `imaged` in your application it's easiest to use pkg-config: `pkg-config --cflags --libs imaged`
