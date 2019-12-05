@@ -5,8 +5,9 @@
 ## Features
 
 - Share image data safely between processes
-- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage)
+- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage) and [libraw](https://github.com/libraw/libraw)
 - Convert between colorspaces using [babl](https://github.com/GNOME/babl)
+- Developed for use with [Halide](https://github.com/halide/halide)
 
 ## Installation
 
