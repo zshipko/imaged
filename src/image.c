@@ -315,7 +315,9 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
   if (dest == NULL) {
     return NULL;
   }
+
   if (!imageConvertTo(src, dest)) {
+    imageFree(dest);
     return NULL;
   }
 
@@ -387,13 +389,6 @@ void imageFilter(Image *im, Image *dst, float *K, int Ks, float divisor,
   // Divisor can never be zero
   if (divisor == 0.0) {
     divisor = 1.0;
-  }
-
-  size_t channels = imagedColorNumChannels(im->meta.color);
-
-  // Ignore alpha channel
-  if (channels > 3) {
-    channels = 3;
   }
 
   IMAGE_ITER_ALL(im, ix, iy) {

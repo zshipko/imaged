@@ -134,9 +134,10 @@ size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
 }
 
 bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  char *path = pathJoin(db->root, key, keylen);
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
+    free(path);
     return false;
   }
 
@@ -146,6 +147,7 @@ bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
   char header[4];
   if (read(fd, header, 4) != 4 || strncmp(header, _header, _header_size) != 0) {
     close(fd);
+    free(path);
     return false;
   }
 
@@ -153,26 +155,32 @@ bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
 
   if (read(fd, &meta, sizeof(ImagedMeta)) != sizeof(ImagedMeta)) {
     close(fd);
+    free(path);
     return false;
   }
 
   close(fd);
+  free(path);
 
   return imagedMetaTotalBytes(&meta) + _header_size + sizeof(ImagedMeta) + 1 ==
          (size_t)st.st_size;
 }
 
 bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen) {
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  char *path = pathJoin(db->root, key, keylen);
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
+    free(path);
     return false;
   }
+
   bool r = flock(fd, LOCK_EX | LOCK_NB) != 0;
   if (!r) {
     flock(fd, LOCK_UN);
   }
+
   close(fd);
+  free(path);
   return r;
 }
 
@@ -250,8 +258,10 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
-  return fileExists(path, NULL);
+  char *path = pathJoin(db->root, key, keylen);
+  bool res = fileExists(path, NULL);
+  free(path);
+  return res;
 }
 
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
@@ -262,15 +272,17 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  char *path = pathJoin(db->root, key, keylen);
 
   int fd = open(path, O_CREAT | O_RDWR | O_TRUNC, 0655);
   if (fd < 0) {
+    free(path);
     return IMAGED_ERR;
   }
 
   if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
     close(fd);
+    free(path);
     return IMAGED_ERR_LOCKED;
   }
 
@@ -278,17 +290,20 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
       _header_size + sizeof(ImagedMeta) + imagedMetaTotalBytes(&meta);
   if (lseek(fd, map_size, SEEK_SET) == -1) {
     close_unlock(fd);
+    free(path);
     return IMAGED_ERR_SEEK;
   }
 
   if (write(fd, "", 1) != 1) {
     close_unlock(fd);
+    free(path);
     return IMAGED_ERR;
   }
 
   void *data = mmap(0, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (data == MAP_FAILED) {
     close_unlock(fd);
+    free(path);
     return IMAGED_ERR_MAP_FAILED;
   }
 
@@ -303,6 +318,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   if (handle == NULL) {
     close_unlock(fd);
+    free(path);
     handle->fd = -1;
     handle->image.data = NULL;
     return IMAGED_OK;
@@ -311,6 +327,8 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   handle->fd = fd;
   handle->image.meta = meta;
   handle->image.data = (uint8_t *)data + _header_size + sizeof(ImagedMeta);
+
+  free(path);
 
   return IMAGED_OK;
 }
@@ -322,28 +340,33 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  char *path = pathJoin(db->root, key, keylen);
 
   struct stat st;
   if (!fileExists(path, &st)) {
+    free(path);
     return IMAGED_ERR_FILE_DOES_NOT_EXIST;
   }
 
   size_t map_size = st.st_size;
   if (map_size <= _header_size + sizeof(ImagedMeta)) {
+    free(path);
     return IMAGED_ERR_INVALID_FILE;
   }
 
   if (handle == NULL) {
+    free(path);
     return IMAGED_OK;
   }
 
   int fd = open(path, (editable ? O_CREAT | O_RDWR : O_RDONLY), 0655);
   if (fd < 0) {
+    free(path);
     return IMAGED_ERR;
   }
 
   if (flock(fd, (editable ? LOCK_EX : LOCK_SH) | LOCK_NB) < 0) {
+    free(path);
     close(fd);
     return IMAGED_ERR_LOCKED;
   }
@@ -355,12 +378,14 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   void *data = mmap(0, map_size, flags, MAP_SHARED, fd, 0);
   if (data == MAP_FAILED) {
     close_unlock(fd);
+    free(path);
     return IMAGED_ERR_MAP_FAILED;
   }
 
   if (strncmp(data, _header, _header_size) != 0) {
     munmap(data, map_size);
     close_unlock(fd);
+    free(path);
     return IMAGED_ERR_INVALID_FILE;
   }
 
@@ -375,9 +400,11 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
       (size_t)st.st_size) {
 
     imagedHandleClose(handle);
+    free(path);
     return IMAGED_ERR_INVALID_FILE;
   }
 
+  free(path);
   return IMAGED_OK;
 }
 
@@ -386,10 +413,11 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
     return IMAGED_ERR_INVALID_KEY;
   }
 
-  $(free, char, *path) = pathJoin(db->root, key, keylen);
+  char *path = pathJoin(db->root, key, keylen);
 
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
+    free(path);
     return IMAGED_ERR_FILE_DOES_NOT_EXIST;
   }
 
@@ -397,16 +425,19 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   int n;
   if ((n = read(fd, &header, _header_size)) != 4 ||
       strncmp(header, _header, _header_size) != 0) {
+    free(path);
     close(fd);
     return IMAGED_ERR_INVALID_FILE;
   }
 
   if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+    free(path);
     close(fd);
     return IMAGED_ERR_LOCKED;
   }
 
   remove(path);
+  free(path);
   close_unlock(fd);
   return IMAGED_OK;
 }

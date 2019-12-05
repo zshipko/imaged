@@ -139,44 +139,55 @@ bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
     }
   }
 
+  ImagedKind k = IMAGED_KIND_FLOAT;
+  uint8_t b = 32;
+
   if (t != NULL) {
     if (strncasecmp(t, "f32", 3) == 0 || strncasecmp(t, "float", 5) == 0) {
-      *bits = 32;
-      *kind = IMAGED_KIND_FLOAT;
+      b = 32;
+      k = IMAGED_KIND_FLOAT;
     } else if (strncasecmp(t, "f16", 3) == 0 ||
                strncasecmp(t, "half", 4) == 0) {
-      *bits = 16;
-      *kind = IMAGED_KIND_FLOAT;
+      b = 16;
+      k = IMAGED_KIND_FLOAT;
     } else if (strncasecmp(t, "f64", 3) == 0 ||
                strncasecmp(t, "double", 6) == 0) {
-      *bits = 64;
-      *kind = IMAGED_KIND_FLOAT;
+      b = 64;
+      k = IMAGED_KIND_FLOAT;
     } else if (strncasecmp(t, "u8", 2) == 0 ||
                strncasecmp(t, "uint8", 5) == 0) {
-      *bits = 8;
-      *kind = IMAGED_KIND_UINT;
+      b = 8;
+      k = IMAGED_KIND_UINT;
     } else if (strncasecmp(t, "u16", 3) == 0 ||
                strncasecmp(t, "uint16", 6) == 0) {
-      *bits = 16;
-      *kind = IMAGED_KIND_UINT;
+      b = 16;
+      k = IMAGED_KIND_UINT;
     } else if (strncasecmp(t, "u32", 2) == 0 ||
                strncasecmp(t, "uint32", 6) == 0) {
-      *bits = 32;
-      *kind = IMAGED_KIND_UINT;
+      b = 32;
+      k = IMAGED_KIND_UINT;
     } else if (strncasecmp(t, "i8", 2) == 0 || strncasecmp(t, "int8", 5) == 0) {
-      *bits = 8;
-      *kind = IMAGED_KIND_INT;
+      b = 8;
+      k = IMAGED_KIND_INT;
     } else if (strncasecmp(t, "i16", 3) == 0 ||
                strncasecmp(t, "int16", 6) == 0) {
-      *bits = 16;
-      *kind = IMAGED_KIND_INT;
+      b = 16;
+      k = IMAGED_KIND_INT;
     } else if (strncasecmp(t, "i32", 2) == 0 ||
                strncasecmp(t, "int32", 6) == 0) {
-      *bits = 32;
-      *kind = IMAGED_KIND_INT;
+      b = 32;
+      k = IMAGED_KIND_INT;
     } else {
       return false;
     }
+  }
+
+  if (bits != NULL) {
+    *bits = b;
+  }
+
+  if (kind != NULL) {
+    *kind = k;
   }
 
   return true;

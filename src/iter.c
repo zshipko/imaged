@@ -25,7 +25,7 @@ ImagedIter *imagedIterNew(Imaged *db) {
 }
 
 void imagedIterReset(ImagedIter *iter) {
-  if (iter == NULL && iter->d != NULL) {
+  if (iter != NULL && iter->d != NULL) {
     rewinddir(iter->d);
   }
 }
