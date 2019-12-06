@@ -36,11 +36,11 @@ extern "C" {
 #define IMAGED_PATH_SEP '/'
 #endif
 
-// Utility for creating new strings
+/** Utility for creating new strings */
 char *imagedStringPrintf(const char *fmt, ...);
 
-// Status types: IMAGED_OK implies the function executed successfully, while any
-// other response signifies failure
+/** Status types: IMAGED_OK implies the function executed successfully, while
+ * any other response signifies failure */
 typedef enum {
   IMAGED_OK,
   IMAGED_ERR,
@@ -54,27 +54,27 @@ typedef enum {
   IMAGED_ERR_LOCKED,
 } ImagedStatus;
 
-// Convert ImagedStatus to an error message
+/** Convert ImagedStatus to an error message */
 const char *imagedError(ImagedStatus status);
 
-// Dump ImagedStatus error message to stderr
+/** Dump ImagedStatus error message to stderr */
 void imagedPrintError(ImagedStatus status, const char *message);
 
 struct ImagedHandle;
 
-// Image database
+/** Image database */
 typedef struct {
   char *root;
 } Imaged;
 
-// Image kinds, specifies the image data base type
+/** Image kinds, specifies the image data base type */
 typedef enum {
   IMAGED_KIND_INT,
   IMAGED_KIND_UINT,
   IMAGED_KIND_FLOAT,
 } ImagedKind;
 
-// Image colors, specifies the image color type
+/** Image colors, specifies the image color type */
 typedef enum {
   IMAGED_COLOR_GRAY = 1,
   IMAGED_COLOR_GRAYA = 2,
@@ -106,24 +106,24 @@ typedef enum {
 extern size_t imagedColorChannelMap[];
 extern const char *imagedColorNameMap[];
 
-// Get name of color
+/** Get name of color */
 const char *imagedColorName(ImagedColor color);
 
-// Get name of type
+/** Get name of type */
 const char *imagedTypeName(ImagedKind kind, uint8_t bits);
 
-// Get number of channels in a color
+/** Get number of channels in a color */
 size_t imagedColorNumChannels(ImagedColor color);
 
-// Parse color and type names
+/** Parse color and type names */
 bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
                              ImagedKind *kind, uint8_t *bits);
 
-// Returns true if the kind/bits create a valid image type
+/** Returns true if the kind/bits create a valid image type */
 bool imagedIsValidType(ImagedKind kind, uint8_t bits);
 
-// ImagedMeta is used to store image metadata with information about the image
-// shape and type
+/** ImagedMeta is used to store image metadata with information about the image
+ * shape and type */
 typedef struct {
   uint64_t width, height;
   uint8_t bits;
@@ -131,13 +131,13 @@ typedef struct {
   ImagedColor color;
 } ImagedMeta;
 
-// Get the number of pixels in an image
+/** Get the number of pixels in an image */
 size_t imagedMetaNumPixels(const ImagedMeta *meta);
 
-// Get the number of bytes in an image
+/** Get the number of bytes in an image */
 size_t imagedMetaTotalBytes(const ImagedMeta *meta);
 
-// Stores image data
+/** Stores image data with associated metadata */
 typedef struct {
   ImagedMeta meta;
   void *data;
@@ -146,86 +146,87 @@ typedef struct {
 void imageRAWUseAutoBrightness(bool b);
 void imageRAWUseCameraWhiteBalance(bool b);
 
-// Read an image from disk, the resulting image will be converted to match
-// color/kind/bits if needed
+/** Read an image from disk, the resulting image will be converted to match
+ * color/kind/bits if needed */
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits);
 
-// Read an image from disk, using the default format
+/** Read an image from disk, using the default format **/
 Image *imageReadDefault(const char *filename);
 
-// Write an image to disk
+/** Write an image to disk */
 ImagedStatus imageWrite(const char *path, const Image *image);
 
-// Create a new image with the given metadata
+/** Create a new image with the given metadata */
 Image *imageNew(ImagedMeta meta);
 
-// Create a new image and copy data if provided
+/** Create a new image and copy data if provided */
 Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
                   uint8_t bits, const void *data);
 
-// Duplicate an existing image
+/** Duplicate an existing image */
 Image *imageClone(const Image *image);
 
-// Free allocated image
+/** Free allocated image */
 void imageFree(Image *image);
 
-// Get the number of bytes in a pixel for the given image
+/** Get the number of bytes in a pixel for the given image */
 size_t imagePixelBytes(Image *image);
 
-// Get the number of bytes in an image
+/** Get the number of bytes in an image */
 size_t imageBytes(Image *image);
 
-// Get the data offset at the position (x, y)
+/** Get the data offset at the position (x, y) */
 size_t imageIndex(Image *image, size_t x, size_t y);
 
-// Get a pointer to the data at the position (x, y)
+/** Get a pointer to the data at the position (x, y) */
 void *imageAt(Image *image, size_t x, size_t y);
 
+/** 4-channel floating point pixel */
 typedef struct {
   float data[4];
 } Pixel;
 
-// Get pixel at position (x, y)
+/** Get pixel at position (x, y) */
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 
-// Set pixel at position (x, y)
+/** Set pixel at position (x, y) */
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 
-// Ensures pixel values are between 0 and 1
+/** Ensures pixel values are between 0 and 1 */
 void pixelClamp(Pixel *px);
 
-// Create a new empty pixel
+/** Create a new empty pixel */
 Pixel pixelEmpty(void);
 
-// Create a new gray pixel
+/** Create a new gray pixel */
 Pixel pixelGray(float r);
 
-// Create a new RGB pixel
+/** Create a new RGB pixel */
 Pixel pixelRGB(float r, float g, float b);
 
-// Create a new RGBA pixel
+/** Create a new RGBA pixel */
 Pixel pixelRGBA(float r, float g, float b, float a);
 
-// Addition
+/** Pixel addition */
 void pixelAdd(const Pixel *src, Pixel *dest);
 
-// Subtraction
+/** Pixel subtraction */
 void pixelSub(const Pixel *src, Pixel *dest);
 
-// Multiplication
+/** Pixel multiplication */
 void pixelMul(const Pixel *src, Pixel *dest);
 
-// Division
+/** Pixel division */
 void pixelDiv(const Pixel *src, Pixel *dest);
 
-// Equality
+/** Pixel equality */
 bool pixelEq(const Pixel *a, const Pixel *b);
 
-// Equality against a single value
+/** Pixel equality against a single value */
 bool pixelEqAll(const Pixel *a, float v);
 
-// Sun of all channels
+/** Sun of all pixel channels */
 float pixelSum(const Pixel *a);
 
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
@@ -237,17 +238,18 @@ float pixelSum(const Pixel *a);
   for (y = 0; y < im->meta.height; y++)                                        \
     for (x = 0; x < im->meta.width; x++)
 
-// Adjust image gamma
+/** Adjust image gamma */
 void imageAdjustGamma(Image *src, float gamma);
 
-// Convert source image to the format specified by the destination image
+/** Convert source image to the format specified by the destination image */
 bool imageConvertTo(const Image *src, Image *dest);
 
-// Convert source image to the specified type, returning the new converted image
+/** Convert source image to the specified type, returning the new converted
+ * image */
 Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
                     uint8_t bits);
 
-// Convert source image to the specified type
+/** Convert source image to the specified type */
 bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
                          uint8_t bits);
 
@@ -256,66 +258,66 @@ Image *imageConvertACES0ToXYZ(Image *src);
 Image *imageConvertACES1(Image *src);
 Image *imageConvertACES1ToXYZ(Image *src);
 
-// Resize source image to size specified by destination image
+/** Resize source image to size specified by destination image */
 void imageResizeTo(Image *src, Image *dest);
 
-// Resize image to the given size, returns a new image
+/** Resize image to the given size, returns a new image */
 Image *imageResize(Image *src, size_t x, size_t y);
 
-// Scale an image using the given factors, returns a new image
+/** Scale an image using the given factors, returns a new image */
 Image *imageScale(Image *src, double scale_x, double scale_y);
 
 Image *imageConsume(Image *x, Image **dest);
 
-// A handle is used to refer to an imgd image in an Imaged database
+/** A handle is used to refer to an imgd image in an Imaged database */
 typedef struct ImagedHandle {
   int fd;
   Image image;
 } ImagedHandle;
 
-// Remove all image locks
+/** Remove all image locks */
 void imagedResetLocks(Imaged *db);
 
-// Returns true when an image is locked
+/** Returns true when an image is locked */
 bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen);
 
-// Returns true when the specified file is an valid imgd file
+/** Returns true when the specified file is an valid imgd file */
 bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen);
 
-// Wait for an image to become available
+/** Wait for an image to become available */
 bool imagedWait(ImagedStatus status);
 
-// Open a new imaged context
+/** Open a new imaged context */
 Imaged *imagedOpen(const char *path);
 
-// Close an imaged context
+/** Close an imaged context */
 void imagedClose(Imaged *db);
 
-// Destroy an imaged store, removing all contents from disk
+/** Destroy an imaged store, removing all contents from disk */
 ImagedStatus imagedDestroy(Imaged *db);
 
-// Returns true when there is a value associated with the given key
+/** Returns true when there is a value associated with the given key */
 bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen);
 
-// Set a key
+/** Set a key */
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
                        ImagedMeta meta, const void *imagedata,
                        ImagedHandle *handle);
 
-// Get a key
+/** Get a key */
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
                        bool editable, ImagedHandle *handle);
 
-// Remove the value associated with the provided key
+/** &Remove the value associated with the provided key */
 ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);
 
-// Release ImagedHandle resources including all memory and file descriptors
+/** Release ImagedHandle resources including all memory and file descriptors */
 void imagedHandleClose(ImagedHandle *handle);
 
-// Initialize an new handle
+/** Initialize an new handle */
 void imagedHandleInit(ImagedHandle *handle);
 
-// Iterator over imgd files in an Imaged database
+/** Iterator over imgd files in an Imaged database */
 typedef struct {
   Imaged *db;
   DIR *d;
@@ -325,16 +327,16 @@ typedef struct {
   ImagedHandle handle;
 } ImagedIter;
 
-// Create a new iterator
+/** Create a new iterator */
 ImagedIter *imagedIterNew(Imaged *db);
 
-// Get next image
+/** Get next image */
 Image *imagedIterNext(ImagedIter *iter);
 
-// Get next key
+/** Get next key */
 const char *imagedIterNextKey(ImagedIter *iter);
 
-// Free iterator
+/** Free iterator */
 void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
 
