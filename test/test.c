@@ -170,9 +170,9 @@ END_TEST;
 START_TEST(test_image_resize) {
   $Image(a) =
       imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
-  $Image(b) = imageScale(a, 2.0f, 2.0f);
+  $Image(b) = imageScale(a, 2.0f, 1.5f);
   ck_assert(b->meta.width == 1600);
-  ck_assert(b->meta.height == 1200);
+  ck_assert(b->meta.height == 900);
   ck_assert(b->meta.color == IMAGED_COLOR_RGB);
   ck_assert(b->meta.kind == IMAGED_KIND_FLOAT);
   ck_assert(b->meta.bits == 32);
