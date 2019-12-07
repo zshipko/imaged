@@ -88,12 +88,15 @@ pub struct __dirstream {
 }
 pub type DIR = __dirstream;
 extern "C" {
+    #[doc = " Utility for creating new strings"]
     pub fn imagedStringPrintf(
         fmt: *const ::std::os::raw::c_char,
         ...
     ) -> *mut ::std::os::raw::c_char;
 }
 #[repr(u32)]
+#[doc = " Status types: IMAGED_OK implies the function executed successfully, while"]
+#[doc = " any other response signifies failure"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImagedStatus {
     IMAGED_OK = 0,
@@ -108,11 +111,14 @@ pub enum ImagedStatus {
     IMAGED_ERR_LOCKED = 9,
 }
 extern "C" {
+    #[doc = " Convert ImagedStatus to an error message"]
     pub fn imagedError(status: ImagedStatus) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    #[doc = " Dump ImagedStatus error message to stderr"]
     pub fn imagedPrintError(status: ImagedStatus, message: *const ::std::os::raw::c_char);
 }
+#[doc = " Image database"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Imaged {
@@ -142,6 +148,7 @@ fn bindgen_test_layout_Imaged() {
     );
 }
 #[repr(u32)]
+#[doc = " Image kinds, specifies the image data base type"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImagedKind {
     IMAGED_KIND_INT = 0,
@@ -152,6 +159,7 @@ impl ImagedColor {
     pub const IMAGED_COLOR_LAST: ImagedColor = ImagedColor::IMAGED_COLOR_HCYA;
 }
 #[repr(u32)]
+#[doc = " Image colors, specifies the image color type"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImagedColor {
     IMAGED_COLOR_GRAY = 1,
@@ -180,15 +188,19 @@ pub enum ImagedColor {
     IMAGED_COLOR_HCYA = 24,
 }
 extern "C" {
+    #[doc = " Get name of color"]
     pub fn imagedColorName(color: ImagedColor) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    #[doc = " Get name of type"]
     pub fn imagedTypeName(kind: ImagedKind, bits: u8) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    #[doc = " Get number of channels in a color"]
     pub fn imagedColorNumChannels(color: ImagedColor) -> usize;
 }
 extern "C" {
+    #[doc = " Parse color and type names"]
     pub fn imagedParseColorAndType(
         color: *const ::std::os::raw::c_char,
         t: *const ::std::os::raw::c_char,
@@ -198,8 +210,11 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    #[doc = " Returns true if the kind/bits create a valid image type"]
     pub fn imagedIsValidType(kind: ImagedKind, bits: u8) -> bool;
 }
+#[doc = " ImagedMeta is used to store image metadata with information about the image"]
+#[doc = " shape and type"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedMeta {
@@ -273,11 +288,14 @@ fn bindgen_test_layout_ImagedMeta() {
     );
 }
 extern "C" {
+    #[doc = " Get the number of pixels in an image"]
     pub fn imagedMetaNumPixels(meta: *const ImagedMeta) -> usize;
 }
 extern "C" {
+    #[doc = " Get the number of bytes in an image"]
     pub fn imagedMetaTotalBytes(meta: *const ImagedMeta) -> usize;
 }
+#[doc = " Stores image data with associated metadata"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Image {
@@ -324,6 +342,8 @@ extern "C" {
     pub fn imageRAWUseCameraWhiteBalance(b: bool);
 }
 extern "C" {
+    #[doc = " Read an image from disk, the resulting image will be converted to match"]
+    #[doc = " color/kind/bits if needed"]
     pub fn imageRead(
         filename: *const ::std::os::raw::c_char,
         color: ImagedColor,
@@ -332,15 +352,19 @@ extern "C" {
     ) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Read an image from disk, using the default format"]
     pub fn imageReadDefault(filename: *const ::std::os::raw::c_char) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Write an image to disk"]
     pub fn imageWrite(path: *const ::std::os::raw::c_char, image: *const Image) -> ImagedStatus;
 }
 extern "C" {
+    #[doc = " Create a new image with the given metadata"]
     pub fn imageNew(meta: ImagedMeta) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Create a new image and copy data if provided"]
     pub fn imageAlloc(
         w: u64,
         h: u64,
@@ -351,23 +375,30 @@ extern "C" {
     ) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Duplicate an existing image"]
     pub fn imageClone(image: *const Image) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Free allocated image"]
     pub fn imageFree(image: *mut Image);
 }
 extern "C" {
+    #[doc = " Get the number of bytes in a pixel for the given image"]
     pub fn imagePixelBytes(image: *mut Image) -> usize;
 }
 extern "C" {
+    #[doc = " Get the number of bytes in an image"]
     pub fn imageBytes(image: *mut Image) -> usize;
 }
 extern "C" {
+    #[doc = " Get the data offset at the position (x, y)"]
     pub fn imageIndex(image: *mut Image, x: usize, y: usize) -> usize;
 }
 extern "C" {
+    #[doc = " Get a pointer to the data at the position (x, y)"]
     pub fn imageAt(image: *mut Image, x: usize, y: usize) -> *mut ::std::os::raw::c_void;
 }
+#[doc = " 4-channel floating point pixel"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Pixel {
@@ -397,54 +428,72 @@ fn bindgen_test_layout_Pixel() {
     );
 }
 extern "C" {
+    #[doc = " Get pixel at position (x, y)"]
     pub fn imageGetPixel(image: *mut Image, x: usize, y: usize, pixel: *mut Pixel) -> bool;
 }
 extern "C" {
+    #[doc = " Set pixel at position (x, y)"]
     pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
 }
 extern "C" {
+    #[doc = " Ensures pixel values are between 0 and 1"]
     pub fn pixelClamp(px: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Create a new empty pixel"]
     pub fn pixelEmpty() -> Pixel;
 }
 extern "C" {
+    #[doc = " Create a new gray pixel"]
     pub fn pixelGray(r: f32) -> Pixel;
 }
 extern "C" {
+    #[doc = " Create a new RGB pixel"]
     pub fn pixelRGB(r: f32, g: f32, b: f32) -> Pixel;
 }
 extern "C" {
+    #[doc = " Create a new RGBA pixel"]
     pub fn pixelRGBA(r: f32, g: f32, b: f32, a: f32) -> Pixel;
 }
 extern "C" {
+    #[doc = " Pixel addition"]
     pub fn pixelAdd(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Pixel subtraction"]
     pub fn pixelSub(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Pixel multiplication"]
     pub fn pixelMul(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Pixel division"]
     pub fn pixelDiv(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Pixel equality"]
     pub fn pixelEq(a: *const Pixel, b: *const Pixel) -> bool;
 }
 extern "C" {
+    #[doc = " Pixel equality against a single value"]
     pub fn pixelEqAll(a: *const Pixel, v: f32) -> bool;
 }
 extern "C" {
+    #[doc = " Sun of all pixel channels"]
     pub fn pixelSum(a: *const Pixel) -> f32;
 }
 extern "C" {
+    #[doc = " Adjust image gamma"]
     pub fn imageAdjustGamma(src: *mut Image, gamma: f32);
 }
 extern "C" {
+    #[doc = " Convert source image to the format specified by the destination image"]
     pub fn imageConvertTo(src: *const Image, dest: *mut Image) -> bool;
 }
 extern "C" {
+    #[doc = " Convert source image to the specified type, returning the new converted"]
+    #[doc = " image"]
     pub fn imageConvert(
         src: *const Image,
         color: ImagedColor,
@@ -453,6 +502,7 @@ extern "C" {
     ) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Convert source image to the specified type"]
     pub fn imageConvertInPlace(
         src: *mut *mut Image,
         color: ImagedColor,
@@ -473,17 +523,21 @@ extern "C" {
     pub fn imageConvertACES1ToXYZ(src: *mut Image) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Resize source image to size specified by destination image"]
     pub fn imageResizeTo(src: *mut Image, dest: *mut Image);
 }
 extern "C" {
+    #[doc = " Resize image to the given size, returns a new image"]
     pub fn imageResize(src: *mut Image, x: usize, y: usize) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Scale an image using the given factors, returns a new image"]
     pub fn imageScale(src: *mut Image, scale_x: f64, scale_y: f64) -> *mut Image;
 }
 extern "C" {
     pub fn imageConsume(x: *mut Image, dest: *mut *mut Image) -> *mut Image;
 }
+#[doc = " A handle is used to refer to an imgd image in an Imaged database"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedHandle {
@@ -524,9 +578,11 @@ fn bindgen_test_layout_ImagedHandle() {
     );
 }
 extern "C" {
+    #[doc = " Remove all image locks"]
     pub fn imagedResetLocks(db: *mut Imaged);
 }
 extern "C" {
+    #[doc = " Returns true when an image is locked"]
     pub fn imagedKeyIsLocked(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
@@ -534,6 +590,7 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    #[doc = " Returns true when the specified file is an valid imgd file"]
     pub fn imagedIsValidFile(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
@@ -541,22 +598,28 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    #[doc = " Wait for an image to become available"]
     pub fn imagedWait(status: ImagedStatus) -> bool;
 }
 extern "C" {
+    #[doc = " Open a new imaged context"]
     pub fn imagedOpen(path: *const ::std::os::raw::c_char) -> *mut Imaged;
 }
 extern "C" {
+    #[doc = " Close an imaged context"]
     pub fn imagedClose(db: *mut Imaged);
 }
 extern "C" {
+    #[doc = " Destroy an imaged store, removing all contents from disk"]
     pub fn imagedDestroy(db: *mut Imaged) -> ImagedStatus;
 }
 extern "C" {
+    #[doc = " Returns true when there is a value associated with the given key"]
     pub fn imagedHasKey(db: *mut Imaged, key: *const ::std::os::raw::c_char, keylen: isize)
         -> bool;
 }
 extern "C" {
+    #[doc = " Set a key"]
     pub fn imagedSet(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
@@ -567,6 +630,7 @@ extern "C" {
     ) -> ImagedStatus;
 }
 extern "C" {
+    #[doc = " Get a key"]
     pub fn imagedGet(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
@@ -576,6 +640,7 @@ extern "C" {
     ) -> ImagedStatus;
 }
 extern "C" {
+    #[doc = " &Remove the value associated with the provided key"]
     pub fn imagedRemove(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
@@ -583,11 +648,14 @@ extern "C" {
     ) -> ImagedStatus;
 }
 extern "C" {
+    #[doc = " Release ImagedHandle resources including all memory and file descriptors"]
     pub fn imagedHandleClose(handle: *mut ImagedHandle);
 }
 extern "C" {
+    #[doc = " Initialize an new handle"]
     pub fn imagedHandleInit(handle: *mut ImagedHandle);
 }
+#[doc = " Iterator over imgd files in an Imaged database"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct ImagedIter {
@@ -672,15 +740,19 @@ fn bindgen_test_layout_ImagedIter() {
     );
 }
 extern "C" {
+    #[doc = " Create a new iterator"]
     pub fn imagedIterNew(db: *mut Imaged) -> *mut ImagedIter;
 }
 extern "C" {
+    #[doc = " Get next image"]
     pub fn imagedIterNext(iter: *mut ImagedIter) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Get next key"]
     pub fn imagedIterNextKey(iter: *mut ImagedIter) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    #[doc = " Free iterator"]
     pub fn imagedIterFree(iter: *mut ImagedIter);
 }
 extern "C" {

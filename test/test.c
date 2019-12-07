@@ -180,11 +180,13 @@ START_TEST(test_image_resize) {
 END_TEST;
 
 START_TEST(test_image_io) {
-  $Image(a) = imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
+  $Image(a) =
+      imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32);
   ck_assert(a->meta.color == IMAGED_COLOR_RGB);
-  ck_assert(a->meta.kind == IMAGED_KIND_UINT);
-  ck_assert(a->meta.bits == 8);
+  ck_assert(a->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(a->meta.bits == 32);
 
+  imageConvertInPlace(&a, IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
   ASSERT_OK(imageWrite("test/out.png", a));
   ASSERT_OK(imageWrite("test/out.jpeg", a));
 }
@@ -196,11 +198,11 @@ START_TEST(test_image_io_exr) {
   ck_assert(a->meta.color == IMAGED_COLOR_RGB);
   ck_assert(a->meta.kind == IMAGED_KIND_FLOAT);
   ck_assert(a->meta.bits == 32);
+
   $Image(b) = imageConvert(a, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 16);
 
   ASSERT_OK(imageWrite("test/out.a.exr", a));
   ASSERT_OK(imageWrite("test/out.b.exr", b));
-  ASSERT_OK(imageWrite("test/out.hdr", a));
 }
 END_TEST;
 
