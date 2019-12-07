@@ -112,7 +112,6 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   }
 
   size_t i = 0;
-
   switch (image->meta.kind) {
   case IMAGED_KIND_INT:
     switch (image->meta.bits) {
@@ -158,6 +157,14 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
     break;
   case IMAGED_KIND_FLOAT:
     switch (image->meta.bits) {
+    case 16:
+      for (i = 0; i < channels; i++) {
+        uint16_t h = ((uint16_t *)px)[i];
+        pixel->data[i] = ((h & 0x8000) << 16) |
+                         (((h & 0x7c00) + 0x1C000) << 13) |
+                         ((h & 0x03FF) << 13);
+      }
+      break;
     case 32:
       for (i = 0; i < channels; i++) {
         pixel->data[i] = ((float *)px)[i];
@@ -246,8 +253,16 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     break;
   case IMAGED_KIND_FLOAT:
     switch (image->meta.bits) {
+    case 16:
+      for (i = 0; i < channels; i++) {
+        uint32_t x = *((uint32_t *)&pixel->data[i]);
+        uint16_t h = ((x >> 16) & 0x8000) |
+                     ((((x & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
+                     ((x >> 13) & 0x03ff);
+        ((uint16_t *)px)[i] = h;
+      }
+      break;
     case 32:
-
       for (i = 0; i < channels; i++) {
         ((float *)px)[i] = (float)pixel->data[i];
       }
