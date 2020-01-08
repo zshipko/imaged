@@ -8,6 +8,7 @@ repository = "https://github.com/zshipko/imaged"
 license = "ISC"
 
 [dependencies]
+thiserror = "1.0"
 halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional = true}
 glfw = {version = "0.34", optional = true}
 gl = {version = "0.14", optional = true}
