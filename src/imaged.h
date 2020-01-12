@@ -1,5 +1,5 @@
-#ifndef __IMAGED_H
-#define __IMAGED_H
+#ifndef IMAGED_HEADER_FILE
+#define IMAGED_HEADER_FILE
 
 #if defined(__cplusplus) && defined(IMAGED_HALIDE_UTIL)
 #include "Halide.h"
