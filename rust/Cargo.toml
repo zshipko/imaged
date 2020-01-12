@@ -7,6 +7,9 @@ readme = "README.md"
 repository = "https://github.com/zshipko/imaged"
 license = "ISC"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 thiserror = "1.0"
 halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional = true}
@@ -17,6 +20,6 @@ gl = {version = "0.14", optional = true}
 pkg-config = "0.3"
 
 [features]
-default = ["halide", "viewer"]
+default = ["halide"]
 halide = ["halide-runtime"]
 viewer = ["glfw", "gl"]
