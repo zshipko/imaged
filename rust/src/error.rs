@@ -2,6 +2,7 @@ use crate::*;
 
 use thiserror::Error as TError;
 
+/// Crate-wide error type
 #[derive(TError, Debug)]
 pub enum Error {
     /// Occurs when a database can't be opened due to permission issues, etc...

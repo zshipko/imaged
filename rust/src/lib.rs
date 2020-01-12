@@ -1,5 +1,28 @@
+//! imaged is an image processing and storage library for working with a wide range of image types
+//! For more information see [imaged](https://github.com/zshipko/imaged)
+//!
+//! ## Getting started
+//!
+//! ```rust
+//! use imaged::*;
+//!
+//! fn run() -> Result<(), Error> {
+//!     // Read image
+//!     let image = Image::read_default("test.jpg")?;
+//!
+//!     // Convert colorspace and type
+//!     let a = image.convert(Color::HSV, Type::F(32))?;
+//!
+//!     // Save image
+//!     a.write("out.tiff")?;
+//!
+//!     Ok(())
+//! }
+//!
+
 use std::ffi::c_void;
 
+/// Raw imaged bindings
 pub mod ffi;
 
 #[cfg(feature = "halide")]
@@ -23,13 +46,16 @@ pub use image::*;
 pub use iter::*;
 pub use pixel::*;
 
+/// Global configuration flags
 pub mod conf {
     use crate::*;
 
+    /// Use autobrightness in libraw
     pub fn use_raw_auto_brighness(b: bool) {
         unsafe { ffi::imageRAWUseAutoBrightness(b) }
     }
 
+    /// Use camera white balancei in libraw
     pub fn use_raw_camera_white_balance(b: bool) {
         unsafe { ffi::imageRAWUseCameraWhiteBalance(b) }
     }

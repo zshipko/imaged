@@ -3,11 +3,11 @@
 impl crate::Image {
     /// Use the image as halide_buffer_t
     /// NOTE: the buffer should not be used beyond the lifetime of the underlying image
-    pub fn as_halide_buffer(&self) -> halide_runtime::Buffer {
+    pub unsafe fn as_halide_buffer(&self) -> halide_runtime::Buffer {
         let meta = self.meta();
 
         // This only works because imaged Kind is modeled after halide
-        let kind = unsafe { std::mem::transmute_copy(&meta.kind) };
+        let kind = std::mem::transmute_copy(&meta.kind);
         halide_runtime::Buffer::new(
             meta.width as i32,
             meta.height as i32,
@@ -20,7 +20,7 @@ impl crate::Image {
 
 impl<'a> From<&'a mut crate::Image> for halide_runtime::Buffer {
     fn from(x: &'a mut crate::Image) -> halide_runtime::Buffer {
-        x.as_halide_buffer()
+        unsafe { x.as_halide_buffer() }
     }
 }
 
