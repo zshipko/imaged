@@ -1,5 +1,7 @@
 use crate::*;
 
+use std::os::raw::c_char;
+
 /// DB wraps the libimaged's `Imaged` type
 pub struct DB(*mut ffi::Imaged);
 
@@ -82,7 +84,7 @@ impl DB {
         let rc = unsafe {
             ffi::imagedGet(
                 self.0,
-                key.as_ref().as_ptr() as *const i8,
+                key.as_ref().as_ptr() as *const c_char,
                 key.as_ref().len() as isize,
                 editable,
                 &mut handle,
@@ -97,12 +99,12 @@ impl DB {
 
     /// Check if a key is in use
     pub fn is_locked(&self, key: &str) -> bool {
-        unsafe { ffi::imagedKeyIsLocked(self.0, key.as_ptr() as *const i8, key.len() as isize) }
+        unsafe { ffi::imagedKeyIsLocked(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
     }
 
     /// Check if a key is a valid imgd file
     pub fn file_is_valid(&self, key: &str) -> bool {
-        unsafe { ffi::imagedIsValidFile(self.0, key.as_ptr() as *const i8, key.len() as isize) }
+        unsafe { ffi::imagedIsValidFile(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
     }
 
     /// Set a key
@@ -121,7 +123,7 @@ impl DB {
         let rc = unsafe {
             ffi::imagedSet(
                 self.0,
-                key.as_ref().as_ptr() as *const i8,
+                key.as_ref().as_ptr() as *const c_char,
                 key.as_ref().len() as isize,
                 meta,
                 data.unwrap_or(std::ptr::null()),
@@ -140,7 +142,7 @@ impl DB {
         let rc = unsafe {
             ffi::imagedRemove(
                 self.0,
-                key.as_ref().as_ptr() as *const i8,
+                key.as_ref().as_ptr() as *const c_char,
                 key.as_ref().len() as isize,
             )
         };

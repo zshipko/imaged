@@ -1,5 +1,7 @@
 use crate::*;
 
+use std::os::raw::c_char;
+
 pub use ffi::ImagedMeta as Meta;
 
 /// Image type
@@ -138,7 +140,7 @@ impl Image {
     /// Read default colorspace/type from disk using ezimage
     pub fn read_default<P: AsRef<std::path::Path>>(path: P) -> Result<Image, Error> {
         let path = format!("{}\0", path.as_ref().display());
-        let im = unsafe { ffi::imageReadDefault(path.as_ptr() as *const i8) };
+        let im = unsafe { ffi::imageReadDefault(path.as_ptr() as *const c_char) };
         if im.is_null() {
             return Err(Error::NullPointer);
         }
@@ -152,7 +154,7 @@ impl Image {
         let (kind, bits) = t.info();
         let im = unsafe {
             ffi::imageRead(
-                path.as_ptr() as *const i8,
+                path.as_ptr() as *const c_char,
                 std::mem::transmute(color as i32),
                 std::mem::transmute(kind as i32),
                 bits,
@@ -168,7 +170,7 @@ impl Image {
     /// Write image to disk using ezimage
     pub fn write<P: AsRef<std::path::Path>>(&self, path: P) -> Result<(), Error> {
         let path = format!("{}\0", path.as_ref().display());
-        let rc = unsafe { ffi::imageWrite(path.as_ptr() as *const i8, self.0) };
+        let rc = unsafe { ffi::imageWrite(path.as_ptr() as *const c_char, self.0) };
 
         if rc != ffi::ImagedStatus::IMAGED_OK {
             return Err(Error::FFI(rc));
