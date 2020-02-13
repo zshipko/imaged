@@ -61,6 +61,22 @@ pub mod conf {
     }
 }
 
+extern "C" {
+    fn babl_init();
+}
+
+/// Initialize global data related to babl conversions
+/// NOTE: This is only needed when working with multiple threads
+pub fn init() {
+    unsafe {
+        babl_init();
+    }
+}
+
+lazy_static::lazy_static! {
+    static ref _UNUSED: () = unsafe { babl_init() };
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
