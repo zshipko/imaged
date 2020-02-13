@@ -14,6 +14,7 @@
 #include <babl/babl.h>
 
 Image *imageNew(ImagedMeta meta) {
+  babl_init();
   Image *image = malloc(sizeof(Image));
   if (!image) {
     return NULL;

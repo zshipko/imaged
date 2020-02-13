@@ -129,8 +129,11 @@ static Image *imageReadFile(const char *filename, ImagedKind kind,
   return image;
 }
 
+extern void babl_init();
+
 Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
                  uint8_t bits) {
+  babl_init();
   Image *image = imageReadFile(filename, kind, bits);
   if (image == NULL) {
 #ifndef IMAGED_NO_RAW

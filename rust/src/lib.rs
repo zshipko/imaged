@@ -73,10 +73,6 @@ pub fn init() {
     }
 }
 
-lazy_static::lazy_static! {
-    static ref _UNUSED: () = unsafe { babl_init() };
-}
-
 #[cfg(test)]
 mod tests {
     use crate::*;
