@@ -51,11 +51,11 @@ pub mod conf {
     use crate::*;
 
     /// Use autobrightness in libraw
-    pub fn use_raw_auto_brighness(b: bool) {
+    pub fn use_raw_auto_brightness(b: bool) {
         unsafe { ffi::imageRAWUseAutoBrightness(b) }
     }
 
-    /// Use camera white balancei in libraw
+    /// Use camera white balance in libraw
     pub fn use_raw_camera_white_balance(b: bool) {
         unsafe { ffi::imageRAWUseCameraWhiteBalance(b) }
     }
