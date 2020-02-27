@@ -86,6 +86,14 @@ impl Meta {
         }
     }
 
+    pub fn width(&self) -> usize {
+        self.width as usize
+    }
+
+    pub fn height(&self) -> usize {
+        self.height as usize
+    }
+
     /// Create a new Meta instance from an existing one with the color changed
     pub fn with_color(&self, color: Color) -> Self {
         let mut meta = self.clone();
@@ -213,6 +221,22 @@ impl Image {
     /// Get metadata
     pub fn meta(&self) -> &Meta {
         return unsafe { &(&*self.0).meta };
+    }
+
+    /// Get image (width, height, channels)
+    pub fn shape(&self) -> (usize, usize, usize) {
+        let meta = self.meta();
+        (meta.width(), meta.height(), meta.channels())
+    }
+
+    pub fn get_type(&self) -> Type {
+        let meta = self.meta();
+        meta.get_type()
+    }
+
+    pub fn get_color(&self) -> Color {
+        let meta = self.meta();
+        meta.get_color()
     }
 
     /// Size of each channel in the underlying data
