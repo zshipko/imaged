@@ -62,8 +62,8 @@ static Image *imageReadRAW(const char *filename) {
 
   ctx->params.output_bps = 16;
   ctx->params.use_rawspeed = 1;
-  ctx->params.gamm[0] = 1;
-  ctx->params.gamm[1] = 1;
+  // ctx->params.gamm[0] = 1;
+  // ctx->params.gamm[1] = 1;
   ctx->params.no_auto_bright = imaged_raw_auto_bright == false;
   ctx->params.use_camera_wb = imaged_raw_camera_wb == true;
   ctx->params.use_auto_wb = imaged_raw_camera_wb == false;
