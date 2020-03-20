@@ -1,8 +1,9 @@
 VERSION=0.1
-SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c src/aces.c
+SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c src/aces.c src/halide.c
 OBJ=$(SRC:.c=.o)
 
 RAW=1
+HALIDE=
 PKGS= babl ezimage
 FLAGS=
 HAS_RAW?=$(shell pkg-config --cflags --libs libraw)
@@ -15,6 +16,10 @@ else
 endif
 else
 	FLAGS += -DIMAGED_NO_RAW
+endif
+
+ifeq ($(HALIDE),1)
+	FLAGS += -DIMAGED_HALIDE
 endif
 
 CFLAGS?=-Wall -Wextra `pkg-config --cflags $(PKGS)` $(FLAGS)

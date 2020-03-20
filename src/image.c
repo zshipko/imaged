@@ -283,7 +283,6 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   return true;
 }
 
-#include <pthread.h>
 static bool bablInit = false;
 
 const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
