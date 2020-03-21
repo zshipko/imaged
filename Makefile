@@ -34,7 +34,13 @@ ifeq ($(shell uname -s),Linux)
 	TEST_LDFLAGS=-lrt -lsubunit
 endif
 
-build: lib bin
+ifeq ($(shell uname -s),Darwin)
+	SOEXT=dylib
+else
+	SOEXT?=so
+endif
+
+build: lib shared bin
 fresh: src/imaged.h .cflags .ldflags build
 
 debug:
@@ -49,14 +55,15 @@ lib: $(OBJ)
 	@printf "Name: imaged\nDescription: Imaging storage library\nVersion: $(VERSION)\nLibs: -L$(DEST)/lib -limaged $(LDFLAGS)\nCflags: -I/usr/local/include -I$(DEST)/include\nRequires: $(PKGS)\n" > imaged.pc
 
 shared: $(OBJ)
-	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.so $(OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.$(SOEXT) $(OBJ) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJ) libimaged.a libimaged.so .cflags .ldflags imaged.pc
+	rm -f $(OBJ) libimaged.a libimaged.$(SOEXT) .cflags .ldflags imaged.pc
 
 install-lib:
 	mkdir -p $(DEST)/lib/pkgconfig $(DEST)/include
 	install libimaged.a $(DEST)/lib
+	install libimaged.$(SOEXT) $(DEST)/lib
 	install src/imaged.h $(DEST)/include
 	install imaged.pc $(DEST)/lib/pkgconfig
 
