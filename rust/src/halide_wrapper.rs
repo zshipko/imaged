@@ -3,7 +3,7 @@ use crate::Error;
 
 impl<'a> crate::Image<'a> {
     /// Use the image as a mutable halide_buffer_t
-    pub fn as_mut_halide_buffer(&'a mut self) -> Result<halide_runtime::Buffer<'a>, Error> {
+    pub fn as_mut_halide_buffer<'b>(&'b mut self) -> Result<halide_runtime::Buffer<'b>, Error> {
         let meta = self.meta();
 
         // This only works because imaged Kind is modeled after halide
@@ -18,7 +18,7 @@ impl<'a> crate::Image<'a> {
     }
 
     /// Use the image as a halide_buffer_t
-    pub fn as_halide_buffer(&'a self) -> Result<halide_runtime::Buffer<'a>, Error> {
+    pub fn as_halide_buffer<'b>(&'b self) -> Result<halide_runtime::Buffer<'b>, Error> {
         let meta = self.meta();
 
         // This only works because imaged Kind is modeled after halide
