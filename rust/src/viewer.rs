@@ -18,9 +18,9 @@ pub enum Error {
     Glfw(glfw::Error),
 }
 
-pub struct Context {
+pub struct Context<'a> {
     gl: RefCell<glfw::Glfw>,
-    windows: BTreeMap<String, Window>,
+    windows: BTreeMap<String, Window<'a>>,
 }
 
 use crate::ffi::ImagedColor::*;
@@ -101,7 +101,11 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     return Ok((texture_id, internal, kind, color));
 }
 
-fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Window, Error> {
+fn make_window<'a>(
+    app: &Context<'a>,
+    key: &str,
+    image: crate::Image<'a>,
+) -> Result<Window<'a>, Error> {
     let meta = image.meta();
 
     let mut gl = app.gl.borrow_mut();
@@ -160,7 +164,7 @@ fn make_window<'a>(app: &Context, key: &str, image: crate::Image) -> Result<Wind
     Err(Error::UnableToCreateWindow)
 }
 
-impl Context {
+impl<'a> Context<'a> {
     /// Create a new viewer context
     pub fn new() -> Result<Self, Error> {
         let mut gl = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
@@ -172,12 +176,12 @@ impl Context {
     }
 
     /// Get window by name
-    pub fn get_window(&self, key: &str) -> Option<&Window> {
+    pub fn get_window(&self, key: &str) -> Option<&Window<'a>> {
         self.windows.get(key)
     }
 
     /// Get mutable window by name
-    pub fn get_window_mut(&mut self, key: &str) -> Option<&mut Window> {
+    pub fn get_window_mut(&mut self, key: &str) -> Option<&mut Window<'a>> {
         self.windows.get_mut(key)
     }
 
@@ -187,7 +191,7 @@ impl Context {
     }
 
     /// Create a new window
-    pub fn create_window(&mut self, key: &str, image: crate::Image) -> Result<(), Error> {
+    pub fn create_window(&mut self, key: &str, image: crate::Image<'a>) -> Result<(), Error> {
         let window = make_window(self, key, image)?;
         self.windows.insert(key.into(), window);
         Ok(())
@@ -269,9 +273,9 @@ pub fn update_callback<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<boo
 }
 
 /// Window is used to display an Image
-pub struct Window {
+pub struct Window<'a> {
     pub key: String,
-    pub image: RefCell<crate::Image>,
+    pub image: RefCell<crate::Image<'a>>,
     framebuffer_id: GLuint,
     texture_id: GLuint,
     gl_color: GLuint,
@@ -282,7 +286,7 @@ pub struct Window {
     initialized: bool,
 }
 
-impl Window {
+impl<'a> Window<'a> {
     /// Returns true when the window is ready to close
     pub fn should_close(&self) -> bool {
         self.display.should_close()
