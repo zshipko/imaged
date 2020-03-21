@@ -12,8 +12,8 @@ all-features = true
 
 [dependencies]
 thiserror = "1.0"
-halide-runtime = {git = "https://github.com/zshipko/halide-runtime", optional = true}
-glfw = {version = "0.35", optional = true}
+halide-runtime = {version = "0.2", optional = true}
+glfw = {version = "0.36", optional = true}
 gl = {version = "0.14", optional = true}
 
 [build-dependencies]

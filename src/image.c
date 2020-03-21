@@ -275,7 +275,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     switch (image->meta.bits) {
     case 16:
       for (i = 0; i < channels; i++) {
-        uint32_t x = *((uint32_t *)&pixel->data[i]);
+        uint32_t x = *((uint32_t *)(pixel->data) + i);
         uint16_t h = ((x >> 16) & 0x8000) |
                      ((((x & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
                      ((x >> 13) & 0x03ff);

@@ -82,5 +82,5 @@ test: lib
 	@$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS)
 	@./test/test
 
-%.o: %.c base
-	$(CC) $(PIC) -Wall -O3 -c $*.c $(CFLAGS) -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) $(PIC) -Wall -O3 -c $*.c  -o $@
