@@ -139,6 +139,7 @@ size_t imagedMetaTotalBytes(const ImagedMeta *meta);
 
 /** Stores image data with associated metadata */
 typedef struct {
+  bool owner;
   ImagedMeta meta;
   void *data;
 } Image;
@@ -159,6 +160,9 @@ ImagedStatus imageWrite(const char *path, const Image *image);
 
 /** Create a new image with the given metadata */
 Image *imageNew(ImagedMeta meta);
+
+/** Create a new image from an existing buffer */
+Image *imageNewWithData(ImagedMeta meta, void *data);
 
 /** Create a new image and copy data if provided */
 Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
@@ -311,7 +315,8 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
 /** &Remove the value associated with the provided key */
 ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);
 
-/** Release ImagedHandle resources including all memory and file descriptors */
+/** Release ImagedHandle resources including all memory and file descriptors
+ */
 void imagedHandleClose(ImagedHandle *handle);
 
 /** Initialize an new handle */

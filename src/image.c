@@ -20,11 +20,30 @@ Image *imageNew(ImagedMeta meta) {
     return NULL;
   }
 
+  image->owner = true;
   image->meta = meta;
 
   size_t channels = imagedColorNumChannels(meta.color);
 
   image->data = calloc(meta.width * meta.height * channels, meta.bits / 8);
+  if (image->data == NULL) {
+    free(image);
+    return NULL;
+  }
+
+  return image;
+}
+
+Image *imageNewWithData(ImagedMeta meta, void *data) {
+  babl_init();
+  Image *image = malloc(sizeof(Image));
+  if (!image) {
+    return NULL;
+  }
+
+  image->owner = false;
+  image->meta = meta;
+  image->data = data;
   if (image->data == NULL) {
     free(image);
     return NULL;
@@ -61,7 +80,7 @@ void imageFree(Image *image) {
     return;
   }
 
-  if (image->data != NULL) {
+  if (image->owner && image->data != NULL) {
     free(image->data);
     image->data = NULL;
   }

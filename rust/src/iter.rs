@@ -31,7 +31,7 @@ impl<'a> KeyIter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = (&'a str, Image);
+    type Item = (&'a str, Image<'a>);
 
     fn next(&mut self) -> Option<Self::Item> {
         let ptr = unsafe { ffi::imagedIterNext(self.0) };
@@ -43,7 +43,7 @@ impl<'a> Iterator for Iter<'a> {
             let iter = &*self.0;
             let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen);
             let key = std::str::from_utf8_unchecked(key);
-            Some((key, Image(ptr, false)))
+            Some((key, Image(&mut *ptr, false)))
         }
     }
 }

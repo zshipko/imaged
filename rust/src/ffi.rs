@@ -299,6 +299,7 @@ extern "C" {
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Image {
+    pub owner: bool,
     pub meta: ImagedMeta,
     pub data: *mut ::std::os::raw::c_void,
 }
@@ -306,7 +307,7 @@ pub struct Image {
 fn bindgen_test_layout_Image() {
     assert_eq!(
         ::std::mem::size_of::<Image>(),
-        40usize,
+        48usize,
         concat!("Size of: ", stringify!(Image))
     );
     assert_eq!(
@@ -315,8 +316,18 @@ fn bindgen_test_layout_Image() {
         concat!("Alignment of ", stringify!(Image))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<Image>())).meta as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<Image>())).owner as *const _ as usize },
         0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(Image),
+            "::",
+            stringify!(owner)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<Image>())).meta as *const _ as usize },
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(Image),
@@ -326,7 +337,7 @@ fn bindgen_test_layout_Image() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<Image>())).data as *const _ as usize },
-        32usize,
+        40usize,
         concat!(
             "Offset of field: ",
             stringify!(Image),
@@ -362,6 +373,10 @@ extern "C" {
 extern "C" {
     #[doc = " Create a new image with the given metadata"]
     pub fn imageNew(meta: ImagedMeta) -> *mut Image;
+}
+extern "C" {
+    #[doc = " Create a new image from an existing buffer"]
+    pub fn imageNewWithData(meta: ImagedMeta, data: *mut ::std::os::raw::c_void) -> *mut Image;
 }
 extern "C" {
     #[doc = " Create a new image and copy data if provided"]
@@ -548,7 +563,7 @@ pub struct ImagedHandle {
 fn bindgen_test_layout_ImagedHandle() {
     assert_eq!(
         ::std::mem::size_of::<ImagedHandle>(),
-        48usize,
+        56usize,
         concat!("Size of: ", stringify!(ImagedHandle))
     );
     assert_eq!(
@@ -670,7 +685,7 @@ pub struct ImagedIter {
 fn bindgen_test_layout_ImagedIter() {
     assert_eq!(
         ::std::mem::size_of::<ImagedIter>(),
-        88usize,
+        96usize,
         concat!("Size of: ", stringify!(ImagedIter))
     );
     assert_eq!(
@@ -757,4 +772,15 @@ extern "C" {
 }
 extern "C" {
     pub fn imagedIterReset(iter: *mut ImagedIter);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct halide_buffer_t {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn imageNewHalideBuffer(image: *mut Image, buffer: *mut halide_buffer_t);
+}
+extern "C" {
+    pub fn imageFreeHalideBuffer(buffer: *mut halide_buffer_t);
 }
