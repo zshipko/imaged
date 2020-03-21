@@ -510,11 +510,9 @@ impl<'a> Image<'a> {
 
         unsafe { Ok(Image(&mut *dest, true)) }
     }
-}
 
-impl<'a> Clone for Image<'a> {
-    /// Clone and image
-    fn clone(&self) -> Image<'a> {
+    /// Copy an image
+    pub fn copy<'b>(&self) -> Image<'b> {
         let img = unsafe { ffi::imageClone(self.0) };
         unsafe { Image(&mut *img, true) }
     }
