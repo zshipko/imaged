@@ -54,6 +54,8 @@ Image *imagedIterNext(ImagedIter *iter) {
     return imagedIterNext(iter);
   }
 
+  iter->handle.image.owner = false;
+
   return &iter->handle.image;
 }
 
@@ -68,6 +70,7 @@ const char *imagedIterNextKey(ImagedIter *iter) {
   }
   iter->key = ent->d_name;
   iter->keylen = strlen(iter->key);
+  iter->handle.image.data = NULL;
 
   if (ent->d_type == DT_DIR || !imagedIsValidFile(iter->db, ent->d_name, -1)) {
     return imagedIterNextKey(iter);

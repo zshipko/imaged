@@ -137,6 +137,10 @@ size_t imagedMetaNumPixels(const ImagedMeta *meta);
 /** Get the number of bytes in an image */
 size_t imagedMetaTotalBytes(const ImagedMeta *meta);
 
+/* Initialize a valid meta pointer with the given values */
+void imagedMetaInit(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
+                    uint8_t bits, ImagedMeta *meta);
+
 /** Stores image data with associated metadata */
 typedef struct {
   bool owner;
@@ -344,6 +348,12 @@ const char *imagedIterNextKey(ImagedIter *iter);
 /** Free iterator */
 void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
+
+typedef bool (*imageParallelFn)(uint64_t, uint64_t, Pixel *, void *);
+ImagedStatus imageEachPixel2(Image *im, Image *dst, imageParallelFn fn,
+                             int nthreads, void *userdata);
+ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
+                            void *userdata);
 
 // UTIL
 #define IMAGED_UNUSED __attribute__((unused))

@@ -4,8 +4,11 @@ use std::os::raw::c_char;
 
 pub use ffi::ImagedMeta as Meta;
 
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 /// Image type
-pub struct Image<'a>(pub &'a mut ffi::Image, pub bool);
+pub struct Image<'a>(pub &'a mut ffi::Image, pub(crate) bool);
 
 unsafe impl<'a> Sync for Image<'a> {}
 unsafe impl<'a> Send for Image<'a> {}
@@ -57,7 +60,7 @@ impl Color {
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imagedColorNumChannels(self.ffi()) }
+        unsafe { ffi::imagedColorNumChannels(self.ffi()) as usize }
     }
 }
 
@@ -126,21 +129,22 @@ impl Meta {
 
     /// Get total number of bytes occupied by the image data
     pub fn total_bytes(&self) -> usize {
-        return unsafe { ffi::imagedMetaTotalBytes(self) };
+        return unsafe { ffi::imagedMetaTotalBytes(self) as usize };
     }
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imagedColorNumChannels(self.color) }
+        unsafe { ffi::imagedColorNumChannels(self.color) as usize }
     }
 }
 
 impl<'a> Drop for Image<'a> {
     fn drop(&mut self) {
-        match self.1 {
-            true => unsafe { ffi::imageFree(self.0) },
-            _ => (),
+        if !self.1 {
+            return;
         }
+
+        unsafe { ffi::imageFree(self.0) }
     }
 }
 
@@ -331,7 +335,13 @@ impl<'a> Image<'a> {
             return Err(Error::OutOfBounds);
         }
 
-        let ptr = unsafe { ffi::imageAt(self.0 as *const ffi::Image as *mut ffi::Image, x, y) };
+        let ptr = unsafe {
+            ffi::imageAt(
+                self.0 as *const ffi::Image as *mut ffi::Image,
+                x as u64,
+                y as u64,
+            )
+        };
         if ptr.is_null() {
             return Err(Error::NullPointer);
         }
@@ -343,12 +353,26 @@ impl<'a> Image<'a> {
 
     /// Get the pixel at (x, y)
     pub fn get_pixel(&self, x: usize, y: usize, px: &mut Pixel) -> bool {
-        unsafe { ffi::imageGetPixel(self.0 as *const ffi::Image as *mut ffi::Image, x, y, px) }
+        unsafe {
+            ffi::imageGetPixel(
+                self.0 as *const ffi::Image as *mut ffi::Image,
+                x as u64,
+                y as u64,
+                px,
+            )
+        }
     }
 
     /// Set the pixel at (x, y)
     pub fn set_pixel(&self, x: usize, y: usize, px: &Pixel) -> bool {
-        unsafe { ffi::imageSetPixel(self.0 as *const ffi::Image as *mut ffi::Image, x, y, px) }
+        unsafe {
+            ffi::imageSetPixel(
+                self.0 as *const ffi::Image as *mut ffi::Image,
+                x as u64,
+                y as u64,
+                px,
+            )
+        }
     }
 
     /// Iterate over each pixel and apply `f`
@@ -500,8 +524,8 @@ impl<'a> Image<'a> {
         let dest = unsafe {
             ffi::imageResize(
                 self.0 as *const ffi::Image as *mut ffi::Image,
-                width,
-                height,
+                width as u64,
+                height as u64,
             )
         };
         if dest.is_null() {
@@ -515,5 +539,42 @@ impl<'a> Image<'a> {
     pub fn clone<'b>(&self) -> Image<'b> {
         let img = unsafe { ffi::imageClone(self.0) };
         unsafe { Image(&mut *img, true) }
+    }
+
+    /// Iterate over each pixel in parallel rows
+    pub fn each_pixel<F: FnMut(usize, usize, &mut Pixel) -> Result<bool, Error>>(
+        &mut self,
+        nthreads: Option<usize>,
+        mut f: F,
+    ) -> Result<(), Error> {
+        let mut g: &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error> = &mut f;
+        let h = &mut g;
+        let rc = unsafe {
+            ffi::imageEachPixel(
+                self.0,
+                Some(parallel_wrapper),
+                nthreads.unwrap_or_else(|| num_cpus::get()) as std::os::raw::c_int,
+                h as *mut _ as *mut std::ffi::c_void,
+            )
+        };
+        if rc != ffi::ImagedStatus::IMAGED_OK {
+            return Err(Error::FFI(rc));
+        }
+
+        Ok(())
+    }
+}
+
+unsafe extern "C" fn parallel_wrapper(
+    w: u64,
+    h: u64,
+    pixel: *mut Pixel,
+    userdata: *mut std::ffi::c_void,
+) -> bool {
+    let closure: &mut &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error> =
+        std::mem::transmute(userdata);
+    match closure(w as usize, h as usize, &mut *pixel) {
+        Ok(x) => x,
+        Err(_) => false,
     }
 }

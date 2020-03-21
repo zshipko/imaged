@@ -34,16 +34,19 @@ impl<'a> Iterator for Iter<'a> {
     type Item = (&'a str, Image<'a>);
 
     fn next(&mut self) -> Option<Self::Item> {
+        let iter = unsafe { &*self.0 };
         let ptr = unsafe { ffi::imagedIterNext(self.0) };
-        if ptr.is_null() {
+        if ptr.is_null() || iter.key.is_null() {
             return None;
         }
 
         unsafe {
-            let iter = &*self.0;
-            let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen);
-            let key = std::str::from_utf8_unchecked(key);
-            Some((key, Image(&mut *ptr, false)))
+            let image = &mut *ptr;
+            println!("OWNER2: {}", image.owner);
+            let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen as usize);
+            let key = std::str::from_utf8(key).expect("Invalid key");
+
+            Some((key, Image(image, false)))
         }
     }
 }
@@ -58,7 +61,7 @@ impl<'a> Iterator for KeyIter<'a> {
         }
 
         unsafe {
-            let key = std::slice::from_raw_parts(key as *const u8, (&*self.0).keylen);
+            let key = std::slice::from_raw_parts(key as *const u8, (&*self.0).keylen as usize);
             let key = std::str::from_utf8_unchecked(key);
             Some(key)
         }

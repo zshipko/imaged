@@ -90,7 +90,7 @@ impl DB {
             ffi::imagedGet(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as isize,
+                key.as_ref().len() as i64,
                 editable,
                 &mut handle,
             )
@@ -104,12 +104,12 @@ impl DB {
 
     /// Check if a key is in use
     pub fn is_locked(&self, key: &str) -> bool {
-        unsafe { ffi::imagedKeyIsLocked(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
+        unsafe { ffi::imagedKeyIsLocked(self.0, key.as_ptr() as *const c_char, key.len() as i64) }
     }
 
     /// Check if a key is a valid imgd file
     pub fn file_is_valid(&self, key: &str) -> bool {
-        unsafe { ffi::imagedIsValidFile(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
+        unsafe { ffi::imagedIsValidFile(self.0, key.as_ptr() as *const c_char, key.len() as i64) }
     }
 
     /// Set a key
@@ -129,7 +129,7 @@ impl DB {
             ffi::imagedSet(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as isize,
+                key.as_ref().len() as i64,
                 meta,
                 data.unwrap_or(std::ptr::null()),
                 &mut handle,
@@ -148,7 +148,7 @@ impl DB {
             ffi::imagedRemove(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as isize,
+                key.as_ref().len() as i64,
             )
         };
         if rc != ffi::ImagedStatus::IMAGED_OK {

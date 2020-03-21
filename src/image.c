@@ -52,15 +52,23 @@ Image *imageNewWithData(ImagedMeta meta, void *data) {
   return image;
 }
 
+void imagedMetaInit(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
+                    uint8_t bits, ImagedMeta *meta) {
+  if (!meta) {
+    return;
+  }
+
+  meta->width = w;
+  meta->height = h;
+  meta->color = color;
+  meta->kind = kind;
+  meta->bits = bits;
+}
+
 Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
                   uint8_t bits, const void *data) {
-  ImagedMeta meta = {
-      .width = w,
-      .height = h,
-      .color = color,
-      .kind = kind,
-      .bits = bits,
-  };
+  ImagedMeta meta;
+  imagedMetaInit(w, h, color, kind, bits, &meta);
 
   Image *image = imageNew(meta);
   if (image == NULL) {
@@ -80,9 +88,11 @@ void imageFree(Image *image) {
     return;
   }
 
-  if (image->owner && image->data != NULL) {
-    free(image->data);
-    image->data = NULL;
+  if (image->data != NULL) {
+    if (image->owner) {
+      free(image->data);
+      image->data = NULL;
+    }
   }
 
   free(image);

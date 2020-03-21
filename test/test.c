@@ -82,9 +82,9 @@ START_TEST(test_iter) {
   $ImagedIter(iter) = imagedIterNew(db);
   ck_assert(iter != NULL);
 
-  ck_assert(imagedIterNextKey(iter) != NULL);
+  ck_assert(imagedIterNext(iter) != NULL);
   ck_assert(strncmp(iter->key, "testing", strlen(iter->key)) == 0);
-  ck_assert(imagedIterNextKey(iter) == NULL);
+  ck_assert(imagedIterNext(iter) == NULL);
 }
 END_TEST
 
@@ -206,6 +206,27 @@ START_TEST(test_image_io_exr) {
 }
 END_TEST;
 
+bool parallel_fn(IMAGED_UNUSED uint64_t x, IMAGED_UNUSED uint64_t y, Pixel *px,
+                 IMAGED_UNUSED void *userdata) {
+  px->data[0] = px->data[1] = px->data[2] = px->data[3] = 1.0;
+  return true;
+}
+
+START_TEST(test_each_pixel) {
+  Image *im =
+      imageAlloc(800, 600, IMAGED_COLOR_RGBA, IMAGED_KIND_FLOAT, 32, NULL);
+  ck_assert(imageEachPixel(im, parallel_fn, 4, NULL) == IMAGED_OK);
+
+  float *data = im->data;
+  for (size_t i = 0; i < im->meta.width * im->meta.height *
+                             imagedColorNumChannels(im->meta.color);
+       i++) {
+    ck_assert(data[i] == 1.0);
+  }
+  imageFree(im);
+}
+END_TEST;
+
 #define BASIC(name) tcase_add_test(basic, name);
 
 Suite *imaged_test_suite() {
@@ -227,6 +248,7 @@ Suite *imaged_test_suite() {
   BASIC(test_image_resize);
   BASIC(test_image_io);
   BASIC(test_image_io_exr);
+  BASIC(test_each_pixel);
 
   suite_add_tcase(s, basic);
   return s;

@@ -78,12 +78,16 @@ void defer_HalideBuffer(halide_buffer_t *b) {
 #include <stdio.h>
 #include <stdlib.h>
 
-void imageNewHalideBuffer(Image *image, halide_buffer_t *buffer) {
+void imageNewHalideBuffer(IMAGED_UNUSED Image *image,
+                          IMAGED_UNUSED halide_buffer_t *buffer) {
   fputs("IMAGED_HALIDE not enabled\n", stderr);
   abort();
 }
-void imageFreeHalideBuffer(halide_buffer_t *buffer) { return; }
+void imageFreeHalideBuffer(IMAGED_UNUSED halide_buffer_t *buffer) { return; }
 
-void defer_HalideBuffer(halide_buffer_t *b) { return; }
+void defer_HalideBuffer(IMAGED_UNUSED halide_buffer_t *b) {
+  (void)b;
+  return;
+}
 
 #endif

@@ -327,6 +327,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   handle->fd = fd;
   handle->image.meta = meta;
   handle->image.data = (uint8_t *)data + _header_size + sizeof(ImagedMeta);
+  handle->image.owner = false;
 
   free(path);
 
@@ -394,6 +395,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   memcpy(&handle->image.meta, (uint8_t *)data + _header_size,
          sizeof(ImagedMeta));
   handle->image.data = (uint8_t *)data + _header_size + sizeof(ImagedMeta);
+  handle->image.owner = false;
 
   if (imagedMetaTotalBytes(&handle->image.meta) + _header_size +
           sizeof(ImagedMeta) + 1 !=

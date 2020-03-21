@@ -119,15 +119,12 @@ static Image *imageReadFile(const char *filename, ImagedKind kind,
     return NULL;
   }
 
-  Image *image = malloc(sizeof(Image));
+  Image *image = imageNewWithData(imagedMetaFromEzimageShape(shape), data);
   if (!image) {
     free(data);
     return NULL;
   }
-
-  image->meta = imagedMetaFromEzimageShape(shape);
-  image->data = data;
-
+  image->owner = true;
   return image;
 }
 
