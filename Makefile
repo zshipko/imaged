@@ -22,8 +22,10 @@ ifeq ($(HALIDE),1)
 	FLAGS += -DIMAGED_HALIDE
 endif
 
-CFLAGS?=-Wall -Wextra `pkg-config --cflags $(PKGS)` $(FLAGS)
-LDFLAGS?=-lpthread `pkg-config --libs $(PKGS)`
+CFLAGS?=
+CFLAGS+= -Wall -Wextra `pkg-config --cflags $(PKGS)` $(FLAGS)
+LDFLAGS?=
+LDFLAGS+=-lpthread `pkg-config --libs $(PKGS)`
 PIC?=-fPIC
 DEST?=/usr/local
 
