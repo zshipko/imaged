@@ -241,10 +241,8 @@ void imagedClose(Imaged *db) {
 }
 
 ImagedStatus imagedDestroy(Imaged *db) {
-  Image *img = NULL;
-
   $ImagedIter(iter) = imagedIterNew(db);
-  while ((img = imagedIterNext(iter))) {
+  while (imagedIterNext(iter) != NULL) {
     imagedHandleClose(&iter->handle);
     imagedRemove(db, iter->key, -1);
   }
@@ -424,8 +422,7 @@ ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen) {
   }
 
   char header[4];
-  int n;
-  if ((n = read(fd, &header, _header_size)) != 4 ||
+  if ((read(fd, &header, _header_size)) != 4 ||
       strncmp(header, _header, _header_size) != 0) {
     free(path);
     close(fd);
