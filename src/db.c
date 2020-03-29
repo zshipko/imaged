@@ -124,12 +124,12 @@ void imagedPrintError(ImagedStatus status, const char *message) {
   fprintf(stderr, "Error: %s - %s\n", message, imagedError(status));
 }
 
-size_t imagedMetaNumPixels(const ImagedMeta *meta) {
+size_t imageMetaNumPixels(const ImageMeta *meta) {
   return meta->width * meta->height;
 }
 
-size_t imagedMetaTotalBytes(const ImagedMeta *meta) {
-  return imagedMetaNumPixels(meta) * imagedColorNumChannels(meta->color) *
+size_t imageMetaTotalBytes(const ImageMeta *meta) {
+  return imageMetaNumPixels(meta) * imageColorNumChannels(meta->color) *
          ((size_t)meta->bits / 8);
 }
 
@@ -151,9 +151,9 @@ bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
     return false;
   }
 
-  ImagedMeta meta;
+  ImageMeta meta;
 
-  if (read(fd, &meta, sizeof(ImagedMeta)) != sizeof(ImagedMeta)) {
+  if (read(fd, &meta, sizeof(ImageMeta)) != sizeof(ImageMeta)) {
     close(fd);
     free(path);
     return false;
@@ -162,7 +162,7 @@ bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
   close(fd);
   free(path);
 
-  return imagedMetaTotalBytes(&meta) + _header_size + sizeof(ImagedMeta) + 1 ==
+  return imageMetaTotalBytes(&meta) + _header_size + sizeof(ImageMeta) + 1 ==
          (size_t)st.st_size;
 }
 
@@ -263,7 +263,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
 }
 
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
-                       ImagedMeta meta, const void *imagedata,
+                       ImageMeta meta, const void *imagedata,
                        ImagedHandle *handle) {
   imagedHandleInit(handle);
   if (!isValidKey(key, keylen)) {
@@ -285,7 +285,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   size_t map_size =
-      _header_size + sizeof(ImagedMeta) + imagedMetaTotalBytes(&meta);
+      _header_size + sizeof(ImageMeta) + imageMetaTotalBytes(&meta);
   if (lseek(fd, map_size, SEEK_SET) == -1) {
     close_unlock(fd);
     free(path);
@@ -307,11 +307,11 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   bzero(data, map_size);
   memcpy(data, _header, _header_size);
-  memcpy((uint8_t *)data + _header_size, &meta, sizeof(ImagedMeta));
+  memcpy((uint8_t *)data + _header_size, &meta, sizeof(ImageMeta));
 
   if (imagedata != NULL) {
-    memcpy((uint8_t *)data + _header_size + sizeof(ImagedMeta), imagedata,
-           imagedMetaTotalBytes(&meta));
+    memcpy((uint8_t *)data + _header_size + sizeof(ImageMeta), imagedata,
+           imageMetaTotalBytes(&meta));
   }
 
   if (handle == NULL) {
@@ -324,7 +324,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   handle->fd = fd;
   handle->image.meta = meta;
-  handle->image.data = (uint8_t *)data + _header_size + sizeof(ImagedMeta);
+  handle->image.data = (uint8_t *)data + _header_size + sizeof(ImageMeta);
   handle->image.owner = false;
 
   free(path);
@@ -348,7 +348,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   size_t map_size = st.st_size;
-  if (map_size <= _header_size + sizeof(ImagedMeta)) {
+  if (map_size <= _header_size + sizeof(ImageMeta)) {
     free(path);
     return IMAGED_ERR_INVALID_FILE;
   }
@@ -391,12 +391,12 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
   handle->fd = fd;
 
   memcpy(&handle->image.meta, (uint8_t *)data + _header_size,
-         sizeof(ImagedMeta));
-  handle->image.data = (uint8_t *)data + _header_size + sizeof(ImagedMeta);
+         sizeof(ImageMeta));
+  handle->image.data = (uint8_t *)data + _header_size + sizeof(ImageMeta);
   handle->image.owner = false;
 
-  if (imagedMetaTotalBytes(&handle->image.meta) + _header_size +
-          sizeof(ImagedMeta) + 1 !=
+  if (imageMetaTotalBytes(&handle->image.meta) + _header_size +
+          sizeof(ImageMeta) + 1 !=
       (size_t)st.st_size) {
 
     imagedHandleClose(handle);
@@ -454,9 +454,9 @@ void imagedHandleClose(ImagedHandle *handle) {
   }
 
   if (handle->image.data != NULL && handle->fd >= 0) {
-    void *ptr = handle->image.data - _header_size - sizeof(ImagedMeta);
-    size_t size = _header_size + sizeof(ImagedMeta) +
-                  imagedMetaTotalBytes(&handle->image.meta);
+    void *ptr = handle->image.data - _header_size - sizeof(ImageMeta);
+    size_t size = _header_size + sizeof(ImageMeta) +
+                  imageMetaTotalBytes(&handle->image.meta);
     // msync(ptr, size, MS_SYNC);
     munmap(ptr, size);
     handle->image.data = NULL;

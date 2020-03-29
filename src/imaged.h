@@ -69,82 +69,82 @@ typedef struct {
 
 /** Image kinds, specifies the image data base type */
 typedef enum {
-  IMAGED_KIND_INT,
-  IMAGED_KIND_UINT,
-  IMAGED_KIND_FLOAT,
-} ImagedKind;
+  IMAGE_KIND_INT,
+  IMAGE_KIND_UINT,
+  IMAGE_KIND_FLOAT,
+} ImageKind;
 
 /** Image colors, specifies the image color type */
 typedef enum {
-  IMAGED_COLOR_GRAY = 1,
-  IMAGED_COLOR_GRAYA = 2,
-  IMAGED_COLOR_RGB = 3,
-  IMAGED_COLOR_RGBA = 4,
-  IMAGED_COLOR_CMYK = 5,
-  IMAGED_COLOR_CMYKA = 6,
-  IMAGED_COLOR_YCBCR = 7,
-  IMAGED_COLOR_YCBCRA = 8,
-  IMAGED_COLOR_CIELAB = 9,
-  IMAGED_COLOR_CIELABA = 10,
-  IMAGED_COLOR_CIELCH = 11,
-  IMAGED_COLOR_CIELCHA = 12,
-  IMAGED_COLOR_CIEXYZ = 13,
-  IMAGED_COLOR_CIEXYZA = 14,
-  IMAGED_COLOR_YUV = 15,
-  IMAGED_COLOR_YUVA = 16,
-  IMAGED_COLOR_HSL = 17,
-  IMAGED_COLOR_HSLA = 18,
-  IMAGED_COLOR_HSV = 19,
-  IMAGED_COLOR_HSVA = 20,
-  IMAGED_COLOR_CIEXYY = 21,
-  IMAGED_COLOR_CIEXYYA = 22,
-  IMAGED_COLOR_HCY = 23,
-  IMAGED_COLOR_HCYA = 24,
-  IMAGED_COLOR_LAST = IMAGED_COLOR_HCYA,
-} ImagedColor;
+  IMAGE_COLOR_GRAY = 1,
+  IMAGE_COLOR_GRAYA = 2,
+  IMAGE_COLOR_RGB = 3,
+  IMAGE_COLOR_RGBA = 4,
+  IMAGE_COLOR_CMYK = 5,
+  IMAGE_COLOR_CMYKA = 6,
+  IMAGE_COLOR_YCBCR = 7,
+  IMAGE_COLOR_YCBCRA = 8,
+  IMAGE_COLOR_CIELAB = 9,
+  IMAGE_COLOR_CIELABA = 10,
+  IMAGE_COLOR_CIELCH = 11,
+  IMAGE_COLOR_CIELCHA = 12,
+  IMAGE_COLOR_CIEXYZ = 13,
+  IMAGE_COLOR_CIEXYZA = 14,
+  IMAGE_COLOR_YUV = 15,
+  IMAGE_COLOR_YUVA = 16,
+  IMAGE_COLOR_HSL = 17,
+  IMAGE_COLOR_HSLA = 18,
+  IMAGE_COLOR_HSV = 19,
+  IMAGE_COLOR_HSVA = 20,
+  IMAGE_COLOR_CIEXYY = 21,
+  IMAGE_COLOR_CIEXYYA = 22,
+  IMAGE_COLOR_HCY = 23,
+  IMAGE_COLOR_HCYA = 24,
+  IMAGE_COLOR_LAST = IMAGE_COLOR_HCYA,
+} ImageColor;
 
-extern size_t imagedColorChannelMap[];
-extern const char *imagedColorNameMap[];
+extern size_t imageColorChannelMap[];
+extern const char *imageColorNameMap[];
 
 /** Get name of color */
-const char *imagedColorName(ImagedColor color);
+const char *imageColorName(ImageColor color);
 
 /** Get name of type */
-const char *imagedTypeName(ImagedKind kind, uint8_t bits);
+const char *imageTypeName(ImageKind kind, uint8_t bits);
 
 /** Get number of channels in a color */
-size_t imagedColorNumChannels(ImagedColor color);
+size_t imageColorNumChannels(ImageColor color);
 
 /** Parse color and type names */
-bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
-                             ImagedKind *kind, uint8_t *bits);
+bool imageParseColorAndType(const char *color, const char *t, ImageColor *c,
+                            ImageKind *kind, uint8_t *bits);
 
 /** Returns true if the kind/bits create a valid image type */
-bool imagedIsValidType(ImagedKind kind, uint8_t bits);
+bool imageIsValidType(ImageKind kind, uint8_t bits);
 
-/** ImagedMeta is used to store image metadata with information about the image
+/** ImageMeta is used to store image metadata with information about the image
  * shape and type */
 typedef struct {
   uint64_t width, height;
   uint8_t bits;
-  ImagedKind kind;
-  ImagedColor color;
-} ImagedMeta;
+  ImageKind kind;
+  ImageColor color;
+} ImageMeta;
 
 /** Get the number of pixels in an image */
-size_t imagedMetaNumPixels(const ImagedMeta *meta);
+size_t imageMetaNumPixels(const ImageMeta *meta);
 
 /** Get the number of bytes in an image */
-size_t imagedMetaTotalBytes(const ImagedMeta *meta);
+size_t imageMetaTotalBytes(const ImageMeta *meta);
 
 /* Initialize a valid meta pointer with the given values */
-void imagedMetaInit(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
-                    uint8_t bits, ImagedMeta *meta);
+void imageMetaInit(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
+                   uint8_t bits, ImageMeta *meta);
 
 /** Stores image data with associated metadata */
 typedef struct {
   bool owner;
-  ImagedMeta meta;
+  ImageMeta meta;
   void *data;
 } Image;
 
@@ -153,7 +153,7 @@ void imageRAWUseCameraWhiteBalance(bool b);
 
 /** Read an image from disk, the resulting image will be converted to match
  * color/kind/bits if needed */
-Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
+Image *imageRead(const char *filename, ImageColor color, ImageKind kind,
                  uint8_t bits);
 
 /** Read an image from disk, using the default format **/
@@ -163,13 +163,13 @@ Image *imageReadDefault(const char *filename);
 ImagedStatus imageWrite(const char *path, const Image *image);
 
 /** Create a new image with the given metadata */
-Image *imageNew(ImagedMeta meta);
+Image *imageNew(ImageMeta meta);
 
 /** Create a new image from an existing buffer */
-Image *imageNewWithData(ImagedMeta meta, void *data);
+Image *imageNewWithData(ImageMeta meta, void *data);
 
 /** Create a new image and copy data if provided */
-Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
+Image *imageAlloc(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
                   uint8_t bits, const void *data);
 
 /** Duplicate an existing image */
@@ -254,11 +254,11 @@ bool imageConvertTo(const Image *src, Image *dest);
 
 /** Convert source image to the specified type, returning the new converted
  * image */
-Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
+Image *imageConvert(const Image *src, ImageColor color, ImageKind kind,
                     uint8_t bits);
 
 /** Convert source image to the specified type */
-bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
+bool imageConvertInPlace(Image **src, ImageColor color, ImageKind kind,
                          uint8_t bits);
 
 Image *imageConvertACES0(Image *src);
@@ -309,7 +309,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen);
 
 /** Set a key */
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
-                       ImagedMeta meta, const void *imagedata,
+                       ImageMeta meta, const void *imagedata,
                        ImagedHandle *handle);
 
 /** Get a key */

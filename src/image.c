@@ -13,7 +13,7 @@
 
 #include <babl/babl.h>
 
-Image *imageNew(ImagedMeta meta) {
+Image *imageNew(ImageMeta meta) {
   babl_init();
   Image *image = malloc(sizeof(Image));
   if (!image) {
@@ -23,7 +23,7 @@ Image *imageNew(ImagedMeta meta) {
   image->owner = true;
   image->meta = meta;
 
-  size_t channels = imagedColorNumChannels(meta.color);
+  size_t channels = imageColorNumChannels(meta.color);
 
   image->data = calloc(meta.width * meta.height * channels, meta.bits / 8);
   if (image->data == NULL) {
@@ -34,7 +34,7 @@ Image *imageNew(ImagedMeta meta) {
   return image;
 }
 
-Image *imageNewWithData(ImagedMeta meta, void *data) {
+Image *imageNewWithData(ImageMeta meta, void *data) {
   babl_init();
   Image *image = malloc(sizeof(Image));
   if (!image) {
@@ -52,8 +52,8 @@ Image *imageNewWithData(ImagedMeta meta, void *data) {
   return image;
 }
 
-void imagedMetaInit(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
-                    uint8_t bits, ImagedMeta *meta) {
+void imageMetaInit(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
+                   uint8_t bits, ImageMeta *meta) {
   if (!meta) {
     return;
   }
@@ -65,10 +65,10 @@ void imagedMetaInit(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
   meta->bits = bits;
 }
 
-Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
+Image *imageAlloc(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
                   uint8_t bits, const void *data) {
-  ImagedMeta meta;
-  imagedMetaInit(w, h, color, kind, bits, &meta);
+  ImageMeta meta;
+  imageMetaInit(w, h, color, kind, bits, &meta);
 
   Image *image = imageNew(meta);
   if (image == NULL) {
@@ -77,7 +77,7 @@ Image *imageAlloc(uint64_t w, uint64_t h, ImagedColor color, ImagedKind kind,
 
   if (data) {
     memcpy(image->data, data,
-           w * h * imagedColorNumChannels(meta.color) * (meta.bits / 8));
+           w * h * imageColorNumChannels(meta.color) * (meta.bits / 8));
   }
 
   return image;
@@ -105,17 +105,17 @@ Image *imageClone(const Image *image) {
 
 size_t imagePixelBytes(Image *image) {
   return (size_t)image->meta.bits / 8 *
-         imagedColorNumChannels(image->meta.color);
+         imageColorNumChannels(image->meta.color);
 }
 
 size_t imageBytes(Image *image) {
   return imagePixelBytes(image) * image->meta.width * image->meta.height *
-         imagedColorNumChannels(image->meta.color);
+         imageColorNumChannels(image->meta.color);
 }
 
 size_t imageIndex(Image *image, size_t x, size_t y) {
   size_t bits = (size_t)image->meta.bits / 8;
-  size_t channels = imagedColorNumChannels(image->meta.color);
+  size_t channels = imageColorNumChannels(image->meta.color);
   return (image->meta.width * channels * y + x * channels) * bits;
 }
 
@@ -130,7 +130,7 @@ void *imageAt(Image *image, size_t x, size_t y) {
 #define norm(x, min, max) (((float)x - (float)min) / ((float)max - (float)min))
 
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
-  size_t channels = imagedColorNumChannels(image->meta.color);
+  size_t channels = imageColorNumChannels(image->meta.color);
   if (channels > 4) {
     channels = 4;
   }
@@ -143,7 +143,7 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
 
   size_t i = 0;
   switch (image->meta.kind) {
-  case IMAGED_KIND_INT:
+  case IMAGE_KIND_INT:
     switch (image->meta.bits) {
     case 8:
       for (i = 0; i < channels; i++) {
@@ -164,7 +164,7 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
       return false;
     }
     break;
-  case IMAGED_KIND_UINT:
+  case IMAGE_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
       for (i = 0; i < channels; i++) {
@@ -185,7 +185,7 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
       return false;
     }
     break;
-  case IMAGED_KIND_FLOAT:
+  case IMAGE_KIND_FLOAT:
     switch (image->meta.bits) {
     case 16:
       for (i = 0; i < channels; i++) {
@@ -223,7 +223,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
     return false;
   }
 
-  size_t channels = imagedColorNumChannels(image->meta.color);
+  size_t channels = imageColorNumChannels(image->meta.color);
   if (channels > 4) {
     channels = 4;
   }
@@ -231,7 +231,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   size_t i = 0;
 
   switch (image->meta.kind) {
-  case IMAGED_KIND_INT:
+  case IMAGE_KIND_INT:
     switch (image->meta.bits) {
     case 8:
 
@@ -257,7 +257,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
       return false;
     }
     break;
-  case IMAGED_KIND_UINT:
+  case IMAGE_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
 
@@ -281,7 +281,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
       return false;
     }
     break;
-  case IMAGED_KIND_FLOAT:
+  case IMAGE_KIND_FLOAT:
     switch (image->meta.bits) {
     case 16:
       for (i = 0; i < channels; i++) {
@@ -314,15 +314,15 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
 
 static bool bablInit = false;
 
-const Babl *format(ImagedColor color, ImagedKind kind, uint8_t bits) {
+const Babl *format(ImageColor color, ImageKind kind, uint8_t bits) {
   if (!bablInit) {
     babl_init();
     atexit(babl_exit);
     bablInit = true;
   }
 
-  const char *colorName = imagedColorName(color);
-  const char *typeName = imagedTypeName(kind, bits);
+  const char *colorName = imageColorName(color);
+  const char *typeName = imageTypeName(kind, bits);
 
   if (colorName == NULL || typeName == NULL) {
     return NULL;
@@ -352,7 +352,7 @@ bool imageConvertTo(const Image *src, Image *dest) {
   return true;
 }
 
-Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
+Image *imageConvert(const Image *src, ImageColor color, ImageKind kind,
                     uint8_t bits) {
   Image *dest =
       imageAlloc(src->meta.width, src->meta.height, color, kind, bits, NULL);
@@ -368,7 +368,7 @@ Image *imageConvert(const Image *src, ImagedColor color, ImagedKind kind,
   return dest;
 }
 
-bool imageConvertInPlace(Image **src, ImagedColor color, ImagedKind kind,
+bool imageConvertInPlace(Image **src, ImageColor color, ImageKind kind,
                          uint8_t bits) {
   if (!src) {
     return false;

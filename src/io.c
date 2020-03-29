@@ -1,35 +1,35 @@
 #include "imaged.h"
 #include <ezimage.h>
 
-static ezimage_shape imagedMetaToEzimageShape(ImagedMeta meta) {
+static ezimage_shape imageMetaToEzimageShape(ImageMeta meta) {
   ezimage_shape shape = {
       .width = meta.width,
       .height = meta.height,
-      .channels = imagedColorNumChannels(meta.color),
+      .channels = imageColorNumChannels(meta.color),
       .t = {.bits = meta.bits, .kind = (ezimage_kind)meta.kind}};
   return shape;
 }
 
-static ImagedMeta imagedMetaFromEzimageShape(ezimage_shape shape) {
-  ImagedMeta meta = {
+static ImageMeta imageMetaFromEzimageShape(ezimage_shape shape) {
+  ImageMeta meta = {
       .width = shape.width,
       .height = shape.height,
-      .color = shape.channels == 1
-                   ? IMAGED_COLOR_GRAY
-                   : shape.channels == 2
-                         ? IMAGED_COLOR_GRAYA
-                         : shape.channels == 3 ? IMAGED_COLOR_RGB
-                                               : IMAGED_COLOR_RGBA,
+      .color =
+          shape.channels == 1
+              ? IMAGE_COLOR_GRAY
+              : shape.channels == 2
+                    ? IMAGE_COLOR_GRAYA
+                    : shape.channels == 3 ? IMAGE_COLOR_RGB : IMAGE_COLOR_RGBA,
       .bits = shape.t.bits,
-      .kind = (ImagedKind)shape.t.kind,
+      .kind = (ImageKind)shape.t.kind,
   };
   return meta;
 }
 
 ImagedStatus imageWrite(const char *path, const Image *image) {
   // Only Gray/RGB/RGBA images
-  if (image->meta.color > IMAGED_COLOR_RGBA) {
-    $Image(tmp) = imageConvert(image, IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
+  if (image->meta.color > IMAGE_COLOR_RGBA) {
+    $Image(tmp) = imageConvert(image, IMAGE_COLOR_RGB, IMAGE_KIND_UINT, 8);
     if (tmp == NULL) {
       return IMAGED_ERR;
     }
@@ -37,7 +37,7 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
     return imageWrite(path, tmp);
   }
 
-  ezimage_shape shape = imagedMetaToEzimageShape(image->meta);
+  ezimage_shape shape = imageMetaToEzimageShape(image->meta);
   return ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
 }
 
@@ -82,8 +82,8 @@ static Image *imageReadRAW(const char *filename) {
     goto err;
   }
 
-  Image *image = imageAlloc(raw->width, raw->height, IMAGED_COLOR_RGB,
-                            IMAGED_KIND_UINT, raw->bits, raw->data);
+  Image *image = imageAlloc(raw->width, raw->height, IMAGE_COLOR_RGB,
+                            IMAGE_KIND_UINT, raw->bits, raw->data);
   if (image == NULL) {
     goto err1;
   }
@@ -102,7 +102,7 @@ err:
 }
 #endif
 
-static Image *imageReadFile(const char *filename, ImagedKind kind,
+static Image *imageReadFile(const char *filename, ImageKind kind,
                             uint8_t bits) {
   ezimage_shape shape;
   ezimage_type ty = {
@@ -119,7 +119,7 @@ static Image *imageReadFile(const char *filename, ImagedKind kind,
     return NULL;
   }
 
-  Image *image = imageNewWithData(imagedMetaFromEzimageShape(shape), data);
+  Image *image = imageNewWithData(imageMetaFromEzimageShape(shape), data);
   if (!image) {
     free(data);
     return NULL;
@@ -130,7 +130,7 @@ static Image *imageReadFile(const char *filename, ImagedKind kind,
 
 extern void babl_init();
 
-Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
+Image *imageRead(const char *filename, ImageColor color, ImageKind kind,
                  uint8_t bits) {
   babl_init();
   Image *image = imageReadFile(filename, kind, bits);
@@ -146,12 +146,12 @@ Image *imageRead(const char *filename, ImagedColor color, ImagedKind kind,
     return NULL;
   }
 
-  if (color < 0 || color > IMAGED_COLOR_LAST) {
-    color = IMAGED_COLOR_RGB;
+  if (color < 0 || color > IMAGE_COLOR_LAST) {
+    color = IMAGE_COLOR_RGB;
   }
 
-  if (kind < 0 || kind > IMAGED_KIND_FLOAT) {
-    kind = IMAGED_KIND_FLOAT;
+  if (kind < 0 || kind > IMAGE_KIND_FLOAT) {
+    kind = IMAGE_KIND_FLOAT;
   }
 
   if (bits == 0) {

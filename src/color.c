@@ -5,7 +5,7 @@
 
 #include <babl/babl.h>
 
-size_t imagedColorChannelMap[] = {
+size_t imageColorChannelMap[] = {
     0, // Undefined
     1, // GRAY
     2, // GRAYA
@@ -33,15 +33,15 @@ size_t imagedColorChannelMap[] = {
     4, // HCYA
 };
 
-size_t imagedColorNumChannels(ImagedColor color) {
-  if (color < 0 || color > IMAGED_COLOR_LAST) {
+size_t imageColorNumChannels(ImageColor color) {
+  if (color < 0 || color > IMAGE_COLOR_LAST) {
     return 0;
   }
 
-  return imagedColorChannelMap[color];
+  return imageColorChannelMap[color];
 }
 
-const char *imagedColorNameMap[] = {
+const char *imageColorNameMap[] = {
     NULL,                // Undefined
     "Y",                 // GRAY
     "YA",                // GRAYA
@@ -69,17 +69,17 @@ const char *imagedColorNameMap[] = {
     "HCYA",              // HCYA
 };
 
-const char *imagedColorName(ImagedColor color) {
-  if (color < 0 || color > IMAGED_COLOR_LAST) {
+const char *imageColorName(ImageColor color) {
+  if (color < 0 || color > IMAGE_COLOR_LAST) {
     return NULL;
   }
 
-  return imagedColorNameMap[color];
+  return imageColorNameMap[color];
 }
 
-const char *imagedTypeName(ImagedKind kind, uint8_t bits) {
+const char *imageTypeName(ImageKind kind, uint8_t bits) {
   switch (kind) {
-  case IMAGED_KIND_INT:
+  case IMAGE_KIND_INT:
     switch (bits) {
     case 8:
       return "i8";
@@ -91,7 +91,7 @@ const char *imagedTypeName(ImagedKind kind, uint8_t bits) {
       return "i64";
     }
     break;
-  case IMAGED_KIND_UINT:
+  case IMAGE_KIND_UINT:
     switch (bits) {
     case 8:
       return "u8";
@@ -103,7 +103,7 @@ const char *imagedTypeName(ImagedKind kind, uint8_t bits) {
       return "u64";
     }
     break;
-  case IMAGED_KIND_FLOAT:
+  case IMAGE_KIND_FLOAT:
     switch (bits) {
     case 16:
       return "half";
@@ -118,17 +118,17 @@ const char *imagedTypeName(ImagedKind kind, uint8_t bits) {
   return NULL;
 }
 
-bool imagedIsValidType(ImagedKind kind, uint8_t bits) {
-  return imagedTypeName(kind, bits) != NULL;
+bool imageIsValidType(ImageKind kind, uint8_t bits) {
+  return imageTypeName(kind, bits) != NULL;
 }
 
-bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
-                             ImagedKind *kind, uint8_t *bits) {
+bool imageParseColorAndType(const char *color, const char *t, ImageColor *c,
+                            ImageKind *kind, uint8_t *bits) {
   if (kind != NULL) {
     bool foundColor = false;
-    for (ImagedColor d = IMAGED_COLOR_GRAY;
-         !foundColor && d <= IMAGED_COLOR_LAST; d++) {
-      if (strncasecmp(color, imagedColorName(d), strlen(color)) == 0) {
+    for (ImageColor d = IMAGE_COLOR_GRAY; !foundColor && d <= IMAGE_COLOR_LAST;
+         d++) {
+      if (strncasecmp(color, imageColorName(d), strlen(color)) == 0) {
         *c = d;
         foundColor = true;
       }
@@ -139,44 +139,44 @@ bool imagedParseColorAndType(const char *color, const char *t, ImagedColor *c,
     }
   }
 
-  ImagedKind k = IMAGED_KIND_FLOAT;
+  ImageKind k = IMAGE_KIND_FLOAT;
   uint8_t b = 32;
 
   if (t != NULL) {
     if (strncasecmp(t, "f32", 3) == 0 || strncasecmp(t, "float", 5) == 0) {
       b = 32;
-      k = IMAGED_KIND_FLOAT;
+      k = IMAGE_KIND_FLOAT;
     } else if (strncasecmp(t, "f16", 3) == 0 ||
                strncasecmp(t, "half", 4) == 0) {
       b = 16;
-      k = IMAGED_KIND_FLOAT;
+      k = IMAGE_KIND_FLOAT;
     } else if (strncasecmp(t, "f64", 3) == 0 ||
                strncasecmp(t, "double", 6) == 0) {
       b = 64;
-      k = IMAGED_KIND_FLOAT;
+      k = IMAGE_KIND_FLOAT;
     } else if (strncasecmp(t, "u8", 2) == 0 ||
                strncasecmp(t, "uint8", 5) == 0) {
       b = 8;
-      k = IMAGED_KIND_UINT;
+      k = IMAGE_KIND_UINT;
     } else if (strncasecmp(t, "u16", 3) == 0 ||
                strncasecmp(t, "uint16", 6) == 0) {
       b = 16;
-      k = IMAGED_KIND_UINT;
+      k = IMAGE_KIND_UINT;
     } else if (strncasecmp(t, "u32", 2) == 0 ||
                strncasecmp(t, "uint32", 6) == 0) {
       b = 32;
-      k = IMAGED_KIND_UINT;
+      k = IMAGE_KIND_UINT;
     } else if (strncasecmp(t, "i8", 2) == 0 || strncasecmp(t, "int8", 5) == 0) {
       b = 8;
-      k = IMAGED_KIND_INT;
+      k = IMAGE_KIND_INT;
     } else if (strncasecmp(t, "i16", 3) == 0 ||
                strncasecmp(t, "int16", 6) == 0) {
       b = 16;
-      k = IMAGED_KIND_INT;
+      k = IMAGE_KIND_INT;
     } else if (strncasecmp(t, "i32", 2) == 0 ||
                strncasecmp(t, "int32", 6) == 0) {
       b = 32;
-      k = IMAGED_KIND_INT;
+      k = IMAGE_KIND_INT;
     } else {
       return false;
     }

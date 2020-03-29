@@ -25,20 +25,20 @@ static void init_test_db() {
 }
 
 START_TEST(test_image_size) {
-  ImagedMeta meta;
-  meta.color = IMAGED_COLOR_GRAY;
+  ImageMeta meta;
+  meta.color = IMAGE_COLOR_GRAY;
   meta.width = 150;
   meta.height = 100;
   meta.bits = 8;
-  meta.kind = IMAGED_KIND_UINT;
-  ck_assert(imagedMetaNumPixels(&meta) == 15000);
+  meta.kind = IMAGE_KIND_UINT;
+  ck_assert(imageMetaNumPixels(&meta) == 15000);
 
-  meta.color = IMAGED_COLOR_RGB;
+  meta.color = IMAGE_COLOR_RGB;
   meta.width = 150;
   meta.height = 100;
   meta.bits = 32;
-  meta.kind = IMAGED_KIND_UINT;
-  ck_assert(imagedMetaTotalBytes(&meta) == 15000 * 3 * 4);
+  meta.kind = IMAGE_KIND_UINT;
+  ck_assert(imageMetaTotalBytes(&meta) == 15000 * 3 * 4);
 }
 END_TEST;
 
@@ -49,11 +49,11 @@ START_TEST(test_open) {
 END_TEST
 
 START_TEST(test_set) {
-  ImagedMeta meta = {
+  ImageMeta meta = {
       .width = 800,
       .height = 600,
-      .color = IMAGED_COLOR_RGB,
-      .kind = IMAGED_KIND_FLOAT,
+      .color = IMAGE_COLOR_RGB,
+      .kind = IMAGE_KIND_FLOAT,
       .bits = 32,
   };
 
@@ -73,7 +73,7 @@ START_TEST(test_set) {
   ck_assert(data[123] == 0.25);
   ck_assert(meta.width == 800);
   ck_assert(meta.height == 600);
-  ck_assert(meta.color == IMAGED_COLOR_RGB);
+  ck_assert(meta.color == IMAGE_COLOR_RGB);
   ck_assert(meta.bits == 32);
 }
 END_TEST
@@ -129,14 +129,14 @@ END_TEST;
 
 START_TEST(test_image) {
   $Image(im) =
-      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
+      imageAlloc(800, 600, IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 32, NULL);
   ck_assert(im != NULL);
   ck_assert(im->meta.width == 800);
   ck_assert(im->meta.height == 600);
-  ck_assert(im->meta.color == IMAGED_COLOR_RGB);
-  ck_assert(im->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(im->meta.color == IMAGE_COLOR_RGB);
+  ck_assert(im->meta.kind == IMAGE_KIND_FLOAT);
   ck_assert(im->meta.bits == 32);
-  ck_assert(imagedColorNumChannels(im->meta.color) == 3);
+  ck_assert(imageColorNumChannels(im->meta.color) == 3);
 
   Pixel p = pixelRGB(1.0, 0.5, 0.75), q;
   imageSetPixel(im, 400, 300, &p);
@@ -148,16 +148,15 @@ START_TEST(test_image) {
 END_TEST;
 
 START_TEST(test_image_convert) {
-  $Image(a) =
-      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
-  $Image(b) = imageConvert(a, IMAGED_COLOR_RGBA, IMAGED_KIND_UINT, 16);
+  $Image(a) = imageAlloc(800, 600, IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 32, NULL);
+  $Image(b) = imageConvert(a, IMAGE_COLOR_RGBA, IMAGE_KIND_UINT, 16);
 
   ck_assert(b->meta.width == 800);
   ck_assert(b->meta.height == 600);
-  ck_assert(b->meta.color == IMAGED_COLOR_RGBA);
-  ck_assert(b->meta.kind == IMAGED_KIND_UINT);
+  ck_assert(b->meta.color == IMAGE_COLOR_RGBA);
+  ck_assert(b->meta.kind == IMAGE_KIND_UINT);
   ck_assert(b->meta.bits == 16);
-  ck_assert(imagedColorNumChannels(b->meta.color) == 4);
+  ck_assert(imageColorNumChannels(b->meta.color) == 4);
 
   Pixel p, q;
 
@@ -168,38 +167,35 @@ START_TEST(test_image_convert) {
 END_TEST;
 
 START_TEST(test_image_resize) {
-  $Image(a) =
-      imageAlloc(800, 600, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32, NULL);
+  $Image(a) = imageAlloc(800, 600, IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 32, NULL);
   $Image(b) = imageScale(a, 2.0f, 1.5f);
   ck_assert(b->meta.width == 1600);
   ck_assert(b->meta.height == 900);
-  ck_assert(b->meta.color == IMAGED_COLOR_RGB);
-  ck_assert(b->meta.kind == IMAGED_KIND_FLOAT);
+  ck_assert(b->meta.color == IMAGE_COLOR_RGB);
+  ck_assert(b->meta.kind == IMAGE_KIND_FLOAT);
   ck_assert(b->meta.bits == 32);
 }
 END_TEST;
 
 START_TEST(test_image_io) {
-  $Image(a) =
-      imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32);
-  ck_assert(a->meta.color == IMAGED_COLOR_RGB);
-  ck_assert(a->meta.kind == IMAGED_KIND_FLOAT);
+  $Image(a) = imageRead("test/test.exr", IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 32);
+  ck_assert(a->meta.color == IMAGE_COLOR_RGB);
+  ck_assert(a->meta.kind == IMAGE_KIND_FLOAT);
   ck_assert(a->meta.bits == 32);
 
-  imageConvertInPlace(&a, IMAGED_COLOR_RGB, IMAGED_KIND_UINT, 8);
+  imageConvertInPlace(&a, IMAGE_COLOR_RGB, IMAGE_KIND_UINT, 8);
   ASSERT_OK(imageWrite("test/out.png", a));
   ASSERT_OK(imageWrite("test/out.jpeg", a));
 }
 END_TEST;
 
 START_TEST(test_image_io_exr) {
-  $Image(a) =
-      imageRead("test/test.exr", IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 32);
-  ck_assert(a->meta.color == IMAGED_COLOR_RGB);
-  ck_assert(a->meta.kind == IMAGED_KIND_FLOAT);
+  $Image(a) = imageRead("test/test.exr", IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 32);
+  ck_assert(a->meta.color == IMAGE_COLOR_RGB);
+  ck_assert(a->meta.kind == IMAGE_KIND_FLOAT);
   ck_assert(a->meta.bits == 32);
 
-  $Image(b) = imageConvert(a, IMAGED_COLOR_RGB, IMAGED_KIND_FLOAT, 16);
+  $Image(b) = imageConvert(a, IMAGE_COLOR_RGB, IMAGE_KIND_FLOAT, 16);
 
   ASSERT_OK(imageWrite("test/out.a.exr", a));
   ASSERT_OK(imageWrite("test/out.b.exr", b));
@@ -214,12 +210,12 @@ bool parallel_fn(IMAGED_UNUSED uint64_t x, IMAGED_UNUSED uint64_t y, Pixel *px,
 
 START_TEST(test_each_pixel) {
   Image *im =
-      imageAlloc(800, 600, IMAGED_COLOR_RGBA, IMAGED_KIND_FLOAT, 32, NULL);
+      imageAlloc(800, 600, IMAGE_COLOR_RGBA, IMAGE_KIND_FLOAT, 32, NULL);
   ck_assert(imageEachPixel(im, parallel_fn, 4, NULL) == IMAGED_OK);
 
   float *data = im->data;
   for (size_t i = 0; i < im->meta.width * im->meta.height *
-                             imagedColorNumChannels(im->meta.color);
+                             imageColorNumChannels(im->meta.color);
        i++) {
     ck_assert(data[i] == 1.0);
   }

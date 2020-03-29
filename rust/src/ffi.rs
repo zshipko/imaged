@@ -152,138 +152,138 @@ fn bindgen_test_layout_Imaged() {
 #[repr(u32)]
 #[doc = " Image kinds, specifies the image data base type"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
-pub enum ImagedKind {
-    IMAGED_KIND_INT = 0,
-    IMAGED_KIND_UINT = 1,
-    IMAGED_KIND_FLOAT = 2,
+pub enum ImageKind {
+    IMAGE_KIND_INT = 0,
+    IMAGE_KIND_UINT = 1,
+    IMAGE_KIND_FLOAT = 2,
 }
-impl ImagedColor {
-    pub const IMAGED_COLOR_LAST: ImagedColor = ImagedColor::IMAGED_COLOR_HCYA;
+impl ImageColor {
+    pub const IMAGE_COLOR_LAST: ImageColor = ImageColor::IMAGE_COLOR_HCYA;
 }
 #[repr(u32)]
 #[doc = " Image colors, specifies the image color type"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
-pub enum ImagedColor {
-    IMAGED_COLOR_GRAY = 1,
-    IMAGED_COLOR_GRAYA = 2,
-    IMAGED_COLOR_RGB = 3,
-    IMAGED_COLOR_RGBA = 4,
-    IMAGED_COLOR_CMYK = 5,
-    IMAGED_COLOR_CMYKA = 6,
-    IMAGED_COLOR_YCBCR = 7,
-    IMAGED_COLOR_YCBCRA = 8,
-    IMAGED_COLOR_CIELAB = 9,
-    IMAGED_COLOR_CIELABA = 10,
-    IMAGED_COLOR_CIELCH = 11,
-    IMAGED_COLOR_CIELCHA = 12,
-    IMAGED_COLOR_CIEXYZ = 13,
-    IMAGED_COLOR_CIEXYZA = 14,
-    IMAGED_COLOR_YUV = 15,
-    IMAGED_COLOR_YUVA = 16,
-    IMAGED_COLOR_HSL = 17,
-    IMAGED_COLOR_HSLA = 18,
-    IMAGED_COLOR_HSV = 19,
-    IMAGED_COLOR_HSVA = 20,
-    IMAGED_COLOR_CIEXYY = 21,
-    IMAGED_COLOR_CIEXYYA = 22,
-    IMAGED_COLOR_HCY = 23,
-    IMAGED_COLOR_HCYA = 24,
+pub enum ImageColor {
+    IMAGE_COLOR_GRAY = 1,
+    IMAGE_COLOR_GRAYA = 2,
+    IMAGE_COLOR_RGB = 3,
+    IMAGE_COLOR_RGBA = 4,
+    IMAGE_COLOR_CMYK = 5,
+    IMAGE_COLOR_CMYKA = 6,
+    IMAGE_COLOR_YCBCR = 7,
+    IMAGE_COLOR_YCBCRA = 8,
+    IMAGE_COLOR_CIELAB = 9,
+    IMAGE_COLOR_CIELABA = 10,
+    IMAGE_COLOR_CIELCH = 11,
+    IMAGE_COLOR_CIELCHA = 12,
+    IMAGE_COLOR_CIEXYZ = 13,
+    IMAGE_COLOR_CIEXYZA = 14,
+    IMAGE_COLOR_YUV = 15,
+    IMAGE_COLOR_YUVA = 16,
+    IMAGE_COLOR_HSL = 17,
+    IMAGE_COLOR_HSLA = 18,
+    IMAGE_COLOR_HSV = 19,
+    IMAGE_COLOR_HSVA = 20,
+    IMAGE_COLOR_CIEXYY = 21,
+    IMAGE_COLOR_CIEXYYA = 22,
+    IMAGE_COLOR_HCY = 23,
+    IMAGE_COLOR_HCYA = 24,
 }
 extern "C" {
     #[doc = " Get name of color"]
-    pub fn imagedColorName(color: ImagedColor) -> *const ::std::os::raw::c_char;
+    pub fn imageColorName(color: ImageColor) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     #[doc = " Get name of type"]
-    pub fn imagedTypeName(kind: ImagedKind, bits: u8) -> *const ::std::os::raw::c_char;
+    pub fn imageTypeName(kind: ImageKind, bits: u8) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
     #[doc = " Get number of channels in a color"]
-    pub fn imagedColorNumChannels(color: ImagedColor) -> size_t;
+    pub fn imageColorNumChannels(color: ImageColor) -> size_t;
 }
 extern "C" {
     #[doc = " Parse color and type names"]
-    pub fn imagedParseColorAndType(
+    pub fn imageParseColorAndType(
         color: *const ::std::os::raw::c_char,
         t: *const ::std::os::raw::c_char,
-        c: *mut ImagedColor,
-        kind: *mut ImagedKind,
+        c: *mut ImageColor,
+        kind: *mut ImageKind,
         bits: *mut u8,
     ) -> bool;
 }
 extern "C" {
     #[doc = " Returns true if the kind/bits create a valid image type"]
-    pub fn imagedIsValidType(kind: ImagedKind, bits: u8) -> bool;
+    pub fn imageIsValidType(kind: ImageKind, bits: u8) -> bool;
 }
-#[doc = " ImagedMeta is used to store image metadata with information about the image"]
+#[doc = " ImageMeta is used to store image metadata with information about the image"]
 #[doc = " shape and type"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
-pub struct ImagedMeta {
+pub struct ImageMeta {
     pub width: u64,
     pub height: u64,
     pub bits: u8,
-    pub kind: ImagedKind,
-    pub color: ImagedColor,
+    pub kind: ImageKind,
+    pub color: ImageColor,
 }
 #[test]
-fn bindgen_test_layout_ImagedMeta() {
+fn bindgen_test_layout_ImageMeta() {
     assert_eq!(
-        ::std::mem::size_of::<ImagedMeta>(),
+        ::std::mem::size_of::<ImageMeta>(),
         32usize,
-        concat!("Size of: ", stringify!(ImagedMeta))
+        concat!("Size of: ", stringify!(ImageMeta))
     );
     assert_eq!(
-        ::std::mem::align_of::<ImagedMeta>(),
+        ::std::mem::align_of::<ImageMeta>(),
         8usize,
-        concat!("Alignment of ", stringify!(ImagedMeta))
+        concat!("Alignment of ", stringify!(ImageMeta))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).width as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).width as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(ImagedMeta),
+            stringify!(ImageMeta),
             "::",
             stringify!(width)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).height as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).height as *const _ as usize },
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(ImagedMeta),
+            stringify!(ImageMeta),
             "::",
             stringify!(height)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).bits as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).bits as *const _ as usize },
         16usize,
         concat!(
             "Offset of field: ",
-            stringify!(ImagedMeta),
+            stringify!(ImageMeta),
             "::",
             stringify!(bits)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).kind as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).kind as *const _ as usize },
         20usize,
         concat!(
             "Offset of field: ",
-            stringify!(ImagedMeta),
+            stringify!(ImageMeta),
             "::",
             stringify!(kind)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImagedMeta>())).color as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).color as *const _ as usize },
         24usize,
         concat!(
             "Offset of field: ",
-            stringify!(ImagedMeta),
+            stringify!(ImageMeta),
             "::",
             stringify!(color)
         )
@@ -291,20 +291,20 @@ fn bindgen_test_layout_ImagedMeta() {
 }
 extern "C" {
     #[doc = " Get the number of pixels in an image"]
-    pub fn imagedMetaNumPixels(meta: *const ImagedMeta) -> size_t;
+    pub fn imageMetaNumPixels(meta: *const ImageMeta) -> size_t;
 }
 extern "C" {
     #[doc = " Get the number of bytes in an image"]
-    pub fn imagedMetaTotalBytes(meta: *const ImagedMeta) -> size_t;
+    pub fn imageMetaTotalBytes(meta: *const ImageMeta) -> size_t;
 }
 extern "C" {
-    pub fn imagedMetaInit(
+    pub fn imageMetaInit(
         w: u64,
         h: u64,
-        color: ImagedColor,
-        kind: ImagedKind,
+        color: ImageColor,
+        kind: ImageKind,
         bits: u8,
-        meta: *mut ImagedMeta,
+        meta: *mut ImageMeta,
     );
 }
 #[doc = " Stores image data with associated metadata"]
@@ -312,7 +312,7 @@ extern "C" {
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct Image {
     pub owner: bool,
-    pub meta: ImagedMeta,
+    pub meta: ImageMeta,
     pub data: *mut ::std::os::raw::c_void,
 }
 #[test]
@@ -369,8 +369,8 @@ extern "C" {
     #[doc = " color/kind/bits if needed"]
     pub fn imageRead(
         filename: *const ::std::os::raw::c_char,
-        color: ImagedColor,
-        kind: ImagedKind,
+        color: ImageColor,
+        kind: ImageKind,
         bits: u8,
     ) -> *mut Image;
 }
@@ -384,19 +384,19 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Create a new image with the given metadata"]
-    pub fn imageNew(meta: ImagedMeta) -> *mut Image;
+    pub fn imageNew(meta: ImageMeta) -> *mut Image;
 }
 extern "C" {
     #[doc = " Create a new image from an existing buffer"]
-    pub fn imageNewWithData(meta: ImagedMeta, data: *mut ::std::os::raw::c_void) -> *mut Image;
+    pub fn imageNewWithData(meta: ImageMeta, data: *mut ::std::os::raw::c_void) -> *mut Image;
 }
 extern "C" {
     #[doc = " Create a new image and copy data if provided"]
     pub fn imageAlloc(
         w: u64,
         h: u64,
-        color: ImagedColor,
-        kind: ImagedKind,
+        color: ImageColor,
+        kind: ImageKind,
         bits: u8,
         data: *const ::std::os::raw::c_void,
     ) -> *mut Image;
@@ -523,8 +523,8 @@ extern "C" {
     #[doc = " image"]
     pub fn imageConvert(
         src: *const Image,
-        color: ImagedColor,
-        kind: ImagedKind,
+        color: ImageColor,
+        kind: ImageKind,
         bits: u8,
     ) -> *mut Image;
 }
@@ -532,8 +532,8 @@ extern "C" {
     #[doc = " Convert source image to the specified type"]
     pub fn imageConvertInPlace(
         src: *mut *mut Image,
-        color: ImagedColor,
-        kind: ImagedKind,
+        color: ImageColor,
+        kind: ImageKind,
         bits: u8,
     ) -> bool;
 }
@@ -654,7 +654,7 @@ extern "C" {
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
         keylen: ssize_t,
-        meta: ImagedMeta,
+        meta: ImageMeta,
         imagedata: *const ::std::os::raw::c_void,
         handle: *mut ImagedHandle,
     ) -> ImagedStatus;

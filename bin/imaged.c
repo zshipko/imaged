@@ -55,9 +55,9 @@ int main(int argc, char *argv[]) {
     while (imagedIterNext(iter) != NULL) {
       printf("%s\t%" PRIu64 "x%" PRIu64 "\t%s\t%s\n", iter->key,
              iter->handle.image.meta.width, iter->handle.image.meta.height,
-             imagedColorName(iter->handle.image.meta.color),
-             imagedTypeName(iter->handle.image.meta.kind,
-                            iter->handle.image.meta.bits));
+             imageColorName(iter->handle.image.meta.color),
+             imageTypeName(iter->handle.image.meta.kind,
+                           iter->handle.image.meta.bits));
     }
 
     imagedIterFree(iter);
@@ -91,8 +91,8 @@ int main(int argc, char *argv[]) {
     }
     printf("%s\t%" PRIu64 "x%" PRIu64 "\t%s\t%s\n", key,
            handle.image.meta.width, handle.image.meta.height,
-           imagedColorName(handle.image.meta.color),
-           imagedTypeName(handle.image.meta.kind, handle.image.meta.bits));
+           imageColorName(handle.image.meta.color),
+           imageTypeName(handle.image.meta.kind, handle.image.meta.bits));
   } else if (strncasecmp(cmd, "set", 3) == 0) {
     if (argc < optind + 5) {
       usage();
@@ -103,18 +103,18 @@ int main(int argc, char *argv[]) {
     uint64_t width = strtoll(argv[optind++], NULL, 10);
     uint64_t height = strtoll(argv[optind++], NULL, 10);
 
-    ImagedColor color = 0;
-    ImagedKind kind = 0;
+    ImageColor color = 0;
+    ImageKind kind = 0;
     uint8_t bits = 0;
 
     const char *a = argv[optind++];
     const char *b = argv[optind];
-    if (!imagedParseColorAndType(a, b, &color, &kind, &bits)) {
+    if (!imageParseColorAndType(a, b, &color, &kind, &bits)) {
       fprintf(stderr, "Unable to parse color and type: %s %s\n", a, b);
       return 1;
     }
 
-    ImagedMeta meta = {
+    ImageMeta meta = {
         .width = width,
         .height = height,
         .color = color,

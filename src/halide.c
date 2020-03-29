@@ -4,7 +4,7 @@
 
 #include "HalideRuntime.h"
 #include <stdlib.h>
-static halide_type_code_t getType(ImagedKind kind) {
+static halide_type_code_t getType(ImageKind kind) {
   switch (kind) {
   case IMAGED_KIND_INT:
     return halide_type_int;

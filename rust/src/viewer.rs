@@ -23,7 +23,7 @@ pub struct Context<'a> {
     windows: BTreeMap<String, Window<'a>>,
 }
 
-use crate::ffi::ImagedColor::*;
+use crate::ffi::ImageColor::*;
 
 fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint), Error> {
     let mut texture_id: GLuint = 0;
@@ -34,25 +34,25 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     }
 
     let color = match image.meta().color {
-        IMAGED_COLOR_GRAY => gl::RED,
-        IMAGED_COLOR_GRAYA => gl::RG,
-        IMAGED_COLOR_RGB => gl::RGB,
-        IMAGED_COLOR_RGBA => gl::RGBA,
+        IMAGE_COLOR_GRAY => gl::RED,
+        IMAGE_COLOR_GRAYA => gl::RG,
+        IMAGE_COLOR_RGB => gl::RGB,
+        IMAGE_COLOR_RGBA => gl::RGBA,
         _ => return Err(Error::InvalidColor),
     };
 
     let kind = match image.meta().kind {
-        crate::ffi::ImagedKind::IMAGED_KIND_INT => match image.meta().bits {
+        crate::ffi::ImageKind::IMAGE_KIND_INT => match image.meta().bits {
             8 => gl::BYTE,
             16 => gl::SHORT,
             _ => return Err(Error::InvalidBits),
         },
-        crate::ffi::ImagedKind::IMAGED_KIND_UINT => match image.meta().bits {
+        crate::ffi::ImageKind::IMAGE_KIND_UINT => match image.meta().bits {
             8 => gl::UNSIGNED_BYTE,
             16 => gl::UNSIGNED_SHORT,
             _ => return Err(Error::InvalidBits),
         },
-        crate::ffi::ImagedKind::IMAGED_KIND_FLOAT => match image.meta().bits {
+        crate::ffi::ImageKind::IMAGE_KIND_FLOAT => match image.meta().bits {
             32 => gl::FLOAT,
             _ => return Err(Error::InvalidBits),
         },

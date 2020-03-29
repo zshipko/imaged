@@ -2,7 +2,7 @@ use crate::*;
 
 use std::os::raw::c_char;
 
-pub use ffi::ImagedMeta as Meta;
+pub use ffi::ImageMeta as Meta;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -54,23 +54,23 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn ffi(&self) -> ffi::ImagedColor {
+    pub fn ffi(&self) -> ffi::ImageColor {
         unsafe { std::mem::transmute_copy(self) }
     }
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imagedColorNumChannels(self.ffi()) as usize }
+        unsafe { ffi::imageColorNumChannels(self.ffi()) as usize }
     }
 }
 
 impl Type {
     /// Get kind and bits
-    pub fn info(&self) -> (ffi::ImagedKind, u8) {
+    pub fn info(&self) -> (ffi::ImageKind, u8) {
         let (kind, bits) = match self {
-            Type::I(x) => (ffi::ImagedKind::IMAGED_KIND_INT, x),
-            Type::U(x) => (ffi::ImagedKind::IMAGED_KIND_UINT, x),
-            Type::F(x) => (ffi::ImagedKind::IMAGED_KIND_FLOAT, x),
+            Type::I(x) => (ffi::ImageKind::IMAGE_KIND_INT, x),
+            Type::U(x) => (ffi::ImageKind::IMAGE_KIND_UINT, x),
+            Type::F(x) => (ffi::ImageKind::IMAGE_KIND_FLOAT, x),
         };
         (kind, *bits)
     }
@@ -116,9 +116,9 @@ impl Meta {
     /// Get the underlying data type
     pub fn get_type(&self) -> Type {
         match self.kind {
-            ffi::ImagedKind::IMAGED_KIND_INT => Type::I(self.bits),
-            ffi::ImagedKind::IMAGED_KIND_UINT => Type::U(self.bits),
-            ffi::ImagedKind::IMAGED_KIND_FLOAT => Type::F(self.bits),
+            ffi::ImageKind::IMAGE_KIND_INT => Type::I(self.bits),
+            ffi::ImageKind::IMAGE_KIND_UINT => Type::U(self.bits),
+            ffi::ImageKind::IMAGE_KIND_FLOAT => Type::F(self.bits),
         }
     }
 
@@ -129,12 +129,12 @@ impl Meta {
 
     /// Get total number of bytes occupied by the image data
     pub fn total_bytes(&self) -> usize {
-        return unsafe { ffi::imagedMetaTotalBytes(self) as usize };
+        return unsafe { ffi::imageMetaTotalBytes(self) as usize };
     }
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imagedColorNumChannels(self.color) as usize }
+        unsafe { ffi::imageColorNumChannels(self.color) as usize }
     }
 }
 
