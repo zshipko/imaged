@@ -6,9 +6,9 @@
 #include <stdlib.h>
 static halide_type_code_t getType(ImageKind kind) {
   switch (kind) {
-  case IMAGED_KIND_INT:
+  case IMAGE_KIND_INT:
     return halide_type_int;
-  case IMAGED_KIND_FLOAT:
+  case IMAGE_KIND_FLOAT:
     return halide_type_float;
   default:
     return halide_type_uint;
@@ -16,7 +16,7 @@ static halide_type_code_t getType(ImageKind kind) {
 }
 
 void imageNewHalideBuffer(Image *image, halide_buffer_t *buffer) {
-  size_t channels = imagedColorNumChannels(image->meta.color);
+  size_t channels = imageColorNumChannels(image->meta.color);
   buffer->device = 0;
   buffer->device_interface = NULL;
   buffer->host = (uint8_t *)image->data;

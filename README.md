@@ -5,7 +5,7 @@
 ## Features
 
 - Share image data safely between processes
-- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage) and [libraw](https://github.com/libraw/libraw)
+- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage) and [libraw](https://github.com/libraw/libraw) (enable using `RAW=1` when compiling)
 - Convert between colorspaces using [babl](https://github.com/GNOME/babl)
 - Developed for use with [Halide](https://github.com/halide/halide), just set `HALIDE=1` when building
 
@@ -66,8 +66,8 @@ int main(void){
   // Note: Using $Imaged will automatically free `db` when it goes out of scope,
   // you can also use imagedClose if you don't like the `$` syntax
 
-  // Create a new floating-point imgd file
-  ImagedMeta meta = {
+  // Create a new floating-point file
+  ImageMeta meta = {
     .width = 800,
     .height = 600,
     .color = IMAGED_COLOR_RGB,

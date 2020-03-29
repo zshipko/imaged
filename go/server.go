@@ -32,10 +32,10 @@ func (c *Context) Create(client *worm.Client, key, width, height, color, ty *wor
 	defer C.free(unsafe.Pointer(colorStr))
 	defer C.free(unsafe.Pointer(typeStr))
 
-	var cl C.ImagedColor
-	var t C.ImagedKind
+	var cl C.ImageColor
+	var t C.ImageKind
 	var bits C.uint8_t
-	if !bool(C.imagedParseColorAndType(colorStr, typeStr, &cl, &t, &bits)) {
+	if !bool(C.imageParseColorAndType(colorStr, typeStr, &cl, &t, &bits)) {
 		return client.WriteError("invalid color/type")
 	}
 
@@ -66,7 +66,7 @@ func (c *Context) List(client *worm.Client) error {
 	names := []*worm.Value{}
 	for iter.Next() {
 		w, h, c, t := iter.Image().Meta()
-		typeName := C.GoString(C.imagedTypeName(t.kind, C.uint8_t(t.bits)))
+		typeName := C.GoString(C.imageTypeName(t.kind, C.uint8_t(t.bits)))
 		entry := []*worm.Value{
 			worm.New(iter.Key()),
 			worm.New(w),

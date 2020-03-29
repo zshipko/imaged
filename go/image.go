@@ -43,7 +43,7 @@ const (
 // Type determines the storage type of the underlying data pointer
 type Type struct {
 	bits uint8
-	kind C.ImagedKind
+	kind C.ImageKind
 }
 
 // Bits returns the numbers of bits
@@ -59,31 +59,31 @@ func (t Type) Kind() uint {
 // U8 = uint8_t
 var U8 = Type{
 	bits: 8,
-	kind: C.IMAGED_KIND_UINT,
+	kind: C.IMAGE_KIND_UINT,
 }
 
 // U16 = uint16_t
 var U16 = Type{
 	bits: 16,
-	kind: C.IMAGED_KIND_UINT,
+	kind: C.IMAGE_KIND_UINT,
 }
 
 // F16 = half
 var F16 = Type{
 	bits: 32,
-	kind: C.IMAGED_KIND_FLOAT,
+	kind: C.IMAGE_KIND_FLOAT,
 }
 
 // F32 = float
 var F32 = Type{
 	bits: 32,
-	kind: C.IMAGED_KIND_FLOAT,
+	kind: C.IMAGE_KIND_FLOAT,
 }
 
 // F64 = double
 var F64 = Type{
 	bits: 64,
-	kind: C.IMAGED_KIND_FLOAT,
+	kind: C.IMAGE_KIND_FLOAT,
 }
 
 // Image wraps the libimaged Image type
@@ -135,7 +135,7 @@ func (i *Image) Color() Color {
 // For example: Gray = 1, RGB = 3, etc...
 func (i *Image) Channels() int {
 	_, _, c, _ := i.Meta()
-	return int(C.imagedColorNumChannels(C.ImagedColor(c)))
+	return int(C.imageColorNumChannels(C.ImageColor(c)))
 }
 
 // Type returns the type of the image
@@ -166,7 +166,7 @@ func (i *Image) ConvertTo(other *Image) bool {
 
 // Convert returns a new image with the specified color and type
 func (i *Image) Convert(color Color, t Type) *Image {
-	im := C.imageConvert(i.ptr, C.ImagedColor(color), t.kind, C.uchar(t.bits))
+	im := C.imageConvert(i.ptr, C.ImageColor(color), t.kind, C.uchar(t.bits))
 	return &Image{
 		ptr:   im,
 		owner: true,
@@ -199,7 +199,7 @@ func (i *Image) Scale(x, y float64) *Image {
 // NewImage allocates a new image
 // NOTE: Image.Free should be called when you're done with the image
 func NewImage(width int, height int, color Color, t Type) *Image {
-	im := C.imageAlloc(C.size_t(width), C.size_t(height), C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits), nil)
+	im := C.imageAlloc(C.size_t(width), C.size_t(height), C.ImageColor(color), C.ImageKind(t.kind), C.uchar(t.bits), nil)
 	return &Image{
 		ptr:   im,
 		owner: true,
@@ -277,7 +277,7 @@ func (i *Image) EachPixel(f func(x, y uint, px *Pixel)) {
 func ReadImage(filename string, color Color, t Type) *Image {
 	s := C.CString(filename)
 	defer C.free(unsafe.Pointer(s))
-	im := C.imageRead(s, C.ImagedColor(color), C.ImagedKind(t.kind), C.uchar(t.bits))
+	im := C.imageRead(s, C.ImageColor(color), C.ImageKind(t.kind), C.uchar(t.bits))
 	return &Image{
 		ptr:   im,
 		owner: true,
