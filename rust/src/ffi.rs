@@ -223,8 +223,8 @@ pub struct ImageMeta {
     pub width: u64,
     pub height: u64,
     pub color: ImageColor,
-    pub bits: u8,
     pub kind: ImageKind,
+    pub bits: u8,
 }
 #[test]
 fn bindgen_test_layout_ImageMeta() {
@@ -269,23 +269,23 @@ fn bindgen_test_layout_ImageMeta() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImageMeta>())).bits as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).kind as *const _ as usize },
         20usize,
         concat!(
             "Offset of field: ",
             stringify!(ImageMeta),
             "::",
-            stringify!(bits)
+            stringify!(kind)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ImageMeta>())).kind as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<ImageMeta>())).bits as *const _ as usize },
         24usize,
         concat!(
             "Offset of field: ",
             stringify!(ImageMeta),
             "::",
-            stringify!(kind)
+            stringify!(bits)
         )
     );
 }
