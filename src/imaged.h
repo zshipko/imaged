@@ -126,9 +126,9 @@ bool imageIsValidType(ImageKind kind, uint8_t bits);
  * shape and type */
 typedef struct {
   uint64_t width, height;
-  uint8_t bits;
-  ImageKind kind;
   ImageColor color;
+  ImageKind kind;
+  uint8_t bits;
 } ImageMeta;
 
 /** Get the number of pixels in an image */
