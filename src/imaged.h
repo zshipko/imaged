@@ -181,8 +181,8 @@ void imageFree(Image *image);
 /** Get the number of bytes in a pixel for the given image */
 size_t imagePixelBytes(Image *image);
 
-/** Get the number of bytes in an image */
-size_t imageBytes(Image *image);
+/** Get the number of bytes contained in an image's data component */
+size_t imageDataNumBytes(Image *image);
 
 /** Get the data offset at the position (x, y) */
 size_t imageIndex(Image *image, size_t x, size_t y);

@@ -414,8 +414,8 @@ extern "C" {
     pub fn imagePixelBytes(image: *mut Image) -> size_t;
 }
 extern "C" {
-    #[doc = " Get the number of bytes in an image"]
-    pub fn imageBytes(image: *mut Image) -> size_t;
+    #[doc = " Get the number of bytes contained in an image's data component"]
+    pub fn imageDataNumBytes(image: *mut Image) -> size_t;
 }
 extern "C" {
     #[doc = " Get the data offset at the position (x, y)"]

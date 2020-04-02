@@ -108,7 +108,7 @@ size_t imagePixelBytes(Image *image) {
          imageColorNumChannels(image->meta.color);
 }
 
-size_t imageBytes(Image *image) {
+size_t imageDataNumBytes(Image *image) {
   return imagePixelBytes(image) * image->meta.width * image->meta.height *
          imageColorNumChannels(image->meta.color);
 }
