@@ -1,7 +1,6 @@
 # image2
 
-Rust bindings for [libimaged](https://github.com/zshipko/imaged)
-
+An image processing library in Rust built on [libimaged](https://github.com/zshipko/imaged)
 
 ```rust
 use image2::*;
