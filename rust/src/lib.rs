@@ -4,7 +4,7 @@
 //! ## Getting started
 //!
 //! ```rust
-//! use imaged::*;
+//! use image2::*;
 //!
 //! fn run() -> Result<(), Error> {
 //!     // Read image
