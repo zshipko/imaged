@@ -99,14 +99,14 @@ impl Meta {
 
     /// Create a new Meta instance from an existing one with the color changed
     pub fn with_color(&self, color: Color) -> Self {
-        let mut meta = self.clone();
+        let mut meta = *self;
         meta.color = color.ffi();
         meta
     }
 
     /// Create a new Meta instance from an existing one with the type changed
     pub fn with_type(&self, t: Type) -> Self {
-        let mut meta = self.clone();
+        let mut meta = *self;
         let info = t.info();
         meta.kind = info.0;
         meta.bits = info.1;
@@ -129,7 +129,7 @@ impl Meta {
 
     /// Get total number of bytes occupied by the image data
     pub fn total_bytes(&self) -> usize {
-        return unsafe { ffi::imageMetaTotalBytes(self) as usize };
+        unsafe { ffi::imageMetaTotalBytes(self) as usize }
     }
 
     /// Get the number of channels
@@ -276,10 +276,7 @@ impl<'a> Image<'a> {
         }
 
         let data = unsafe {
-            std::slice::from_raw_parts(
-                (&*self.0).data as *const T,
-                self.meta().total_bytes() / size,
-            )
+            std::slice::from_raw_parts((*self.0).data as *const T, self.meta().total_bytes() / size)
         };
         Ok(data)
     }
@@ -287,7 +284,7 @@ impl<'a> Image<'a> {
     /// Get the underlying data as a byte slice
     pub fn buffer(&self) -> Result<&[u8], Error> {
         let data = unsafe {
-            std::slice::from_raw_parts((&*self.0).data as *const u8, self.meta().total_bytes())
+            std::slice::from_raw_parts((*self.0).data as *const u8, self.meta().total_bytes())
         };
         Ok(data)
     }
@@ -301,7 +298,7 @@ impl<'a> Image<'a> {
 
         let data = unsafe {
             std::slice::from_raw_parts_mut(
-                (&mut *self.0).data as *mut T,
+                (*self.0).data as *mut T,
                 self.meta().total_bytes() / size,
             )
         };
@@ -311,10 +308,7 @@ impl<'a> Image<'a> {
     /// Get the underlying data as a mutable byte slice
     pub fn buffer_mut(&mut self) -> Result<&mut [u8], Error> {
         let data = unsafe {
-            std::slice::from_raw_parts_mut(
-                (&mut *self.0).data as *mut u8,
-                self.meta().total_bytes(),
-            )
+            std::slice::from_raw_parts_mut((*self.0).data as *mut u8, self.meta().total_bytes())
         };
         Ok(data)
     }
@@ -384,7 +378,7 @@ impl<'a> Image<'a> {
             return Err(Error::IncorrectImageType);
         }
 
-        let meta = self.meta().clone();
+        let meta = *self.meta();
 
         self.data_mut()?
             .chunks_exact_mut(meta.channels())
@@ -409,7 +403,7 @@ impl<'a> Image<'a> {
             return Err(Error::IncorrectImageType);
         }
 
-        let meta = self.meta().clone();
+        let meta = *self.meta();
 
         let b = other.data()?.chunks(meta.channels());
         self.data_mut()?
@@ -536,6 +530,7 @@ impl<'a> Image<'a> {
     }
 
     /// Copy an image
+    #[allow(clippy::should_implement_trait)]
     pub fn clone<'b>(&self) -> Image<'b> {
         let img = unsafe { ffi::imageClone(self.0) };
         unsafe { Image(&mut *img, true) }
@@ -553,7 +548,7 @@ impl<'a> Image<'a> {
             ffi::imageEachPixel(
                 self.0,
                 Some(parallel_wrapper),
-                nthreads.unwrap_or_else(|| num_cpus::get()) as std::os::raw::c_int,
+                nthreads.unwrap_or_else(num_cpus::get) as std::os::raw::c_int,
                 h as *mut _ as *mut std::ffi::c_void,
             )
         };
@@ -571,6 +566,7 @@ unsafe extern "C" fn parallel_wrapper(
     pixel: *mut Pixel,
     userdata: *mut std::ffi::c_void,
 ) -> bool {
+    #[allow(clippy::transmute_ptr_to_ref)]
     let closure: &mut &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error> =
         std::mem::transmute(userdata);
     match closure(w as usize, h as usize, &mut *pixel) {

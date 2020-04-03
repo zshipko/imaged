@@ -1,5 +1,5 @@
 fn main() {
-    let make = std::env::var("MAKE").unwrap_or("make".to_string());
+    let make = std::env::var("MAKE").unwrap_or_else(|_| "make".to_string());
 
     std::process::Command::new(make)
         .current_dir("..")

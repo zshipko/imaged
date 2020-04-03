@@ -61,7 +61,7 @@ impl<'a> Iterator for KeyIter<'a> {
         }
 
         unsafe {
-            let key = std::slice::from_raw_parts(key as *const u8, (&*self.0).keylen as usize);
+            let key = std::slice::from_raw_parts(key as *const u8, (*self.0).keylen as usize);
             let key = std::str::from_utf8_unchecked(key);
             Some(key)
         }

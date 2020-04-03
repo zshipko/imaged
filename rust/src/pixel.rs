@@ -3,6 +3,12 @@ use crate::*;
 /// 4-channel Pixel type
 pub use ffi::Pixel;
 
+impl Default for Pixel {
+    fn default() -> Pixel {
+        Pixel::new()
+    }
+}
+
 impl std::ops::Add for Pixel {
     type Output = Pixel;
     fn add(self, mut other: Pixel) -> Pixel {

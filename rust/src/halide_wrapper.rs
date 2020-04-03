@@ -3,7 +3,7 @@ use crate::Error;
 
 impl<'a> crate::Image<'a> {
     /// Use the image as a mutable halide_buffer_t
-    pub fn as_mut_halide_buffer<'b>(&'b mut self) -> Result<halide_runtime::Buffer<'b>, Error> {
+    pub fn as_mut_halide_buffer(&mut self) -> Result<halide_runtime::Buffer, Error> {
         let meta = self.meta();
 
         // This only works because imaged Kind is modeled after halide
@@ -18,7 +18,7 @@ impl<'a> crate::Image<'a> {
     }
 
     /// Use the image as a halide_buffer_t
-    pub fn as_halide_buffer<'b>(&'b self) -> Result<halide_runtime::Buffer<'b>, Error> {
+    pub fn as_halide_buffer(&self) -> Result<halide_runtime::Buffer, Error> {
         let meta = self.meta();
 
         // This only works because imaged Kind is modeled after halide
@@ -28,7 +28,10 @@ impl<'a> crate::Image<'a> {
             meta.height as i32,
             meta.channels() as i32,
             halide_runtime::Type(kind, meta.bits),
-            unsafe { &mut *(self.buffer()? as *const [u8] as *mut [u8]) },
+            #[allow(clippy::cast_ref_to_mut)]
+            unsafe {
+                &mut *(self.buffer()? as *const [u8] as *mut [u8])
+            },
         ))
     }
 }

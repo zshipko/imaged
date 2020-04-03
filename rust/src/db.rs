@@ -25,6 +25,7 @@ impl<'a> Handle<'a> {
     pub fn image(&self) -> Image {
         unsafe {
             Image(
+                #[allow(clippy::cast_ref_to_mut)]
                 &mut *(&self.0.image as *const ffi::Image as *mut ffi::Image),
                 false,
             )
@@ -51,7 +52,7 @@ impl DB {
             return Err(Error::CannotOpenDB);
         }
 
-        return Ok(DB(db));
+        Ok(DB(db))
     }
 
     /// Destroy all imgd files at the DB's root
@@ -64,27 +65,27 @@ impl DB {
     }
 
     /// Returns a new image iterator
-    pub fn iter<'a>(&'a self) -> Result<Iter<'a>, Error> {
+    pub fn iter(&self) -> Result<Iter, Error> {
         let iter = unsafe { ffi::imagedIterNew(self.0) };
         if iter.is_null() {
             return Err(Error::NullPointer);
         }
 
-        return Ok(Iter(iter, self));
+        Ok(Iter(iter, self))
     }
 
     /// Returns a new key iterator
-    pub fn iter_keys<'a>(&'a self) -> Result<KeyIter<'a>, Error> {
+    pub fn iter_keys(&self) -> Result<KeyIter, Error> {
         let iter = unsafe { ffi::imagedIterNew(self.0) };
         if iter.is_null() {
             return Err(Error::NullPointer);
         }
 
-        return Ok(KeyIter(iter, self));
+        Ok(KeyIter(iter, self))
     }
 
     /// Get a key, `editable` determines whether or not the pixels can be edited
-    pub fn get<'a, S: AsRef<str>>(&'a self, key: S, editable: bool) -> Result<Handle<'a>, Error> {
+    pub fn get<S: AsRef<str>>(&self, key: S, editable: bool) -> Result<Handle, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
             ffi::imagedGet(
@@ -118,12 +119,12 @@ impl DB {
     }
 
     /// Set a key using metadata and a pointer to the image data
-    pub fn set_raw<'a, S: AsRef<str>>(
-        &'a self,
+    pub fn set_raw<S: AsRef<str>>(
+        &self,
         key: S,
         meta: Meta,
         data: Option<*const c_void>,
-    ) -> Result<Handle<'a>, Error> {
+    ) -> Result<Handle, Error> {
         let mut handle = unsafe { std::mem::zeroed() };
         let rc = unsafe {
             ffi::imagedSet(
