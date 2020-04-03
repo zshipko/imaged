@@ -22,14 +22,8 @@ impl<'a> Drop for Handle<'a> {
 
 impl<'a> Handle<'a> {
     /// Get the underlying image
-    pub fn image(&self) -> Image {
-        unsafe {
-            Image(
-                #[allow(clippy::cast_ref_to_mut)]
-                &mut *(&self.0.image as *const ffi::Image as *mut ffi::Image),
-                false,
-            )
-        }
+    pub fn image(&mut self) -> Image {
+        Image(&mut self.0.image, false)
     }
 }
 

@@ -566,9 +566,9 @@ unsafe extern "C" fn parallel_wrapper(
     pixel: *mut Pixel,
     userdata: *mut std::ffi::c_void,
 ) -> bool {
-    #[allow(clippy::transmute_ptr_to_ref)]
-    let closure: &mut &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error> =
-        std::mem::transmute(userdata);
+    type F<'r> = &'r mut &'r mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error>;
+    let closure: F =
+        &mut (*(userdata as *mut &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error>));
     match closure(w as usize, h as usize, &mut *pixel) {
         Ok(x) => x,
         Err(_) => false,

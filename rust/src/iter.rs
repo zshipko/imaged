@@ -42,7 +42,6 @@ impl<'a> Iterator for Iter<'a> {
 
         unsafe {
             let image = &mut *ptr;
-            println!("OWNER2: {}", image.owner);
             let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen as usize);
             let key = std::str::from_utf8(key).expect("Invalid key");
 

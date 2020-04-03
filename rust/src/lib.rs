@@ -73,6 +73,10 @@ pub fn init() {
     }
 }
 
+lazy_static::lazy_static! {
+    static ref INIT: () = init();
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
