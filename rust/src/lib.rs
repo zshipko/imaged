@@ -4,7 +4,7 @@
 //! ## Getting started
 //!
 //! ```rust
-//! use image2::*;
+//! use imaged::*;
 //!
 //! fn run() -> Result<(), Error> {
 //!     // Read image
@@ -102,21 +102,21 @@ mod tests {
     #[test]
     fn each_pixel() {
         let mut image = Image::new(Meta::new(800, 600, Color::RGB, Type::F(32))).unwrap();
-        let mut image2 = Image::new(Meta::new(800, 600, Color::RGB, Type::F(32))).unwrap();
+        let mut imaged = Image::new(Meta::new(800, 600, Color::RGB, Type::F(32))).unwrap();
         image
             .each_pixel(None, |x, y, px| {
                 let data = px.data_mut();
                 data[0] = 1.0;
                 data[2] = 0.5;
                 data[3] = 0.25;
-                image2.set_pixel(x, y, px);
+                imaged.set_pixel(x, y, px);
                 Ok(true)
             })
             .unwrap();
 
         for y in 0..600 {
             for x in 0..800 {
-                assert!(image.at::<f32>(x, y).unwrap() == image2.at::<f32>(x, y).unwrap());
+                assert!(image.at::<f32>(x, y).unwrap() == imaged.at::<f32>(x, y).unwrap());
             }
         }
     }

@@ -1,13 +1,13 @@
 [package]
-name = "image2"
-version = "0.12.0"
+name = "imaged"
+version = "0.1.0"
 authors = ["Zach Shipko <zachshipko@gmail.com>"]
 edition = "2018"
 readme = "README.md"
 repository = "https://github.com/zshipko/imaged"
 license = "ISC"
 keywords = ["image", "image-processing"]
-documentation = "https://docs.rs/image2"
+documentation = "https://docs.rs/imaged"
 description = "An image processing library"
 
 [package.metadata.docs.rs]

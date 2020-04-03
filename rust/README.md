@@ -1,9 +1,9 @@
-# image2
+# imaged
 
 An image processing library in Rust built on [libimaged](https://github.com/zshipko/imaged)
 
 ```rust
-use image2::*;
+use imaged::*;
  fn run() -> Result<(), Error>
     // Read image
     let image = Image::read_default("test.jpg")?;
