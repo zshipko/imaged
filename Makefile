@@ -88,7 +88,11 @@ go:
 
 .PHONY: test
 test: lib
-	@$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS)
+	@if [ "$(CC)" = "clang*" ]; then \
+		$(CC) -g $(CFLAGS) -fsanitize=undefined -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS); \
+	else \
+		$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS); \
+	fi;
 	@./test/test
 
 %.o: %.c
