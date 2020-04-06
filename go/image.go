@@ -14,6 +14,7 @@ type Color int
 
 // Color types
 const (
+	UNKNOWN Color = 1
 	GRAY    Color = 1
 	GRAYA   Color = 2
 	RGB     Color = 3

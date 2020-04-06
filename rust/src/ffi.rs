@@ -164,6 +164,7 @@ impl ImageColor {
 #[doc = " Image colors, specifies the image color type"]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub enum ImageColor {
+    IMAGE_COLOR_UNKNOWN = 0,
     IMAGE_COLOR_GRAY = 1,
     IMAGE_COLOR_GRAYA = 2,
     IMAGE_COLOR_RGB = 3,

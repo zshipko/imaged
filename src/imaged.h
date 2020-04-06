@@ -76,6 +76,7 @@ typedef enum {
 
 /** Image colors, specifies the image color type */
 typedef enum {
+  IMAGE_COLOR_UNKNOWN = 0,
   IMAGE_COLOR_GRAY = 1,
   IMAGE_COLOR_GRAYA = 2,
   IMAGE_COLOR_RGB = 3,
