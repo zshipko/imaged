@@ -11,7 +11,7 @@ documentation = "https://docs.rs/imaged"
 description = "An image processing library"
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["docs-rs", "halide", "viewer"]
 
 [dependencies]
 thiserror = "1"
