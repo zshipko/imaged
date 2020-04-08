@@ -20,7 +20,6 @@ halide-runtime = {version = "0.2", optional = true}
 glfw = {version = "0.37", optional = true}
 gl = {version = "0.14", optional = true}
 num_cpus = "1"
-docs-rs = []
 
 [build-dependencies]
 pkg-config = "0.3"
@@ -29,3 +28,4 @@ pkg-config = "0.3"
 default = ["halide"]
 halide = ["halide-runtime"]
 viewer = ["glfw", "gl"]
+docs-rs = []
