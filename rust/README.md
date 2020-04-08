@@ -4,7 +4,8 @@ An image processing library in Rust built on [libimaged](https://github.com/zshi
 
 ```rust
 use imaged::*;
- fn run() -> Result<(), Error>
+
+fn run() -> Result<(), Error>
     // Read image
     let image = Image::read_default("test.jpg")?;
 
