@@ -1,7 +1,7 @@
-#[cfg(not(feature = "docs-rs"))]
+#[cfg(feature = "docs-rs")]
 fn main() {}
 
-#[cfg(feature = "docs-rs")]
+#[cfg(not(feature = "docs-rs"))]
 fn main() {
     let make = std::env::var("MAKE").unwrap_or_else(|_| "make".to_string());
 
