@@ -14,10 +14,10 @@ description = "An image processing library"
 all-features = true
 
 [dependencies]
-thiserror = "1.0"
+thiserror = "1"
 lazy_static = "1"
 halide-runtime = {version = "0.2", optional = true}
-glfw = {version = "0.36", optional = true}
+glfw = {version = "0.37", optional = true}
 gl = {version = "0.14", optional = true}
 num_cpus = "1"
 

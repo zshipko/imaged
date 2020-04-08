@@ -266,7 +266,7 @@ pub fn update_callback<F: Fn(&str, &mut crate::Image, WindowEvent) -> Result<boo
     callback: F,
 ) -> impl Fn(&str, &mut crate::Image, WindowEvent) -> Result<bool, Error> {
     move |name, image, event| {
-        let handle = db.get(name, false).map_err(Error::Imaged)?;
+        let mut handle = db.get(name, false).map_err(Error::Imaged)?;
         let _ = handle.image().convert_to(image);
         callback(name, image, event)
     }
