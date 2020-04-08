@@ -1,4 +1,4 @@
-#[cfg(not(feature = "docs.rs"))]
+#[cfg(not(feature = "docs-rs"))]
 fn main() {}
 
 #[cfg(feature = "docs-rs")]
