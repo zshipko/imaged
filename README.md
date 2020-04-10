@@ -1,5 +1,9 @@
 # imaged - image processing and storage framework
 
+<a href="https://crates.io/crates/imaged">
+    <img src="https://img.shields.io/crates/v/imaged.svg">
+</a>
+
 `imaged` provides a simple interface for working with image data across applications.
 
 ## Features
