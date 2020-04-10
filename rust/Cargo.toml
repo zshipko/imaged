@@ -1,6 +1,6 @@
 [package]
 name = "imaged"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Zach Shipko <zachshipko@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -16,7 +16,7 @@ features = ["docs-rs", "halide", "viewer"]
 [dependencies]
 thiserror = "1"
 lazy_static = "1"
-halide-runtime = {version = "0.2", optional = true}
+halide-runtime = {version = "0.3", optional = true}
 glfw = {version = "0.37", optional = true}
 gl = {version = "0.14", optional = true}
 num_cpus = "1"
