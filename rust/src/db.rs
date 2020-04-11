@@ -1,5 +1,6 @@
 use crate::*;
 
+use std::marker::PhantomData;
 use std::os::raw::c_char;
 
 /// DB wraps the libimaged's `Imaged` type
@@ -23,7 +24,7 @@ impl<'a> Drop for Handle<'a> {
 impl<'a> Handle<'a> {
     /// Get the underlying image
     pub fn image(&mut self) -> Image {
-        Image(&mut self.0.image, false)
+        Image(&mut self.0.image, false, PhantomData)
     }
 }
 

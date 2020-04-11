@@ -1,5 +1,6 @@
 use crate::*;
 
+use std::marker::PhantomData;
 use std::os::raw::c_char;
 
 pub use ffi::ImageMeta as Meta;
@@ -8,7 +9,11 @@ pub use ffi::ImageMeta as Meta;
 use rayon::prelude::*;
 
 /// Image type
-pub struct Image<'a>(pub &'a mut ffi::Image, pub(crate) bool);
+pub struct Image<'a>(
+    pub *mut ffi::Image,
+    pub(crate) bool,
+    pub(crate) PhantomData<&'a ()>,
+);
 
 unsafe impl<'a> Sync for Image<'a> {}
 unsafe impl<'a> Send for Image<'a> {}
@@ -157,7 +162,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *im, true)) }
+        Ok(Image(im, true, PhantomData))
     }
 
     /// Read from disk using ezimage
@@ -180,7 +185,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *im, true)) }
+        Ok(Image(im, true, PhantomData))
     }
 
     /// Write image to disk using ezimage
@@ -211,7 +216,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *image, true)) }
+        Ok(Image(image, true, PhantomData))
     }
 
     /// Wrap existing data
@@ -222,7 +227,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *image, true)) }
+        Ok(Image(image, true, PhantomData))
     }
 
     /// Create a new image similar to an existing image with the color changed
@@ -239,7 +244,7 @@ impl<'a> Image<'a> {
 
     /// Get metadata
     pub fn meta(&self) -> &Meta {
-        &self.0.meta
+        unsafe { &(*self.0).meta }
     }
 
     /// Get image (width, height, channels)
@@ -265,7 +270,7 @@ impl<'a> Image<'a> {
 
     /// Get a pointer to the underlying data
     pub fn data_ptr(&self) -> *mut c_void {
-        self.0.data
+        unsafe { (*self.0).data }
     }
 
     /// Get the underlying data as a slice
@@ -284,7 +289,7 @@ impl<'a> Image<'a> {
     /// Get the underlying data as a byte slice
     pub fn buffer(&self) -> Result<&[u8], Error> {
         let data = unsafe {
-            std::slice::from_raw_parts((*self.0).data as *const u8, self.meta().total_bytes())
+            std::slice::from_raw_parts(self.data_ptr() as *const u8, self.meta().total_bytes())
         };
         Ok(data)
     }
@@ -447,7 +452,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     /// Gamma correctoin
@@ -463,7 +468,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     pub fn convert_aces1(&self) -> Result<Image, Error> {
@@ -473,7 +478,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     pub fn convert_aces0_to_xyz(&self) -> Result<Image, Error> {
@@ -483,7 +488,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     pub fn convert_aces1_to_xyz(&self) -> Result<Image, Error> {
@@ -493,7 +498,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     /// Scale an image using the given factor for each dimension
@@ -504,7 +509,7 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     /// Resize an image to match the destination image size
@@ -526,14 +531,14 @@ impl<'a> Image<'a> {
             return Err(Error::NullPointer);
         }
 
-        unsafe { Ok(Image(&mut *dest, true)) }
+        Ok(Image(dest, true, PhantomData))
     }
 
     /// Copy an image
     #[allow(clippy::should_implement_trait)]
     pub fn clone<'b>(&self) -> Image<'b> {
         let img = unsafe { ffi::imageClone(self.0) };
-        unsafe { Image(&mut *img, true) }
+        Image(img, true, PhantomData)
     }
 
     /// Iterate over each pixel in parallel rows

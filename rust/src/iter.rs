@@ -45,7 +45,7 @@ impl<'a> Iterator for Iter<'a> {
             let key = std::slice::from_raw_parts(iter.key as *const u8, iter.keylen as usize);
             let key = std::str::from_utf8(key).expect("Invalid key");
 
-            Some((key, Image(image, false)))
+            Some((key, Image(image, false, std::marker::PhantomData)))
         }
     }
 }
