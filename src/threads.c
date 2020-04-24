@@ -14,9 +14,11 @@ struct imageParallelIterator {
 
 static void *imageParallelWrapper(void *_iter) {
   struct imageParallelIterator *iter = (struct imageParallelIterator *)_iter;
-  Pixel px = pixelEmpty();
-  for (uint64_t j = iter->y0; j < iter->y1; j++) {
-    for (uint64_t i = iter->x0; i < iter->x1; i++) {
+  uint64_t x_start = iter->x0, x_end = iter->x1;
+  uint64_t y_start = iter->y0, y_end = iter->y1;
+  for (uint64_t j = y_start; j < y_end; j++) {
+    for (uint64_t i = x_start; i < x_end; i++) {
+      Pixel px;
       imageGetPixel(iter->im, i, j, &px);
       if (iter->f(i, j, &px, iter->userdata)) {
         imageSetPixel(iter->dst, i, j, &px);
