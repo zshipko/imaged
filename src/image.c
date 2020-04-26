@@ -14,7 +14,6 @@
 #include <babl/babl.h>
 
 Image *imageNew(ImageMeta meta) {
-  babl_init();
   Image *image = malloc(sizeof(Image));
   if (!image) {
     return NULL;
@@ -35,7 +34,6 @@ Image *imageNew(ImageMeta meta) {
 }
 
 Image *imageNewWithData(ImageMeta meta, void *data) {
-  babl_init();
   Image *image = malloc(sizeof(Image));
   if (!image) {
     return NULL;
@@ -129,6 +127,11 @@ void *imageAt(Image *image, size_t x, size_t y) {
 
 #define norm(x, min, max) (((float)x - (float)min) / ((float)max - (float)min))
 
+#define GET(t, min, max)                                                       \
+  for (i = 0; i < channels; i++) {                                             \
+    pixel->data[i] = norm(((t *)px)[i], min, max);                             \
+  }
+
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   size_t channels = imageColorNumChannels(image->meta.color);
   if (channels > 4) {
@@ -146,19 +149,16 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGE_KIND_INT:
     switch (image->meta.bits) {
     case 8:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((int8_t *)px)[i], INT8_MIN, INT8_MAX);
-      }
+      GET(int8_t, INT8_MIN, INT8_MAX);
       break;
     case 16:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((int16_t *)px)[i], INT16_MIN, INT16_MAX);
-      }
+      GET(int16_t, INT16_MIN, INT16_MAX);
       break;
     case 32:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((uint32_t *)px)[i], INT32_MIN, INT32_MAX);
-      }
+      GET(int32_t, INT32_MIN, INT32_MAX);
+      break;
+    case 64:
+      GET(int64_t, INT64_MIN, INT64_MAX);
       break;
     default:
       return false;
@@ -167,19 +167,16 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   case IMAGE_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((uint8_t *)px)[i], 0, UINT8_MAX);
-      }
+      GET(uint8_t, 0, UINT8_MAX);
       break;
     case 16:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((uint16_t *)px)[i], 0, UINT16_MAX);
-      }
+      GET(uint16_t, 0, UINT16_MAX);
       break;
     case 32:
-      for (i = 0; i < channels; i++) {
-        pixel->data[i] = norm(((uint32_t *)px)[i], 0, UINT32_MAX);
-      }
+      GET(uint32_t, 0, UINT32_MAX);
+      break;
+    case 64:
+      GET(uint64_t, 0, UINT64_MAX);
       break;
     default:
       return false;
@@ -217,6 +214,11 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
 #define denorm(x, min, max)                                                    \
   ((((float)max - (float)min) * ((float)x / 1.0)) + (float)min)
 
+#define SET(t, min, max)                                                       \
+  for (i = 0; i < channels; i++) {                                             \
+    ((t *)px)[i] = (t)denorm(pixel->data[i], min, max);                        \
+  }
+
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   void *px = imageAt(image, x, y);
   if (px == NULL) {
@@ -234,24 +236,16 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   case IMAGE_KIND_INT:
     switch (image->meta.bits) {
     case 8:
-
-      for (i = 0; i < channels; i++) {
-        ((int8_t *)px)[i] = (int8_t)denorm(pixel->data[i], INT8_MIN, INT8_MAX);
-      }
+      SET(int8_t, INT8_MIN, INT8_MAX);
       break;
     case 16:
-
-      for (i = 0; i < channels; i++) {
-        ((int16_t *)px)[i] =
-            (int16_t)denorm(pixel->data[i], INT16_MIN, INT16_MAX);
-      }
+      SET(int16_t, INT16_MIN, INT16_MAX);
       break;
     case 32:
-
-      for (i = 0; i < channels; i++) {
-        ((int32_t *)px)[i] =
-            (int32_t)denorm(pixel->data[i], INT32_MIN, INT32_MAX);
-      }
+      SET(int32_t, INT32_MIN, INT32_MAX);
+      break;
+    case 64:
+      SET(int64_t, INT64_MIN, INT64_MAX);
       break;
     default:
       return false;
@@ -260,23 +254,18 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   case IMAGE_KIND_UINT:
     switch (image->meta.bits) {
     case 8:
-
-      for (i = 0; i < channels; i++) {
-        ((uint8_t *)px)[i] = (uint8_t)denorm(pixel->data[i], 0, UINT8_MAX);
-      }
+      SET(uint8_t, 0, UINT8_MAX);
       break;
     case 16:
-
-      for (i = 0; i < channels; i++) {
-        ((uint16_t *)px)[i] = (uint16_t)denorm(pixel->data[i], 0, UINT16_MAX);
-      }
+      SET(uint16_t, 0, UINT16_MAX);
       break;
     case 32:
-
-      for (i = 0; i < channels; i++) {
-        ((uint32_t *)px)[i] = (uint32_t)denorm(pixel->data[i], 0, UINT32_MAX);
-      }
+      SET(uint32_t, 0, UINT32_MAX);
       break;
+    case 64:
+      SET(uint64_t, 0, UINT64_MAX);
+      break;
+
     default:
       return false;
     }
@@ -312,15 +301,7 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
   return true;
 }
 
-static bool bablInit = false;
-
 const Babl *format(ImageColor color, ImageKind kind, uint8_t bits) {
-  if (!bablInit) {
-    babl_init();
-    atexit(babl_exit);
-    bablInit = true;
-  }
-
   const char *colorName = imageColorName(color);
   const char *typeName = imageTypeName(kind, bits);
 
@@ -335,7 +316,15 @@ const Babl *format(ImageColor color, ImageKind kind, uint8_t bits) {
   return babl_format(fmt);
 }
 
+__thread bool imagedBablIsInitialized = false;
+
 bool imageConvertTo(const Image *src, Image *dest) {
+  if (!imagedBablIsInitialized) {
+    imagedBablIsInitialized = true;
+    babl_init();
+    atexit(babl_exit);
+  }
+
   if (dest->meta.width != src->meta.width ||
       dest->meta.height != src->meta.height) {
     return false;
