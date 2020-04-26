@@ -239,13 +239,15 @@ bool pixelEqAll(const Pixel *a, float v);
 float pixelSum(const Pixel *a);
 
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
-  uint64_t x, y;                                                               \
-  for (y = _y; y < im->meta.height && y < _y + _h; y += sy)                    \
-    for (x = _x; x < im->meta.width && x < _x + _w; x += sx)
+  uint64_t y##_iter_end = _y + _h =                                            \
+                              < im->meta.height ? _y + _h : im->meta.height;   \
+  uint64_t x##_iter_end = _x + _w =                                            \
+                              < im->meta.width ? _x + _w : im->meta.width;     \
+  for (uint64_t y = _y; y < y##_iter_end; y += sy)                             \
+    for (uint64_t x = _x; x < x##_iter_end; x += sx)
 #define IMAGE_ITER_ALL(im, x, y)                                               \
-  uint64_t x, y;                                                               \
-  for (y = 0; y < im->meta.height; y++)                                        \
-    for (x = 0; x < im->meta.width; x++)
+  for (uint64_t y = 0; y < im->meta.height; y++)                               \
+    for (uint64_t x = 0; x < im->meta.width; x++)
 
 /** Adjust image gamma */
 void imageAdjustGamma(Image *src, float gamma);

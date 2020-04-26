@@ -199,7 +199,7 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
       break;
     case 64:
       for (i = 0; i < channels; i++) {
-        pixel->data[i] = (float)((double *)px)[i];
+        pixel->data[i] = (float)(((double *)px)[i]);
       }
       break;
     default:
@@ -287,7 +287,6 @@ bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel) {
       }
       break;
     case 64:
-
       for (i = 0; i < channels; i++) {
         ((double *)px)[i] = (double)pixel->data[i];
       }
