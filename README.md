@@ -22,6 +22,9 @@ To get started to will need to following:
 - [babl](https://github.com/GNOME/babl)
   * `apt install libbabl-dev` (on Debian based distros)
   * `brew install babl` (on macOS)
+- [libtiff](https://gitlab.com/libtiff/libtiff)
+  * `apt install libtiff-dev` (on Debian based diestros)
+  * `brew install libtiff` (on macOS)
 
 Once all of the dependencies have been installed:
 

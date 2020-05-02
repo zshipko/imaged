@@ -4,7 +4,7 @@ OBJ=$(SRC:.c=.o)
 
 RAW=1
 HALIDE=
-PKGS= babl ezimage
+PKGS= babl
 FLAGS=
 HAS_RAW?=$(shell pkg-config --cflags --libs libraw)
 
@@ -23,9 +23,9 @@ ifeq ($(HALIDE),1)
 endif
 
 CFLAGS?=
-CFLAGS+= -Wall -Wextra `pkg-config --cflags $(PKGS)` $(FLAGS)
+CFLAGS+= -Wall -Wextra -Iezimage/build/include `pkg-config --cflags $(PKGS)` $(FLAGS)
 LDFLAGS?=
-LDFLAGS+=-lpthread `pkg-config --libs $(PKGS)`
+LDFLAGS+= -ltiff -lm -lpthread ezimage/build/lib/libezimage.a `pkg-config --libs $(PKGS)`
 PIC?=-fPIC
 DEST?=/usr/local
 
@@ -49,14 +49,14 @@ debug:
 	$(MAKE) CFLAGS="$(CFLAGS) -Rpass-missed=loop-vectorize"
 
 .PHONY: bin
-bin: ezimage src/imaged.h .cflags $(OBJ)
+bin: ezimage/build src/imaged.h .cflags $(OBJ)
 	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS)
 
-lib: $(OBJ)
+lib: ezimage/build $(OBJ)
 	$(AR) rcs libimaged.a $(OBJ)
 	@printf "Name: imaged\nDescription: Imaging storage library\nVersion: $(VERSION)\nLibs: -L$(DEST)/lib -limaged $(LDFLAGS)\nCflags: -I/usr/local/include -I$(DEST)/include\nRequires: $(PKGS)\n" > imaged.pc
 
-shared: $(OBJ)
+shared: ezimage/build $(OBJ)
 	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.$(SOEXT) $(OBJ) $(LDFLAGS)
 
 clean:
@@ -99,6 +99,6 @@ test: lib
 %.o: %.c
 	$(CC) $(CFLAGS) $(PIC) -Wall -O3 -c $*.c  -o $@
 
-ezimage:
+ezimage/build:
 	git submodule update --init
 	cd ezimage && $(MAKE)
