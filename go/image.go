@@ -157,7 +157,7 @@ func (i *Image) SetPixel(x, y uint, px *Pixel) bool {
 
 // NumBytes returns the total number of bytes occupied by the image data
 func (i *Image) NumBytes() uint64 {
-	return uint64(C.imageBytes(i.ptr))
+	return uint64(C.imageDataNumBytes(i.ptr))
 }
 
 // ConvertTo converts an image to the type specified by the destination image

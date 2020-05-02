@@ -1,8 +1,8 @@
 package imaged
 
 // #cgo CFLAGS: -I../src
-// #cgo LDFLAGS: -L.. -limaged -lm -lpthread
-// #cgo pkg-config: babl ezimage libraw
+// #cgo LDFLAGS: -lm -lpthread -L.. -ltiff -limaged
+// #cgo pkg-config: babl libraw
 // #include <string.h>
 // #include <stdlib.h>
 // #include "imaged.h"
