@@ -19,6 +19,7 @@ To get started to will need to following:
 
 - GNU Make
 - C compiler
+- C++11 compiler (for [ezimage](https://github.com/zshipko/ezimage))
 - [babl](https://github.com/GNOME/babl)
   * `apt install libbabl-dev` (on Debian based distros)
   * `brew install babl` (on macOS)
