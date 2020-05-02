@@ -1,6 +1,10 @@
 # imaged
 
-An image processing library in Rust built on [libimaged](https://github.com/zshipko/imaged)
+An image processing library in Rust built on [libimaged](https://github.com/zshipko/imaged).
+
+`imaged` is focused on supporting a wide range of color conversions using [babl](http://www.gegl.org/babl/)
+
+## Example
 
 ```rust
 use imaged::*;
