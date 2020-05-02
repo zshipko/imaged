@@ -3,8 +3,6 @@
 
 #include "imaged.h"
 
-typedef bool (*imageParallelFn)(uint64_t, uint64_t, Pixel *, void *);
-
 struct imageParallelIterator {
   uint64_t x0, y0, x1, y1;
   Image *im, *dst;
