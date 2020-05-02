@@ -49,7 +49,7 @@ debug:
 	$(MAKE) CFLAGS="$(CFLAGS) -Rpass-missed=loop-vectorize"
 
 .PHONY: bin
-bin: src/imaged.h .cflags $(OBJ)
+bin: ezimage src/imaged.h .cflags $(OBJ)
 	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS)
 
 lib: $(OBJ)
@@ -61,6 +61,7 @@ shared: $(OBJ)
 
 clean:
 	rm -f $(OBJ) libimaged.a libimaged.$(SOEXT) .cflags .ldflags imaged.pc
+	cd ezimage && $(MAKE) clean
 
 install-lib:
 	mkdir -p $(DEST)/lib/pkgconfig $(DEST)/include
@@ -97,3 +98,7 @@ test: lib
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(PIC) -Wall -O3 -c $*.c  -o $@
+
+ezimage:
+	git submodule update --init
+	cd ezimage && $(MAKE)

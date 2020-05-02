@@ -9,7 +9,7 @@
 ## Features
 
 - Share image data safely between processes
-- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage) and [libraw](https://github.com/libraw/libraw) (enable using `RAW=1` when compiling)
+- Encode/decode many popular formats using [ezimage](https://github.com/zshipko/ezimage) and [libraw](https://github.com/libraw/libraw) (should be detected automatically, or enable using `RAW=1` when compiling)
 - Convert between colorspaces using [babl](https://github.com/GNOME/babl)
 - Developed for use with [Halide](https://github.com/halide/halide), just set `HALIDE=1` when building
 
@@ -22,10 +22,6 @@ To get started to will need to following:
 - [babl](https://github.com/GNOME/babl)
   * `apt install libbabl-dev` (on Debian based distros)
   * `brew install babl` (on macOS)
-- [ezimage](https://github.com/zshipko/ezimage)
-  * `git clone https://github.com/zshipko/ezimage`
-  * `make`
-  * `sudo make install`
 
 Once all of the dependencies have been installed:
 
