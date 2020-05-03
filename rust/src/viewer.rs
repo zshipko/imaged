@@ -23,7 +23,7 @@ pub struct Context<'a> {
     windows: BTreeMap<String, Window<'a>>,
 }
 
-use crate::ffi::ImageColor::*;
+use crate::sys::ImageColor::*;
 
 fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint), Error> {
     let mut texture_id: GLuint = 0;
@@ -42,17 +42,17 @@ fn image_texture(image: &crate::Image) -> Result<(GLuint, GLuint, GLuint, GLuint
     };
 
     let kind = match image.meta().kind {
-        crate::ffi::ImageKind::IMAGE_KIND_INT => match image.meta().bits {
+        crate::sys::ImageKind::IMAGE_KIND_INT => match image.meta().bits {
             8 => gl::BYTE,
             16 => gl::SHORT,
             _ => return Err(Error::InvalidBits),
         },
-        crate::ffi::ImageKind::IMAGE_KIND_UINT => match image.meta().bits {
+        crate::sys::ImageKind::IMAGE_KIND_UINT => match image.meta().bits {
             8 => gl::UNSIGNED_BYTE,
             16 => gl::UNSIGNED_SHORT,
             _ => return Err(Error::InvalidBits),
         },
-        crate::ffi::ImageKind::IMAGE_KIND_FLOAT => match image.meta().bits {
+        crate::sys::ImageKind::IMAGE_KIND_FLOAT => match image.meta().bits {
             32 => gl::FLOAT,
             _ => return Err(Error::InvalidBits),
         },

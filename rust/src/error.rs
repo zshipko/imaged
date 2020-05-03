@@ -27,5 +27,5 @@ pub enum Error {
 
     /// Wraps ImagedStatus
     #[error("Imaged specified error")]
-    FFI(ffi::ImagedStatus),
+    Sys(sys::ImagedStatus),
 }

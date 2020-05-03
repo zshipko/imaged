@@ -3,14 +3,14 @@ use crate::*;
 use std::marker::PhantomData;
 use std::os::raw::c_char;
 
-pub use ffi::ImageMeta as Meta;
+pub use sys::ImageMeta as Meta;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 /// Image type
 pub struct Image<'a>(
-    pub *mut ffi::Image,
+    pub *mut sys::Image,
     pub(crate) bool,
     pub(crate) PhantomData<&'a ()>,
 );
@@ -59,23 +59,23 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn ffi(&self) -> ffi::ImageColor {
+    pub fn ffi(&self) -> sys::ImageColor {
         unsafe { std::mem::transmute_copy(self) }
     }
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imageColorNumChannels(self.ffi()) as usize }
+        unsafe { sys::imageColorNumChannels(self.ffi()) as usize }
     }
 }
 
 impl Type {
     /// Get kind and bits
-    pub fn info(&self) -> (ffi::ImageKind, u8) {
+    pub fn info(&self) -> (sys::ImageKind, u8) {
         let (kind, bits) = match self {
-            Type::I(x) => (ffi::ImageKind::IMAGE_KIND_INT, x),
-            Type::U(x) => (ffi::ImageKind::IMAGE_KIND_UINT, x),
-            Type::F(x) => (ffi::ImageKind::IMAGE_KIND_FLOAT, x),
+            Type::I(x) => (sys::ImageKind::IMAGE_KIND_INT, x),
+            Type::U(x) => (sys::ImageKind::IMAGE_KIND_UINT, x),
+            Type::F(x) => (sys::ImageKind::IMAGE_KIND_FLOAT, x),
         };
         (kind, *bits)
     }
@@ -121,9 +121,9 @@ impl Meta {
     /// Get the underlying data type
     pub fn get_type(&self) -> Type {
         match self.kind {
-            ffi::ImageKind::IMAGE_KIND_INT => Type::I(self.bits),
-            ffi::ImageKind::IMAGE_KIND_UINT => Type::U(self.bits),
-            ffi::ImageKind::IMAGE_KIND_FLOAT => Type::F(self.bits),
+            sys::ImageKind::IMAGE_KIND_INT => Type::I(self.bits),
+            sys::ImageKind::IMAGE_KIND_UINT => Type::U(self.bits),
+            sys::ImageKind::IMAGE_KIND_FLOAT => Type::F(self.bits),
         }
     }
 
@@ -134,12 +134,12 @@ impl Meta {
 
     /// Get total number of bytes occupied by the image data
     pub fn total_bytes(&self) -> usize {
-        unsafe { ffi::imageMetaTotalBytes(self) as usize }
+        unsafe { sys::imageMetaTotalBytes(self) as usize }
     }
 
     /// Get the number of channels
     pub fn channels(&self) -> usize {
-        unsafe { ffi::imageColorNumChannels(self.color) as usize }
+        unsafe { sys::imageColorNumChannels(self.color) as usize }
     }
 }
 
@@ -149,7 +149,7 @@ impl<'a> Drop for Image<'a> {
             return;
         }
 
-        unsafe { ffi::imageFree(self.0) }
+        unsafe { sys::imageFree(self.0) }
     }
 }
 
@@ -157,7 +157,7 @@ impl<'a> Image<'a> {
     /// Read default colorspace/type from disk using ezimage
     pub fn read_default<P: AsRef<std::path::Path>>(path: P) -> Result<Image<'a>, Error> {
         let path = format!("{}\0", path.as_ref().display());
-        let im = unsafe { ffi::imageReadDefault(path.as_ptr() as *const c_char) };
+        let im = unsafe { sys::imageReadDefault(path.as_ptr() as *const c_char) };
         if im.is_null() {
             return Err(Error::NullPointer);
         }
@@ -174,7 +174,7 @@ impl<'a> Image<'a> {
         let path = format!("{}\0", path.as_ref().display());
         let (kind, bits) = t.info();
         let im = unsafe {
-            ffi::imageRead(
+            sys::imageRead(
                 path.as_ptr() as *const c_char,
                 std::mem::transmute(color as i32),
                 std::mem::transmute(kind as i32),
@@ -191,10 +191,10 @@ impl<'a> Image<'a> {
     /// Write image to disk using ezimage
     pub fn write<P: AsRef<std::path::Path>>(&self, path: P) -> Result<(), Error> {
         let path = format!("{}\0", path.as_ref().display());
-        let rc = unsafe { ffi::imageWrite(path.as_ptr() as *const c_char, self.0) };
+        let rc = unsafe { sys::imageWrite(path.as_ptr() as *const c_char, self.0) };
 
-        if rc != ffi::ImagedStatus::IMAGED_OK {
-            return Err(Error::FFI(rc));
+        if rc != sys::ImagedStatus::IMAGED_OK {
+            return Err(Error::Sys(rc));
         }
 
         Ok(())
@@ -203,7 +203,7 @@ impl<'a> Image<'a> {
     /// Allocate a new image
     pub fn new(meta: Meta) -> Result<Self, Error> {
         let image = unsafe {
-            ffi::imageAlloc(
+            sys::imageAlloc(
                 meta.width,
                 meta.height,
                 meta.color,
@@ -222,7 +222,7 @@ impl<'a> Image<'a> {
     /// Wrap existing data
     pub fn new_with_data<T, X: AsMut<[T]>>(meta: Meta, mut data: X) -> Result<Self, Error> {
         let image =
-            unsafe { ffi::imageNewWithData(meta, data.as_mut().as_mut_ptr() as *mut c_void) };
+            unsafe { sys::imageNewWithData(meta, data.as_mut().as_mut_ptr() as *mut c_void) };
         if image.is_null() {
             return Err(Error::NullPointer);
         }
@@ -335,8 +335,8 @@ impl<'a> Image<'a> {
         }
 
         let ptr = unsafe {
-            ffi::imageAt(
-                self.0 as *const ffi::Image as *mut ffi::Image,
+            sys::imageAt(
+                self.0 as *const sys::Image as *mut sys::Image,
                 x as u64,
                 y as u64,
             )
@@ -353,8 +353,8 @@ impl<'a> Image<'a> {
     /// Get the pixel at (x, y)
     pub fn get_pixel(&self, x: usize, y: usize, px: &mut Pixel) -> bool {
         unsafe {
-            ffi::imageGetPixel(
-                self.0 as *const ffi::Image as *mut ffi::Image,
+            sys::imageGetPixel(
+                self.0 as *const sys::Image as *mut sys::Image,
                 x as u64,
                 y as u64,
                 px,
@@ -365,8 +365,8 @@ impl<'a> Image<'a> {
     /// Set the pixel at (x, y)
     pub fn set_pixel(&self, x: usize, y: usize, px: &Pixel) -> bool {
         unsafe {
-            ffi::imageSetPixel(
-                self.0 as *const ffi::Image as *mut ffi::Image,
+            sys::imageSetPixel(
+                self.0 as *const sys::Image as *mut sys::Image,
                 x as u64,
                 y as u64,
                 px,
@@ -427,7 +427,7 @@ impl<'a> Image<'a> {
     pub fn convert_in_place(&mut self, color: Color, t: Type) -> Result<(), Error> {
         let (kind, bits) = t.info();
         let rc = unsafe {
-            ffi::imageConvertInPlace(&mut (self.0 as *mut ffi::Image), color.ffi(), kind, bits)
+            sys::imageConvertInPlace(&mut (self.0 as *mut sys::Image), color.ffi(), kind, bits)
         };
         if !rc {
             return Err(Error::IncorrectImageType);
@@ -437,7 +437,7 @@ impl<'a> Image<'a> {
 
     /// Convert an image colorspace based on the destination image type, allocating a new image
     pub fn convert_to(&self, dest: &mut Image) -> Result<(), Error> {
-        let rc = unsafe { ffi::imageConvertTo(self.0, dest.0) };
+        let rc = unsafe { sys::imageConvertTo(self.0, dest.0) };
         if !rc {
             return Err(Error::IncorrectImageType);
         }
@@ -447,7 +447,7 @@ impl<'a> Image<'a> {
     /// Convert an image colorspace, allocating a new image
     pub fn convert(&self, color: Color, t: Type) -> Result<Image, Error> {
         let (kind, bits) = t.info();
-        let dest = unsafe { ffi::imageConvert(self.0, color.ffi(), kind, bits) };
+        let dest = unsafe { sys::imageConvert(self.0, color.ffi(), kind, bits) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
@@ -457,13 +457,13 @@ impl<'a> Image<'a> {
 
     /// Gamma correctoin
     pub fn adjust_gamma(&self, g: f32) -> Result<(), Error> {
-        unsafe { ffi::imageAdjustGamma(self.0 as *const ffi::Image as *mut ffi::Image, g) };
+        unsafe { sys::imageAdjustGamma(self.0 as *const sys::Image as *mut sys::Image, g) };
         Ok(())
     }
 
     pub fn convert_aces0(&self) -> Result<Image, Error> {
         let dest =
-            unsafe { ffi::imageConvertACES0(self.0 as *const ffi::Image as *mut ffi::Image) };
+            unsafe { sys::imageConvertACES0(self.0 as *const sys::Image as *mut sys::Image) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
@@ -473,7 +473,7 @@ impl<'a> Image<'a> {
 
     pub fn convert_aces1(&self) -> Result<Image, Error> {
         let dest =
-            unsafe { ffi::imageConvertACES1(self.0 as *const ffi::Image as *mut ffi::Image) };
+            unsafe { sys::imageConvertACES1(self.0 as *const sys::Image as *mut sys::Image) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
@@ -483,7 +483,7 @@ impl<'a> Image<'a> {
 
     pub fn convert_aces0_to_xyz(&self) -> Result<Image, Error> {
         let dest =
-            unsafe { ffi::imageConvertACES0ToXYZ(self.0 as *const ffi::Image as *mut ffi::Image) };
+            unsafe { sys::imageConvertACES0ToXYZ(self.0 as *const sys::Image as *mut sys::Image) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
@@ -493,7 +493,7 @@ impl<'a> Image<'a> {
 
     pub fn convert_aces1_to_xyz(&self) -> Result<Image, Error> {
         let dest =
-            unsafe { ffi::imageConvertACES1ToXYZ(self.0 as *const ffi::Image as *mut ffi::Image) };
+            unsafe { sys::imageConvertACES1ToXYZ(self.0 as *const sys::Image as *mut sys::Image) };
         if dest.is_null() {
             return Err(Error::NullPointer);
         }
@@ -503,7 +503,7 @@ impl<'a> Image<'a> {
 
     /// Scale an image using the given factor for each dimension
     pub fn scale(&self, x: f64, y: f64) -> Result<Image, Error> {
-        let dest = unsafe { ffi::imageScale(self.0 as *const ffi::Image as *mut ffi::Image, x, y) };
+        let dest = unsafe { sys::imageScale(self.0 as *const sys::Image as *mut sys::Image, x, y) };
 
         if dest.is_null() {
             return Err(Error::NullPointer);
@@ -514,15 +514,15 @@ impl<'a> Image<'a> {
 
     /// Resize an image to match the destination image size
     pub fn resize_to(&self, dest: &mut Image) -> Result<(), Error> {
-        unsafe { ffi::imageResizeTo(self.0 as *const ffi::Image as *mut ffi::Image, dest.0) };
+        unsafe { sys::imageResizeTo(self.0 as *const sys::Image as *mut sys::Image, dest.0) };
         Ok(())
     }
 
     /// Resize an image to the given size
     pub fn resize(&self, width: usize, height: usize) -> Result<Image, Error> {
         let dest = unsafe {
-            ffi::imageResize(
-                self.0 as *const ffi::Image as *mut ffi::Image,
+            sys::imageResize(
+                self.0 as *const sys::Image as *mut sys::Image,
                 width as u64,
                 height as u64,
             )
@@ -537,7 +537,7 @@ impl<'a> Image<'a> {
     /// Copy an image
     #[allow(clippy::should_implement_trait)]
     pub fn clone<'b>(&self) -> Image<'b> {
-        let img = unsafe { ffi::imageClone(self.0) };
+        let img = unsafe { sys::imageClone(self.0) };
         Image(img, true, PhantomData)
     }
 
@@ -550,15 +550,15 @@ impl<'a> Image<'a> {
         let mut g: &mut dyn FnMut(usize, usize, &mut Pixel) -> Result<bool, Error> = &mut f;
         let h = &mut g;
         let rc = unsafe {
-            ffi::imageEachPixel(
+            sys::imageEachPixel(
                 self.0,
                 Some(parallel_wrapper),
                 nthreads.unwrap_or_else(num_cpus::get) as std::os::raw::c_int,
                 h as *mut _ as *mut std::ffi::c_void,
             )
         };
-        if rc != ffi::ImagedStatus::IMAGED_OK {
-            return Err(Error::FFI(rc));
+        if rc != sys::ImagedStatus::IMAGED_OK {
+            return Err(Error::Sys(rc));
         }
 
         Ok(())

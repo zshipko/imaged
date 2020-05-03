@@ -23,7 +23,7 @@
 use std::ffi::c_void;
 
 /// Raw imaged bindings
-pub mod ffi;
+pub mod sys;
 
 #[cfg(feature = "halide")]
 mod halide_wrapper;
@@ -52,12 +52,12 @@ pub mod conf {
 
     /// Use autobrightness in libraw
     pub fn use_raw_auto_brightness(b: bool) {
-        unsafe { ffi::imageRAWUseAutoBrightness(b) }
+        unsafe { sys::imageRAWUseAutoBrightness(b) }
     }
 
     /// Use camera white balance in libraw
     pub fn use_raw_camera_white_balance(b: bool) {
-        unsafe { ffi::imageRAWUseCameraWhiteBalance(b) }
+        unsafe { sys::imageRAWUseCameraWhiteBalance(b) }
     }
 }
 

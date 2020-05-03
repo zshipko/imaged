@@ -1,7 +1,7 @@
 use crate::*;
 
 /// 4-channel Pixel type
-pub use ffi::Pixel;
+pub use sys::Pixel;
 
 impl Default for Pixel {
     fn default() -> Pixel {
@@ -13,7 +13,7 @@ impl std::ops::Add for Pixel {
     type Output = Pixel;
     fn add(self, mut other: Pixel) -> Pixel {
         unsafe {
-            ffi::pixelAdd(&self, &mut other);
+            sys::pixelAdd(&self, &mut other);
         }
         other
     }
@@ -23,7 +23,7 @@ impl std::ops::Sub for Pixel {
     type Output = Pixel;
     fn sub(self, mut other: Pixel) -> Pixel {
         unsafe {
-            ffi::pixelSub(&self, &mut other);
+            sys::pixelSub(&self, &mut other);
         }
         other
     }
@@ -33,7 +33,7 @@ impl std::ops::Mul for Pixel {
     type Output = Pixel;
     fn mul(self, mut other: Pixel) -> Pixel {
         unsafe {
-            ffi::pixelMul(&self, &mut other);
+            sys::pixelMul(&self, &mut other);
         }
         other
     }
@@ -43,7 +43,7 @@ impl std::ops::Div for Pixel {
     type Output = Pixel;
     fn div(self, mut other: Pixel) -> Pixel {
         unsafe {
-            ffi::pixelDiv(&self, &mut other);
+            sys::pixelDiv(&self, &mut other);
         }
         other
     }
@@ -52,22 +52,22 @@ impl std::ops::Div for Pixel {
 impl Pixel {
     /// Empty pixel
     pub fn new() -> Pixel {
-        unsafe { ffi::pixelEmpty() }
+        unsafe { sys::pixelEmpty() }
     }
 
     /// RGB pixel, 3 channels
     pub fn rgb(r: f32, g: f32, b: f32) -> Pixel {
-        unsafe { ffi::pixelRGB(r, g, b) }
+        unsafe { sys::pixelRGB(r, g, b) }
     }
 
     /// RGBA pixel, 4 channels
     pub fn rgba(r: f32, g: f32, b: f32, a: f32) -> Pixel {
-        unsafe { ffi::pixelRGBA(r, g, b, a) }
+        unsafe { sys::pixelRGBA(r, g, b, a) }
     }
 
     /// Gray pixel, 3 channels
     pub fn gray(x: f32) -> Pixel {
-        unsafe { ffi::pixelGray(x) }
+        unsafe { sys::pixelGray(x) }
     }
 
     /// Get pixel data

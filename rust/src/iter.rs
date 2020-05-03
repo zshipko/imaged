@@ -1,32 +1,32 @@
 use crate::*;
 
 /// Iterator over Imaged images
-pub struct Iter<'a>(pub(crate) *mut ffi::ImagedIter, pub(crate) &'a DB);
+pub struct Iter<'a>(pub(crate) *mut sys::ImagedIter, pub(crate) &'a DB);
 
 /// Iterator over Imaged keys
-pub struct KeyIter<'a>(pub(crate) *mut ffi::ImagedIter, pub(crate) &'a DB);
+pub struct KeyIter<'a>(pub(crate) *mut sys::ImagedIter, pub(crate) &'a DB);
 
 impl<'a> Drop for Iter<'a> {
     fn drop(&mut self) {
-        unsafe { ffi::imagedIterFree(self.0) }
+        unsafe { sys::imagedIterFree(self.0) }
     }
 }
 
 impl<'a> Drop for KeyIter<'a> {
     fn drop(&mut self) {
-        unsafe { ffi::imagedIterFree(self.0) }
+        unsafe { sys::imagedIterFree(self.0) }
     }
 }
 
 impl<'a> Iter<'a> {
     pub fn reset(&mut self) {
-        unsafe { ffi::imagedIterReset(self.0) }
+        unsafe { sys::imagedIterReset(self.0) }
     }
 }
 
 impl<'a> KeyIter<'a> {
     pub fn reset(&mut self) {
-        unsafe { ffi::imagedIterReset(self.0) }
+        unsafe { sys::imagedIterReset(self.0) }
     }
 }
 
@@ -35,7 +35,7 @@ impl<'a> Iterator for Iter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let iter = unsafe { &*self.0 };
-        let ptr = unsafe { ffi::imagedIterNext(self.0) };
+        let ptr = unsafe { sys::imagedIterNext(self.0) };
         if ptr.is_null() || iter.key.is_null() {
             return None;
         }
@@ -54,7 +54,7 @@ impl<'a> Iterator for KeyIter<'a> {
     type Item = &'a str;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let key = unsafe { ffi::imagedIterNextKey(self.0) };
+        let key = unsafe { sys::imagedIterNextKey(self.0) };
         if key.is_null() {
             return None;
         }
