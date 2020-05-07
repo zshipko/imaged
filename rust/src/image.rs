@@ -173,14 +173,7 @@ impl<'a> Image<'a> {
     ) -> Result<Image<'a>, Error> {
         let path = format!("{}\0", path.as_ref().display());
         let (kind, bits) = t.info();
-        let im = unsafe {
-            sys::imageRead(
-                path.as_ptr() as *const c_char,
-                std::mem::transmute(color as i32),
-                std::mem::transmute(kind as i32),
-                bits,
-            )
-        };
+        let im = unsafe { sys::imageRead(path.as_ptr() as *const c_char, color.ffi(), kind, bits) };
         if im.is_null() {
             return Err(Error::NullPointer);
         }
