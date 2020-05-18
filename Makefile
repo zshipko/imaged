@@ -38,6 +38,7 @@ endif
 
 ifeq ($(shell uname -s),Darwin)
 	SOEXT=dylib
+	LDFLAGS+= -lc++
 else
 	SOEXT?=so
 endif
