@@ -25,7 +25,7 @@ endif
 CFLAGS?=
 CFLAGS+= -Wall -Wextra -Iezimage/build/include `pkg-config --cflags $(PKGS)` $(FLAGS)
 LDFLAGS?=
-LDFLAGS+= -lc++ -lm -lpthread `pkg-config --libs $(PKGS)` -ltiff
+LDFLAGS+= -lm -lpthread `pkg-config --libs $(PKGS)` -ltiff
 PIC?=-fPIC
 DEST?=/usr/local
 
