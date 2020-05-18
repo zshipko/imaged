@@ -10,8 +10,8 @@ fn main() {
         .output()
         .unwrap();
 
-    println!("cargo:rustc-link-search=native=..");
-    println!("cargo:rustc-link-search=native=.");
+    let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    println!("cargo:rustc-link-search=native={}/..", dir);
 
     println!("cargo:rustc-link-lib=tiff");
     println!("cargo:rustc-link-lib=static=imaged");

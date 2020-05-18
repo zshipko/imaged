@@ -25,7 +25,7 @@ endif
 CFLAGS?=
 CFLAGS+= -Wall -Wextra -Iezimage/build/include `pkg-config --cflags $(PKGS)` $(FLAGS)
 LDFLAGS?=
-LDFLAGS+= -lm -lpthread ezimage/build/lib/libezimage.a `pkg-config --libs $(PKGS)` -ltiff
+LDFLAGS+= -lm -lpthread `pkg-config --libs $(PKGS)` -ltiff
 PIC?=-fPIC
 DEST?=/usr/local
 
@@ -50,14 +50,14 @@ debug:
 
 .PHONY: bin
 bin: ezimage/build src/imaged.h .cflags $(OBJ)
-	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c $(LDFLAGS)
+	$(CC) -o imaged $(CFLAGS) $(OBJ) bin/imaged.c ezimage/build/lib/libezimage.a $(LDFLAGS)
 
 lib: ezimage/build $(OBJ)
 	$(AR) rcs libimaged.a $(OBJ)
 	@printf "Name: imaged\nDescription: Imaging storage library\nVersion: $(VERSION)\nLibs: -L$(DEST)/lib -limaged $(LDFLAGS)\nCflags: -I/usr/local/include -I$(DEST)/include\nRequires: $(PKGS)\n" > imaged.pc
 
 shared: ezimage/build $(OBJ)
-	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.$(SOEXT) $(OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(PIC) -shared -o libimaged.$(SOEXT) $(OBJ) ezimage/build/lib/libezimage.a $(LDFLAGS)
 
 clean:
 	rm -f $(OBJ) libimaged.a libimaged.$(SOEXT) .cflags .ldflags imaged.pc
@@ -90,9 +90,9 @@ go:
 .PHONY: test
 test: lib
 	@if [ "$(CC)" = "clang*" ]; then \
-		$(CC) -g $(CFLAGS) -fsanitize=undefined -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS); \
+		$(CC) -g $(CFLAGS) -fsanitize=undefined -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) ezimage/build/lib/libezimage.a  $(TEST_LDFLAGS); \
 	else \
-		$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm $(LDFLAGS) $(TEST_LDFLAGS); \
+		$(CC) -g $(CFLAGS) -o test/test test/test.c libimaged.a -lcheck -lm ezimage/build/lib/libezimage.a $(LDFLAGS) $(TEST_LDFLAGS); \
 	fi;
 	@./test/test
 
