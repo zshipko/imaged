@@ -264,7 +264,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
 }
 
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
-                       ImageMeta meta, const void *imagedata,
+                       const ImageMeta *meta, const void *imagedata,
                        ImagedHandle *handle) {
   imagedHandleInit(handle);
   if (!isValidKey(key, keylen)) {
@@ -286,7 +286,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   size_t map_size =
-      _header_size + sizeof(ImageMeta) + imageMetaTotalBytes(&meta);
+      _header_size + sizeof(ImageMeta) + imageMetaTotalBytes(meta);
   if (lseek(fd, map_size, SEEK_SET) == -1) {
     close_unlock(fd);
     free(path);
@@ -308,11 +308,11 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 
   bzero(data, map_size);
   memcpy(data, _header, _header_size);
-  memcpy((uint8_t *)data + _header_size, &meta, sizeof(ImageMeta));
+  memcpy((uint8_t *)data + _header_size, meta, sizeof(ImageMeta));
 
   if (imagedata != NULL) {
     memcpy((uint8_t *)data + _header_size + sizeof(ImageMeta), imagedata,
-           imageMetaTotalBytes(&meta));
+           imageMetaTotalBytes(meta));
   }
 
   if (handle == NULL) {
@@ -324,7 +324,7 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   }
 
   handle->fd = fd;
-  handle->image.meta = meta;
+  memcpy(&handle->image.meta, meta, sizeof(ImageMeta));
   handle->image.data = (uint8_t *)data + _header_size + sizeof(ImageMeta);
   handle->image.owner = false;
 

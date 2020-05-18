@@ -312,7 +312,7 @@ bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen);
 
 /** Set a key */
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
-                       ImageMeta meta, const void *imagedata,
+                       const ImageMeta *meta, const void *imagedata,
                        ImagedHandle *handle);
 
 /** Get a key */

@@ -330,8 +330,8 @@ impl<'a> Image<'a> {
         let ptr = unsafe {
             sys::imageAt(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as u64,
-                y as u64,
+                x as usize,
+                y as usize,
             )
         };
         if ptr.is_null() {
@@ -348,8 +348,8 @@ impl<'a> Image<'a> {
         unsafe {
             sys::imageGetPixel(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as u64,
-                y as u64,
+                x as usize,
+                y as usize,
                 px,
             )
         }
@@ -360,8 +360,8 @@ impl<'a> Image<'a> {
         unsafe {
             sys::imageSetPixel(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as u64,
-                y as u64,
+                x as usize,
+                y as usize,
                 px,
             )
         }
@@ -516,8 +516,8 @@ impl<'a> Image<'a> {
         let dest = unsafe {
             sys::imageResize(
                 self.0 as *const sys::Image as *mut sys::Image,
-                width as u64,
-                height as u64,
+                width as usize,
+                height as usize,
             )
         };
         if dest.is_null() {

@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
     };
 
     ImagedStatus rc;
-    if ((rc = imagedSet(db, key, -1, meta, NULL, NULL)) != IMAGED_OK) {
+    if ((rc = imagedSet(db, key, -1, &meta, NULL, NULL)) != IMAGED_OK) {
       imagedPrintError(rc, "Unable to set image");
       return 1;
     }
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    imagedSet(db, key, -1, image->meta, image->data, NULL);
+    imagedSet(db, key, -1, &image->meta, image->data, NULL);
     imageFree(image);
     puts("OK");
   } else if (strncasecmp(cmd, "export", 6) == 0) {
