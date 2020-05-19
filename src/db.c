@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <assert.h>
+
 static const char _header[4] = "imgd";
 static size_t _header_size = sizeof(_header);
 
@@ -318,13 +320,11 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   if (handle == NULL) {
     close_unlock(fd);
     free(path);
-    handle->fd = -1;
-    handle->image.data = NULL;
     return IMAGED_OK;
   }
 
   handle->fd = fd;
-  memcpy(&handle->image.meta, meta, sizeof(ImageMeta));
+  handle->image.meta = *(ImageMeta *)((uint8_t *)data + _header_size);
   handle->image.data = (uint8_t *)data + _header_size + sizeof(ImageMeta);
   handle->image.owner = false;
 
