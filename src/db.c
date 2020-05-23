@@ -185,8 +185,6 @@ bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen) {
   return r;
 }
 
-bool imagedWait(ImagedStatus status) { return status == IMAGED_ERR_LOCKED; }
-
 void imagedResetLocks(Imaged *db) {
   DIR *dir = opendir(db->root);
   if (!dir) {

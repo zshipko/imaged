@@ -295,9 +295,6 @@ bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen);
 /** Returns true when the specified file is an valid imgd file */
 bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen);
 
-/** Wait for an image to become available */
-bool imagedWait(ImagedStatus status);
-
 /** Open a new imaged context */
 Imaged *imagedOpen(const char *path);
 

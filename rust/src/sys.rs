@@ -626,10 +626,6 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    #[doc = " Wait for an image to become available"]
-    pub fn imagedWait(status: ImagedStatus) -> bool;
-}
-extern "C" {
     #[doc = " Open a new imaged context"]
     pub fn imagedOpen(path: *const ::std::os::raw::c_char) -> *mut Imaged;
 }
