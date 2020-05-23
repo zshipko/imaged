@@ -66,7 +66,8 @@ func (db *Imaged) Create(key string, width, height uint64, color Color, t Type) 
 	defer C.free(unsafe.Pointer(cKey))
 
 	ref := C.ImagedHandle{}
-	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(width), C.ulong(height), C.ImageColor(color), t.kind, C.uint8_t(t.bits)), nil, &ref)
+	meta := C._meta(C.ulong(width), C.ulong(height), C.ImageColor(color), t.kind, C.uint8_t(t.bits))
+	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), &meta, nil, &ref)
 	if rc != C.IMAGED_OK {
 		err := C.GoString(C.imagedError(rc))
 		return nil, errors.New(err)
@@ -83,7 +84,8 @@ func (db *Imaged) Set(key string, image *Image) (*Handle, error) {
 	defer C.free(unsafe.Pointer(cKey))
 
 	ref := C.ImagedHandle{}
-	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), C._meta(C.ulong(image.Width()), C.ulong(image.Height()), C.ImageColor(image.Color()), C.ImageKind(image.Type().Kind()), C.uint8_t(image.Type().Bits())), image.ptr.data, &ref)
+	meta := C._meta(C.ulong(image.Width()), C.ulong(image.Height()), C.ImageColor(image.Color()), C.ImageKind(image.Type().Kind()), C.uint8_t(image.Type().Bits()))
+	rc := C.imagedSet(db.ptr, cKey, C.long(len(key)), &meta, image.ptr.data, &ref)
 	if rc != C.IMAGED_OK {
 		err := C.GoString(C.imagedError(rc))
 		return nil, errors.New(err)

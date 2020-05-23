@@ -86,7 +86,7 @@ impl DB {
             sys::imagedGet(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as i64,
+                key.as_ref().len() as isize,
                 editable,
                 &mut handle,
             )
@@ -100,12 +100,12 @@ impl DB {
 
     /// Check if a key is in use
     pub fn is_locked(&self, key: &str) -> bool {
-        unsafe { sys::imagedKeyIsLocked(self.0, key.as_ptr() as *const c_char, key.len() as i64) }
+        unsafe { sys::imagedKeyIsLocked(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
     }
 
     /// Check if a key is a valid imgd file
     pub fn file_is_valid(&self, key: &str) -> bool {
-        unsafe { sys::imagedIsValidFile(self.0, key.as_ptr() as *const c_char, key.len() as i64) }
+        unsafe { sys::imagedIsValidFile(self.0, key.as_ptr() as *const c_char, key.len() as isize) }
     }
 
     /// Set a key
@@ -125,8 +125,8 @@ impl DB {
             sys::imagedSet(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as i64,
-                meta,
+                key.as_ref().len() as isize,
+                &meta,
                 data.unwrap_or(std::ptr::null()),
                 &mut handle,
             )
@@ -144,7 +144,7 @@ impl DB {
             sys::imagedRemove(
                 self.0,
                 key.as_ref().as_ptr() as *const c_char,
-                key.as_ref().len() as i64,
+                key.as_ref().len() as isize,
             )
         };
         if rc != sys::ImagedStatus::IMAGED_OK {

@@ -59,7 +59,7 @@ START_TEST(test_set) {
 
   $ImagedHandle(handle);
   ck_assert(imagedKeyIsLocked(db, "testing", -1) == false);
-  ck_assert(imagedSet(db, "testing", -1, meta, NULL, &handle) == IMAGED_OK);
+  ck_assert(imagedSet(db, "testing", -1, &meta, NULL, &handle) == IMAGED_OK);
   float *data = (float *)handle.image.data;
   ck_assert(data);
   data[123] = 0.25;
