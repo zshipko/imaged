@@ -349,7 +349,7 @@ const char *imagedIterNextKey(ImagedIter *iter);
 void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
 
-typedef bool (*imageParallelFn)(uint64_t, uint64_t, Pixel *, void *);
+typedef bool (*imageParallelFn)(uint64_t, uint64_t, Image *, Pixel *, void *);
 ImagedStatus imageEachPixel2(Image *im, Image *dst, imageParallelFn fn,
                              int nthreads, void *userdata);
 ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,

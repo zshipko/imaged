@@ -87,6 +87,8 @@ pub struct __dirstream {
     _unused: [u8; 0],
 }
 pub type DIR = __dirstream;
+pub type size_t = ::std::os::raw::c_ulong;
+pub type ssize_t = __ssize_t;
 extern "C" {
     #[doc = " Utility for creating new strings"]
     pub fn imagedStringPrintf(
@@ -198,7 +200,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Get number of channels in a color"]
-    pub fn imageColorNumChannels(color: ImageColor) -> usize;
+    pub fn imageColorNumChannels(color: ImageColor) -> size_t;
 }
 extern "C" {
     #[doc = " Parse color and type names"]
@@ -290,11 +292,11 @@ fn bindgen_test_layout_ImageMeta() {
 }
 extern "C" {
     #[doc = " Get the number of pixels in an image"]
-    pub fn imageMetaNumPixels(meta: *const ImageMeta) -> usize;
+    pub fn imageMetaNumPixels(meta: *const ImageMeta) -> size_t;
 }
 extern "C" {
     #[doc = " Get the number of bytes in an image"]
-    pub fn imageMetaTotalBytes(meta: *const ImageMeta) -> usize;
+    pub fn imageMetaTotalBytes(meta: *const ImageMeta) -> size_t;
 }
 extern "C" {
     pub fn imageMetaInit(
@@ -410,19 +412,19 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Get the number of bytes in a pixel for the given image"]
-    pub fn imagePixelBytes(image: *mut Image) -> usize;
+    pub fn imagePixelBytes(image: *mut Image) -> size_t;
 }
 extern "C" {
     #[doc = " Get the number of bytes contained in an image's data component"]
-    pub fn imageDataNumBytes(image: *mut Image) -> usize;
+    pub fn imageDataNumBytes(image: *mut Image) -> size_t;
 }
 extern "C" {
     #[doc = " Get the data offset at the position (x, y)"]
-    pub fn imageIndex(image: *mut Image, x: usize, y: usize) -> usize;
+    pub fn imageIndex(image: *mut Image, x: size_t, y: size_t) -> size_t;
 }
 extern "C" {
     #[doc = " Get a pointer to the data at the position (x, y)"]
-    pub fn imageAt(image: *mut Image, x: usize, y: usize) -> *mut ::std::os::raw::c_void;
+    pub fn imageAt(image: *mut Image, x: size_t, y: size_t) -> *mut ::std::os::raw::c_void;
 }
 #[doc = " 4-channel floating point pixel"]
 #[repr(C)]
@@ -455,11 +457,11 @@ fn bindgen_test_layout_Pixel() {
 }
 extern "C" {
     #[doc = " Get pixel at position (x, y)"]
-    pub fn imageGetPixel(image: *mut Image, x: usize, y: usize, pixel: *mut Pixel) -> bool;
+    pub fn imageGetPixel(image: *mut Image, x: size_t, y: size_t, pixel: *mut Pixel) -> bool;
 }
 extern "C" {
     #[doc = " Set pixel at position (x, y)"]
-    pub fn imageSetPixel(image: *mut Image, x: usize, y: usize, pixel: *const Pixel) -> bool;
+    pub fn imageSetPixel(image: *mut Image, x: size_t, y: size_t, pixel: *const Pixel) -> bool;
 }
 extern "C" {
     #[doc = " Ensures pixel values are between 0 and 1"]
@@ -554,7 +556,7 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Resize image to the given size, returns a new image"]
-    pub fn imageResize(src: *mut Image, x: usize, y: usize) -> *mut Image;
+    pub fn imageResize(src: *mut Image, x: size_t, y: size_t) -> *mut Image;
 }
 extern "C" {
     #[doc = " Scale an image using the given factors, returns a new image"]
@@ -612,7 +614,7 @@ extern "C" {
     pub fn imagedKeyIsLocked(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
-        keylen: isize,
+        keylen: ssize_t,
     ) -> bool;
 }
 extern "C" {
@@ -620,7 +622,7 @@ extern "C" {
     pub fn imagedIsValidFile(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
-        keylen: isize,
+        keylen: ssize_t,
     ) -> bool;
 }
 extern "C" {
@@ -637,15 +639,18 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Returns true when there is a value associated with the given key"]
-    pub fn imagedHasKey(db: *mut Imaged, key: *const ::std::os::raw::c_char, keylen: isize)
-        -> bool;
+    pub fn imagedHasKey(
+        db: *mut Imaged,
+        key: *const ::std::os::raw::c_char,
+        keylen: ssize_t,
+    ) -> bool;
 }
 extern "C" {
     #[doc = " Set a key"]
     pub fn imagedSet(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
-        keylen: isize,
+        keylen: ssize_t,
         meta: *const ImageMeta,
         imagedata: *const ::std::os::raw::c_void,
         handle: *mut ImagedHandle,
@@ -656,7 +661,7 @@ extern "C" {
     pub fn imagedGet(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
-        keylen: isize,
+        keylen: ssize_t,
         editable: bool,
         handle: *mut ImagedHandle,
     ) -> ImagedStatus;
@@ -666,7 +671,7 @@ extern "C" {
     pub fn imagedRemove(
         db: *mut Imaged,
         key: *const ::std::os::raw::c_char,
-        keylen: isize,
+        keylen: ssize_t,
     ) -> ImagedStatus;
 }
 extern "C" {
@@ -685,7 +690,7 @@ pub struct ImagedIter {
     pub d: *mut DIR,
     pub ent: *mut dirent,
     pub key: *const ::std::os::raw::c_char,
-    pub keylen: usize,
+    pub keylen: size_t,
     pub handle: ImagedHandle,
 }
 #[test]
@@ -784,8 +789,9 @@ pub type imageParallelFn = ::std::option::Option<
     unsafe extern "C" fn(
         arg1: u64,
         arg2: u64,
-        arg3: *mut Pixel,
-        arg4: *mut ::std::os::raw::c_void,
+        arg3: *mut Image,
+        arg4: *mut Pixel,
+        arg5: *mut ::std::os::raw::c_void,
     ) -> bool,
 >;
 extern "C" {

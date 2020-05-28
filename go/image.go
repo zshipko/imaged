@@ -255,7 +255,7 @@ func (px *Pixel) Get(index int) float32 {
 }
 
 // EachPixel applies f to each pixel in an image
-func (i *Image) EachPixel(f func(x, y uint, px *Pixel)) {
+func (i *Image) EachPixel(f func(x, y uint, image *Image, px *Pixel)) {
 	var wg sync.WaitGroup
 
 	wg.Add(int(i.Height()))
@@ -265,7 +265,7 @@ func (i *Image) EachPixel(f func(x, y uint, px *Pixel)) {
 			px := EmptyPixel()
 			for x := uint64(0); x < i.Width(); x++ {
 				i.GetPixel(uint(x), uint(yCopy), &px)
-				f(uint(x), uint(yCopy), &px)
+				f(uint(x), uint(yCopy), i, &px)
 				i.SetPixel(uint(x), uint(yCopy), &px)
 			}
 			wg.Done()

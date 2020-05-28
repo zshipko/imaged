@@ -18,7 +18,7 @@ static void *imageParallelWrapper(void *_iter) {
     for (uint64_t i = x_start; i < x_end; i++) {
       Pixel px;
       imageGetPixel(iter->im, i, j, &px);
-      if (iter->f(i, j, &px, iter->userdata)) {
+      if (iter->f(i, j, iter->im, &px, iter->userdata)) {
         imageSetPixel(iter->dst, i, j, &px);
       }
     }
@@ -43,7 +43,7 @@ ImagedStatus imageEachPixel2(Image *im, Image *dst, imageParallelFn fn,
     Pixel px = pixelEmpty();
     IMAGE_ITER_ALL(im, i, j) {
       imageGetPixel(im, i, j, &px);
-      if (fn(i, j, &px, userdata)) {
+      if (fn(i, j, im, &px, userdata)) {
         imageSetPixel(dst, i, j, &px);
       }
     }

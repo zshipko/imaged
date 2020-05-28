@@ -202,7 +202,8 @@ START_TEST(test_image_io_exr) {
 }
 END_TEST;
 
-bool parallel_fn(IMAGED_UNUSED uint64_t x, IMAGED_UNUSED uint64_t y, Pixel *px,
+bool parallel_fn(IMAGED_UNUSED uint64_t x, IMAGED_UNUSED uint64_t y,
+                 IMAGED_UNUSED Image *im, Pixel *px,
                  IMAGED_UNUSED void *userdata) {
   px->data[0] = px->data[1] = px->data[2] = px->data[3] = 1.0;
   return true;

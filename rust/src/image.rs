@@ -330,8 +330,8 @@ impl<'a> Image<'a> {
         let ptr = unsafe {
             sys::imageAt(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as usize,
-                y as usize,
+                x as u64,
+                y as u64,
             )
         };
         if ptr.is_null() {
@@ -348,8 +348,8 @@ impl<'a> Image<'a> {
         unsafe {
             sys::imageGetPixel(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as usize,
-                y as usize,
+                x as u64,
+                y as u64,
                 px,
             )
         }
@@ -360,8 +360,8 @@ impl<'a> Image<'a> {
         unsafe {
             sys::imageSetPixel(
                 self.0 as *const sys::Image as *mut sys::Image,
-                x as usize,
-                y as usize,
+                x as u64,
+                y as u64,
                 px,
             )
         }
@@ -516,8 +516,8 @@ impl<'a> Image<'a> {
         let dest = unsafe {
             sys::imageResize(
                 self.0 as *const sys::Image as *mut sys::Image,
-                width as usize,
-                height as usize,
+                width as u64,
+                height as u64,
             )
         };
         if dest.is_null() {
@@ -561,6 +561,7 @@ impl<'a> Image<'a> {
 unsafe extern "C" fn parallel_wrapper(
     w: u64,
     h: u64,
+    _image: *mut sys::Image,
     pixel: *mut Pixel,
     userdata: *mut std::ffi::c_void,
 ) -> bool {
