@@ -36,6 +36,10 @@ extern "C" {
 #define IMAGED_PATH_SEP '/'
 #endif
 
+#ifdef __SSE__
+#include <x86intrin.h>
+#endif
+
 /** Utility for creating new strings */
 char *imagedStringPrintf(const char *fmt, ...);
 
@@ -193,7 +197,11 @@ void *imageAt(Image *image, size_t x, size_t y);
 
 /** 4-channel floating point pixel */
 typedef struct {
+#ifdef __SSE__
+  __m128 data;
+#else
   float data[4];
+#endif
 } Pixel;
 
 /** Get pixel at position (x, y) */

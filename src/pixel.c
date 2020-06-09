@@ -1,12 +1,20 @@
 #include "imaged.h"
 
 Pixel pixelEmpty(void) {
+#ifdef __SSE__
+  Pixel px = {.data = _mm_setzero_ps()};
+#else
   Pixel px = {.data = {0.0, 0.0, 0.0, 0.0}};
+#endif
   return px;
 }
 
 Pixel pixelRGBA(float r, float g, float b, float a) {
+#ifdef __SSE__
+  Pixel px = {.data = _mm_set_ps(a, b, g, r)};
+#else
   Pixel px = {.data = {r, g, b, a}};
+#endif
   return px;
 }
 
@@ -24,6 +32,12 @@ void pixelClamp(Pixel *px) {
 #undef CLAMP
 }
 
+#ifdef __SSE__
+#define PIXEL_OP(name, op)                                                     \
+  void pixel##name(const Pixel *src, Pixel *dest) {                            \
+    dest->data = src->data op dest->data;                                      \
+  }
+#else
 #define PIXEL_OP(name, op)                                                     \
   void pixel##name(const Pixel *src, Pixel *dest) {                            \
     dest->data[0] = src->data[0] op dest->data[0];                             \
@@ -31,6 +45,7 @@ void pixelClamp(Pixel *px) {
     dest->data[2] = src->data[2] op dest->data[2];                             \
     dest->data[3] = src->data[3] op dest->data[3];                             \
   }
+#endif
 
 PIXEL_OP(Add, +);
 PIXEL_OP(Sub, -);

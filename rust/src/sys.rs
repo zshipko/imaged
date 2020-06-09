@@ -89,6 +89,7 @@ pub struct __dirstream {
 pub type DIR = __dirstream;
 pub type size_t = ::std::os::raw::c_ulong;
 pub type ssize_t = __ssize_t;
+pub type __m128 = [f32; 4usize];
 extern "C" {
     #[doc = " Utility for creating new strings"]
     pub fn imagedStringPrintf(
@@ -428,9 +429,10 @@ extern "C" {
 }
 #[doc = " 4-channel floating point pixel"]
 #[repr(C)]
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+#[repr(align(16))]
+#[derive(Debug, Copy, Clone)]
 pub struct Pixel {
-    pub data: [f32; 4usize],
+    pub data: __m128,
 }
 #[test]
 fn bindgen_test_layout_Pixel() {
@@ -441,7 +443,7 @@ fn bindgen_test_layout_Pixel() {
     );
     assert_eq!(
         ::std::mem::align_of::<Pixel>(),
-        4usize,
+        16usize,
         concat!("Alignment of ", stringify!(Pixel))
     );
     assert_eq!(
