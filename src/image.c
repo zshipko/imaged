@@ -208,6 +208,10 @@ bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
     break;
   }
 
+  if (channels == 1) {
+    pixel->data[1] = pixel->data[2] = pixel->data[0];
+  }
+
   return true;
 }
 

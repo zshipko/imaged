@@ -32,7 +32,7 @@ void pixelClamp(Pixel *px) {
 #undef CLAMP
 }
 
-#ifdef __SSE__
+#if defined(__SSE__) || defined (__ARM_NEON)
 #define PIXEL_OP(name, op)                                                     \
   void pixel##name(const Pixel *src, Pixel *dest) {                            \
     dest->data = src->data op dest->data;                                      \
