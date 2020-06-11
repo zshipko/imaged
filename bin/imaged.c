@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    if (!imageWrite(filename, &handle.image)) {
+    if (imageWrite(filename, &handle.image) != IMAGED_OK) {
       fprintf(stderr, "Unable to write image: %s\n", filename);
     } else {
       puts("OK");
