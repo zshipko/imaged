@@ -38,6 +38,8 @@ extern "C" {
 
 #ifdef __SSE__
 #include <x86intrin.h>
+#elif defined (__ARM_NEON)
+#include <arm_neon.h>
 #endif
 
 /** Utility for creating new strings */
@@ -199,6 +201,8 @@ void *imageAt(Image *image, size_t x, size_t y);
 typedef struct {
 #ifdef __SSE__
   __m128 data;
+#elif defined(__ARM_NEON)
+  float32x4_t data;
 #else
   float data[4];
 #endif
