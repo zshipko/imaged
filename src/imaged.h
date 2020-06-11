@@ -38,7 +38,7 @@ extern "C" {
 
 #ifdef __SSE__
 #include <x86intrin.h>
-#elif defined (__ARM_NEON)
+#elif defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -381,7 +381,7 @@ void defer_ImagedHandle(ImagedHandle *h);
 void defer_HalideBuffer(halide_buffer_t *b);
 #define $(b, t, v) t v __attribute__((cleanup(defer_##b)))
 #define $_(t, v) $(t, t, *v)
-#define $free(t, v) $_(free, t, v)
+#define $free(t, v) $(free, t, v)
 #define $Imaged(v) $_(Imaged, v)
 #define $Image(v) $_(Image, v)
 #define $ImagedIter(v) $_(ImagedIter, v)

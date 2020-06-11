@@ -357,7 +357,7 @@ ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
     return IMAGED_OK;
   }
 
-  int fd = open(path, (editable ? O_CREAT | O_RDWR : O_RDONLY), 0655);
+  int fd = open(path, (editable ? O_RDWR : O_RDONLY), 0655);
   if (fd < 0) {
     free(path);
     return IMAGED_ERR;
