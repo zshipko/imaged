@@ -1,26 +1,6 @@
 #ifndef IMAGED_HEADER_FILE
 #define IMAGED_HEADER_FILE
 
-#if defined(__cplusplus) && defined(IMAGED_HALIDE_UTIL)
-#include "Halide.h"
-
-using namespace Halide;
-
-template <typename T>
-void interleave_input(T &input, Expr n, Var x, Var y, Var c) {
-  input.dim(0).set_stride(n).dim(2).set_stride(1);
-  input.dim(2).set_bounds(0, n);
-}
-
-template <typename T>
-void interleave_output(T &output, Expr n, Var x, Var y, Var c) {
-  output.dim(0).set_stride(n).dim(2).set_stride(1);
-  output.dim(2).set_bounds(0, n);
-  output.reorder(c, x, y).unroll(c);
-}
-
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -172,12 +152,19 @@ ImagedStatus imageWrite(const char *path, const Image *image);
 /** Create a new image with the given metadata */
 Image *imageNew(ImageMeta meta);
 
+/** Create a new image with the same size and type as the provided image */
+Image *imageNewLike(const Image *image);
+
 /** Create a new image from an existing buffer */
 Image *imageNewWithData(ImageMeta meta, void *data);
 
 /** Create a new image and copy data if provided */
 Image *imageAlloc(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
                   uint8_t bits, const void *data);
+
+/** Create a new image and take ownership of an existing buffer */
+Image *imageMake(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
+                 uint8_t bits, void *data);
 
 /** Duplicate an existing image */
 Image *imageClone(const Image *image);
@@ -186,13 +173,13 @@ Image *imageClone(const Image *image);
 void imageFree(Image *image);
 
 /** Get the number of bytes in a pixel for the given image */
-size_t imagePixelBytes(Image *image);
+size_t imagePixelBytes(const Image *image);
 
 /** Get the number of bytes contained in an image's data component */
-size_t imageDataNumBytes(Image *image);
+size_t imageDataNumBytes(const Image *image);
 
 /** Get the data offset at the position (x, y) */
-size_t imageIndex(Image *image, size_t x, size_t y);
+size_t imageIndex(const Image *image, size_t x, size_t y);
 
 /** Get a pointer to the data at the position (x, y) */
 void *imageAt(Image *image, size_t x, size_t y);
@@ -220,14 +207,14 @@ void pixelClamp(Pixel *px);
 /** Create a new empty pixel */
 Pixel pixelEmpty(void);
 
-/** Create a new gray pixel */
-Pixel pixelGray(float r);
+/** Create a new 1-channel pixel */
+Pixel pixelNew1(float r);
 
-/** Create a new RGB pixel */
-Pixel pixelRGB(float r, float g, float b);
+/** Create a new 3-channel pixel */
+Pixel pixelNew3(float r, float g, float b);
 
-/** Create a new RGBA pixel */
-Pixel pixelRGBA(float r, float g, float b, float a);
+/** Create a new 4-channel pixel */
+Pixel pixelNew(float r, float g, float b, float a);
 
 /** Pixel addition */
 void pixelAdd(const Pixel *src, Pixel *dest);
@@ -276,10 +263,10 @@ Image *imageConvert(const Image *src, ImageColor color, ImageKind kind,
 bool imageConvertInPlace(Image **src, ImageColor color, ImageKind kind,
                          uint8_t bits);
 
-Image *imageConvertACES0(Image *src);
-Image *imageConvertACES0ToXYZ(Image *src);
-Image *imageConvertACES1(Image *src);
-Image *imageConvertACES1ToXYZ(Image *src);
+Image *imageConvertACES0(const Image *src);
+Image *imageConvertACES0ToXYZ(const Image *src);
+Image *imageConvertACES1(const Image *src);
+Image *imageConvertACES1ToXYZ(const Image *src);
 
 /** Resize source image to size specified by destination image */
 void imageResizeTo(Image *src, Image *dest);
@@ -302,10 +289,10 @@ typedef struct ImagedHandle {
 void imagedResetLocks(Imaged *db);
 
 /** Returns true when an image is locked */
-bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen);
+bool imagedKeyIsLocked(const Imaged *db, const char *key, ssize_t keylen);
 
 /** Returns true when the specified file is an valid imgd file */
-bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen);
+bool imagedIsValidFile(const Imaged *db, const char *key, ssize_t keylen);
 
 /** Open a new imaged context */
 Imaged *imagedOpen(const char *path);
@@ -317,7 +304,7 @@ void imagedClose(Imaged *db);
 ImagedStatus imagedDestroy(Imaged *db);
 
 /** Returns true when there is a value associated with the given key */
-bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen);
+bool imagedHasKey(const Imaged *db, const char *key, ssize_t keylen);
 
 /** Set a key */
 ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
@@ -362,7 +349,7 @@ void imagedIterFree(ImagedIter *iter);
 void imagedIterReset(ImagedIter *iter);
 
 typedef bool (*imageParallelFn)(uint64_t, uint64_t, Image *, Pixel *, void *);
-ImagedStatus imageEachPixel2(Image *im, Image *dst, imageParallelFn fn,
+ImagedStatus imageEachPixel2(Image *src, Image *dst, imageParallelFn fn,
                              int nthreads, void *userdata);
 ImagedStatus imageEachPixel(Image *im, imageParallelFn fn, int nthreads,
                             void *userdata);
@@ -397,5 +384,25 @@ void defer_HalideBuffer(halide_buffer_t *b);
 
 void imageNewHalideBuffer(Image *image, halide_buffer_t *buffer);
 void imageFreeHalideBuffer(halide_buffer_t *buffer);
+
+#endif
+
+#if defined(__cplusplus) && defined(IMAGED_HALIDE_UTIL)
+#include "Halide.h"
+
+using namespace Halide;
+
+template <typename T>
+void interleave_input(T &input, Expr n, Var x, Var y, Var c) {
+  input.dim(0).set_stride(n).dim(2).set_stride(1);
+  input.dim(2).set_bounds(0, n);
+}
+
+template <typename T>
+void interleave_output(T &output, Expr n, Var x, Var y, Var c) {
+  output.dim(0).set_stride(n).dim(2).set_stride(1);
+  output.dim(2).set_bounds(0, n);
+  output.reorder(c, x, y).unroll(c);
+}
 
 #endif

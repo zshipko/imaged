@@ -136,7 +136,7 @@ size_t imageMetaTotalBytes(const ImageMeta *meta) {
          ((size_t)meta->bits / 8);
 }
 
-bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
+bool imagedIsValidFile(const Imaged *db, const char *key, ssize_t keylen) {
   char *path = pathJoin(db->root, key, keylen);
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
@@ -169,7 +169,7 @@ bool imagedIsValidFile(Imaged *db, const char *key, ssize_t keylen) {
          (size_t)st.st_size;
 }
 
-bool imagedKeyIsLocked(Imaged *db, const char *key, ssize_t keylen) {
+bool imagedKeyIsLocked(const Imaged *db, const char *key, ssize_t keylen) {
   char *path = pathJoin(db->root, key, keylen);
   int fd = open(path, O_RDONLY);
   if (fd < 0) {
@@ -252,7 +252,7 @@ ImagedStatus imagedDestroy(Imaged *db) {
   return IMAGED_OK;
 }
 
-bool imagedHasKey(Imaged *db, const char *key, ssize_t keylen) {
+bool imagedHasKey(const Imaged *db, const char *key, ssize_t keylen) {
   if (!isValidKey(key, keylen)) {
     return IMAGED_ERR_INVALID_KEY;
   }

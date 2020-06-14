@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-Image *imageConvertACES0ToXYZ(Image *src) {
+Image *imageConvertACES0ToXYZ(const Image *src) {
   Image *dest = imageConvert(src, IMAGE_COLOR_CIEXYZ, IMAGE_KIND_FLOAT, 32);
   if (!dest) {
     return NULL;
@@ -23,7 +23,7 @@ Image *imageConvertACES0ToXYZ(Image *src) {
   return dest;
 }
 
-Image *imageConvertACES0(Image *src) {
+Image *imageConvertACES0(const Image *src) {
   Image *dest = imageConvert(src, IMAGE_COLOR_CIEXYZ, IMAGE_KIND_FLOAT, 32);
   if (!dest) {
     return NULL;
@@ -46,7 +46,7 @@ Image *imageConvertACES0(Image *src) {
   return dest;
 }
 
-Image *imageConvertACES1ToXYZ(Image *src) {
+Image *imageConvertACES1ToXYZ(const Image *src) {
   Image *dest = imageAlloc(src->meta.width, src->meta.height,
                            IMAGE_COLOR_CIEXYZ, IMAGE_KIND_FLOAT, 32, NULL);
   if (!dest) {
@@ -69,7 +69,7 @@ Image *imageConvertACES1ToXYZ(Image *src) {
   return dest;
 }
 
-Image *imageConvertACES1(Image *src) {
+Image *imageConvertACES1(const Image *src) {
   Image *dest = imageConvert(src, IMAGE_COLOR_CIEXYZ, IMAGE_KIND_FLOAT, 32);
   if (!dest) {
     return NULL;

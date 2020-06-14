@@ -9,7 +9,7 @@ Pixel pixelEmpty(void) {
   return px;
 }
 
-Pixel pixelRGBA(float r, float g, float b, float a) {
+Pixel pixelNew(float r, float g, float b, float a) {
 #ifdef __SSE__
   Pixel px = {.data = _mm_set_ps(a, b, g, r)};
 #else
@@ -18,9 +18,9 @@ Pixel pixelRGBA(float r, float g, float b, float a) {
   return px;
 }
 
-Pixel pixelGray(float r) { return pixelRGBA(r, r, r, 1.0); }
+Pixel pixelNew1(float r) { return pixelNew(r, r, r, 1.0); }
 
-Pixel pixelRGB(float r, float g, float b) { return pixelRGBA(r, g, b, 1.0); }
+Pixel pixelNew3(float r, float g, float b) { return pixelNew(r, g, b, 1.0); }
 
 void pixelClamp(Pixel *px) {
 #define CLAMP(i)                                                               \
@@ -32,7 +32,7 @@ void pixelClamp(Pixel *px) {
 #undef CLAMP
 }
 
-#if defined(__SSE__) || defined (__ARM_NEON)
+#if defined(__SSE__) || defined(__ARM_NEON)
 #define PIXEL_OP(name, op)                                                     \
   void pixel##name(const Pixel *src, Pixel *dest) {                            \
     dest->data = src->data op dest->data;                                      \

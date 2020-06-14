@@ -389,6 +389,10 @@ extern "C" {
     pub fn imageNew(meta: ImageMeta) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Create a new image with the same size and type as the provided image"]
+    pub fn imageNewLike(image: *const Image) -> *mut Image;
+}
+extern "C" {
     #[doc = " Create a new image from an existing buffer"]
     pub fn imageNewWithData(meta: ImageMeta, data: *mut ::std::os::raw::c_void) -> *mut Image;
 }
@@ -404,6 +408,17 @@ extern "C" {
     ) -> *mut Image;
 }
 extern "C" {
+    #[doc = " Create a new image and take ownership of an existing buffer"]
+    pub fn imageMake(
+        w: u64,
+        h: u64,
+        color: ImageColor,
+        kind: ImageKind,
+        bits: u8,
+        data: *mut ::std::os::raw::c_void,
+    ) -> *mut Image;
+}
+extern "C" {
     #[doc = " Duplicate an existing image"]
     pub fn imageClone(image: *const Image) -> *mut Image;
 }
@@ -413,15 +428,15 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Get the number of bytes in a pixel for the given image"]
-    pub fn imagePixelBytes(image: *mut Image) -> size_t;
+    pub fn imagePixelBytes(image: *const Image) -> size_t;
 }
 extern "C" {
     #[doc = " Get the number of bytes contained in an image's data component"]
-    pub fn imageDataNumBytes(image: *mut Image) -> size_t;
+    pub fn imageDataNumBytes(image: *const Image) -> size_t;
 }
 extern "C" {
     #[doc = " Get the data offset at the position (x, y)"]
-    pub fn imageIndex(image: *mut Image, x: size_t, y: size_t) -> size_t;
+    pub fn imageIndex(image: *const Image, x: size_t, y: size_t) -> size_t;
 }
 extern "C" {
     #[doc = " Get a pointer to the data at the position (x, y)"]
@@ -474,16 +489,16 @@ extern "C" {
     pub fn pixelEmpty() -> Pixel;
 }
 extern "C" {
-    #[doc = " Create a new gray pixel"]
-    pub fn pixelGray(r: f32) -> Pixel;
+    #[doc = " Create a new 1-channel pixel"]
+    pub fn pixelNew1(r: f32) -> Pixel;
 }
 extern "C" {
-    #[doc = " Create a new RGB pixel"]
-    pub fn pixelRGB(r: f32, g: f32, b: f32) -> Pixel;
+    #[doc = " Create a new 3-channel pixel"]
+    pub fn pixelNew3(r: f32, g: f32, b: f32) -> Pixel;
 }
 extern "C" {
-    #[doc = " Create a new RGBA pixel"]
-    pub fn pixelRGBA(r: f32, g: f32, b: f32, a: f32) -> Pixel;
+    #[doc = " Create a new 4-channel pixel"]
+    pub fn pixelNew(r: f32, g: f32, b: f32, a: f32) -> Pixel;
 }
 extern "C" {
     #[doc = " Pixel addition"]
@@ -541,16 +556,16 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
-    pub fn imageConvertACES0(src: *mut Image) -> *mut Image;
+    pub fn imageConvertACES0(src: *const Image) -> *mut Image;
 }
 extern "C" {
-    pub fn imageConvertACES0ToXYZ(src: *mut Image) -> *mut Image;
+    pub fn imageConvertACES0ToXYZ(src: *const Image) -> *mut Image;
 }
 extern "C" {
-    pub fn imageConvertACES1(src: *mut Image) -> *mut Image;
+    pub fn imageConvertACES1(src: *const Image) -> *mut Image;
 }
 extern "C" {
-    pub fn imageConvertACES1ToXYZ(src: *mut Image) -> *mut Image;
+    pub fn imageConvertACES1ToXYZ(src: *const Image) -> *mut Image;
 }
 extern "C" {
     #[doc = " Resize source image to size specified by destination image"]
@@ -614,7 +629,7 @@ extern "C" {
 extern "C" {
     #[doc = " Returns true when an image is locked"]
     pub fn imagedKeyIsLocked(
-        db: *mut Imaged,
+        db: *const Imaged,
         key: *const ::std::os::raw::c_char,
         keylen: ssize_t,
     ) -> bool;
@@ -622,7 +637,7 @@ extern "C" {
 extern "C" {
     #[doc = " Returns true when the specified file is an valid imgd file"]
     pub fn imagedIsValidFile(
-        db: *mut Imaged,
+        db: *const Imaged,
         key: *const ::std::os::raw::c_char,
         keylen: ssize_t,
     ) -> bool;
@@ -642,7 +657,7 @@ extern "C" {
 extern "C" {
     #[doc = " Returns true when there is a value associated with the given key"]
     pub fn imagedHasKey(
-        db: *mut Imaged,
+        db: *const Imaged,
         key: *const ::std::os::raw::c_char,
         keylen: ssize_t,
     ) -> bool;
@@ -798,7 +813,7 @@ pub type imageParallelFn = ::std::option::Option<
 >;
 extern "C" {
     pub fn imageEachPixel2(
-        im: *mut Image,
+        src: *mut Image,
         dst: *mut Image,
         fn_: imageParallelFn,
         nthreads: ::std::os::raw::c_int,

@@ -5,7 +5,7 @@ pub use sys::Pixel;
 
 impl Default for Pixel {
     fn default() -> Pixel {
-        Pixel::new()
+        Pixel::empty()
     }
 }
 
@@ -51,23 +51,23 @@ impl std::ops::Div for Pixel {
 
 impl Pixel {
     /// Empty pixel
-    pub fn new() -> Pixel {
+    pub fn empty() -> Pixel {
         unsafe { sys::pixelEmpty() }
     }
 
-    /// RGB pixel, 3 channels
-    pub fn rgb(r: f32, g: f32, b: f32) -> Pixel {
-        unsafe { sys::pixelRGB(r, g, b) }
+    /// 3 channel pixel
+    pub fn new3(r: f32, g: f32, b: f32) -> Pixel {
+        unsafe { sys::pixelNew3(r, g, b) }
     }
 
-    /// RGBA pixel, 4 channels
-    pub fn rgba(r: f32, g: f32, b: f32, a: f32) -> Pixel {
-        unsafe { sys::pixelRGBA(r, g, b, a) }
+    /// 4 channel pixel
+    pub fn new(r: f32, g: f32, b: f32, a: f32) -> Pixel {
+        unsafe { sys::pixelNew(r, g, b, a) }
     }
 
-    /// Gray pixel, 3 channels
+    /// 1 channel pixel
     pub fn gray(x: f32) -> Pixel {
-        unsafe { sys::pixelGray(x) }
+        unsafe { sys::pixelNew1(x) }
     }
 
     /// Get pixel data

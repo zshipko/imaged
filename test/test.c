@@ -109,7 +109,7 @@ END_TEST
 
 START_TEST(test_pixel) {
   Pixel a = pixelEmpty();
-  Pixel b = pixelRGBA(0.0, 0.0, 0.0, 0.0);
+  Pixel b = pixelNew(0.0, 0.0, 0.0, 0.0);
   ck_assert(pixelEqAll(&a, 0.0f));
   ck_assert(pixelEq(&a, &b));
 
@@ -138,7 +138,7 @@ START_TEST(test_image) {
   ck_assert(im->meta.bits == 32);
   ck_assert(imageColorNumChannels(im->meta.color) == 3);
 
-  Pixel p = pixelRGB(1.0, 0.5, 0.75), q;
+  Pixel p = pixelNew3(1.0, 0.5, 0.75), q;
   imageSetPixel(im, 400, 300, &p);
 
   imageGetPixel(im, 400, 300, &q);

@@ -33,6 +33,8 @@ Image *imageNew(ImageMeta meta) {
   return image;
 }
 
+Image *imageNewLike(const Image *image) { return imageNew(image->meta); }
+
 Image *imageNewWithData(ImageMeta meta, void *data) {
   Image *image = malloc(sizeof(Image));
   if (!image) {
@@ -81,6 +83,14 @@ Image *imageAlloc(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
   return image;
 }
 
+Image *imageMake(uint64_t w, uint64_t h, ImageColor color, ImageKind kind,
+                 uint8_t bits, void *data) {
+  ImageMeta meta;
+  imageMetaInit(w, h, color, kind, bits, &meta);
+
+  return imageNewWithData(meta, data);
+}
+
 void imageFree(Image *image) {
   if (image == NULL) {
     return;
@@ -101,17 +111,17 @@ Image *imageClone(const Image *image) {
                     image->meta.kind, image->meta.bits, image->data);
 }
 
-size_t imagePixelBytes(Image *image) {
+size_t imagePixelBytes(const Image *image) {
   return (size_t)image->meta.bits / 8 *
          imageColorNumChannels(image->meta.color);
 }
 
-size_t imageDataNumBytes(Image *image) {
+size_t imageDataNumBytes(const Image *image) {
   return imagePixelBytes(image) * image->meta.width * image->meta.height *
          imageColorNumChannels(image->meta.color);
 }
 
-size_t imageIndex(Image *image, size_t x, size_t y) {
+size_t imageIndex(const Image *image, size_t x, size_t y) {
   size_t bits = (size_t)image->meta.bits / 8;
   size_t channels = imageColorNumChannels(image->meta.color);
   return (image->meta.width * channels * y + x * channels) * bits;
