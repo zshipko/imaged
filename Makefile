@@ -22,10 +22,19 @@ ifeq ($(HALIDE),1)
 	FLAGS += -DIMAGED_HALIDE
 endif
 
+LIBCXX?= -lstdc++
+
+ifeq ($(shell uname -s),Darwin)
+	LIBCXX= -lc++
+	SOEXT=dylib
+else
+	SOEXT?=so
+endif
+
 CFLAGS?=
 CFLAGS+= -Wall -Wextra -Iezimage/build/include `pkg-config --cflags $(PKGS)` $(FLAGS)
 LDFLAGS?=
-LDFLAGS+= -lm -lpthread `pkg-config --libs $(PKGS)` -ltiff
+LDFLAGS+= -lm -lpthread `pkg-config --libs $(PKGS)` -ltiff $(LIBCXX)
 PIC?=-fPIC
 DEST?=/usr/local
 
@@ -36,12 +45,7 @@ ifeq ($(shell uname -s),Linux)
 	TEST_LDFLAGS=-lrt -lsubunit
 endif
 
-ifeq ($(shell uname -s),Darwin)
-	SOEXT=dylib
-	LDFLAGS+= -lc++
-else
-	SOEXT?=so
-endif
+
 
 build: lib shared bin
 fresh: src/imaged.h .cflags .ldflags build

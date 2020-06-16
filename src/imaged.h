@@ -184,6 +184,12 @@ size_t imageIndex(const Image *image, size_t x, size_t y);
 /** Get a pointer to the data at the position (x, y) */
 void *imageAt(Image *image, size_t x, size_t y);
 
+/** Read RAW image without any processing, this will be a grayscale image */
+Image *imageReadRAWNoProcess(const char *filename);
+
+/** Read and process RAW image */
+Image *imageReadRAW(const char *filename);
+
 /** 4-channel floating point pixel */
 typedef struct {
 #ifdef __SSE__

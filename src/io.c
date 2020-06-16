@@ -50,7 +50,7 @@ void imageRAWUseCameraWhiteBalance(bool b) { imaged_raw_camera_wb = b; }
 #ifndef IMAGED_NO_RAW
 #include <libraw/libraw.h>
 
-static Image *imageReadRAW(const char *filename) {
+Image *imageReadRAWNoProcess(const char *filename) {
   libraw_data_t *ctx = libraw_init(0);
   if (!ctx) {
     return NULL;
@@ -62,8 +62,41 @@ static Image *imageReadRAW(const char *filename) {
 
   ctx->params.output_bps = 16;
   ctx->params.use_rawspeed = 1;
-  // ctx->params.gamm[0] = 1;
-  // ctx->params.gamm[1] = 1;
+  ctx->params.no_auto_bright = imaged_raw_auto_bright == false;
+  ctx->params.use_camera_wb = imaged_raw_camera_wb == true;
+  ctx->params.use_auto_wb = imaged_raw_camera_wb == false;
+
+  if (libraw_unpack(ctx) != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  Image *image =
+      imageAlloc(ctx->rawdata.sizes.raw_width, ctx->rawdata.sizes.raw_height,
+                 IMAGE_COLOR_GRAY, IMAGE_KIND_UINT, 16, ctx->rawdata.raw_image);
+  if (image == NULL) {
+    goto err;
+  }
+
+  return image;
+
+err:
+  libraw_free_image(ctx);
+  libraw_close(ctx);
+  return NULL;
+}
+
+Image *imageReadRAW(const char *filename) {
+  libraw_data_t *ctx = libraw_init(0);
+  if (!ctx) {
+    return NULL;
+  }
+
+  if (libraw_open_file(ctx, filename) != LIBRAW_SUCCESS) {
+    goto err;
+  }
+
+  ctx->params.output_bps = 16;
+  ctx->params.use_rawspeed = 1;
   ctx->params.no_auto_bright = imaged_raw_auto_bright == false;
   ctx->params.use_camera_wb = imaged_raw_camera_wb == true;
   ctx->params.use_auto_wb = imaged_raw_camera_wb == false;
@@ -100,6 +133,21 @@ err:
   libraw_close(ctx);
   return NULL;
 }
+#else
+
+#include <stdio.h>
+Image *imageReadRAWNoProcess(const char *filename) {
+  (void)filename;
+  fprintf(stderr, "LibRAW not found: imageReadRAWNoProcess");
+  return NULL;
+}
+
+Image *imageReadRAW(const char *filename) {
+  (void)filename;
+  fprintf(stderr, "LibRAW not found: imageReadRAW");
+  return NULL;
+}
+
 #endif
 
 static Image *imageReadFile(const char *filename, ImageKind kind,
