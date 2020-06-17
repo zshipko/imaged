@@ -6,9 +6,18 @@
 
 pub type __uint8_t = ::std::os::raw::c_uchar;
 pub type __uint64_t = ::std::os::raw::c_ulong;
+pub type __dev_t = ::std::os::raw::c_ulong;
+pub type __uid_t = ::std::os::raw::c_uint;
+pub type __gid_t = ::std::os::raw::c_uint;
 pub type __ino_t = ::std::os::raw::c_ulong;
+pub type __mode_t = ::std::os::raw::c_uint;
+pub type __nlink_t = ::std::os::raw::c_ulong;
 pub type __off_t = ::std::os::raw::c_long;
+pub type __time_t = ::std::os::raw::c_long;
+pub type __blksize_t = ::std::os::raw::c_long;
+pub type __blkcnt_t = ::std::os::raw::c_long;
 pub type __ssize_t = ::std::os::raw::c_long;
+pub type __syscall_slong_t = ::std::os::raw::c_long;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct dirent {
@@ -88,6 +97,227 @@ pub struct __dirstream {
 }
 pub type DIR = __dirstream;
 pub type size_t = ::std::os::raw::c_ulong;
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+pub struct timespec {
+    pub tv_sec: __time_t,
+    pub tv_nsec: __syscall_slong_t,
+}
+#[test]
+fn bindgen_test_layout_timespec() {
+    assert_eq!(
+        ::std::mem::size_of::<timespec>(),
+        16usize,
+        concat!("Size of: ", stringify!(timespec))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<timespec>(),
+        8usize,
+        concat!("Alignment of ", stringify!(timespec))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<timespec>())).tv_sec as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(timespec),
+            "::",
+            stringify!(tv_sec)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<timespec>())).tv_nsec as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(timespec),
+            "::",
+            stringify!(tv_nsec)
+        )
+    );
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
+pub struct stat {
+    pub st_dev: __dev_t,
+    pub st_ino: __ino_t,
+    pub st_nlink: __nlink_t,
+    pub st_mode: __mode_t,
+    pub st_uid: __uid_t,
+    pub st_gid: __gid_t,
+    pub __pad0: ::std::os::raw::c_int,
+    pub st_rdev: __dev_t,
+    pub st_size: __off_t,
+    pub st_blksize: __blksize_t,
+    pub st_blocks: __blkcnt_t,
+    pub st_atim: timespec,
+    pub st_mtim: timespec,
+    pub st_ctim: timespec,
+    pub __glibc_reserved: [__syscall_slong_t; 3usize],
+}
+#[test]
+fn bindgen_test_layout_stat() {
+    assert_eq!(
+        ::std::mem::size_of::<stat>(),
+        144usize,
+        concat!("Size of: ", stringify!(stat))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<stat>(),
+        8usize,
+        concat!("Alignment of ", stringify!(stat))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_dev as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_dev)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_ino as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_ino)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_nlink as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_nlink)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_mode as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_mode)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_uid as *const _ as usize },
+        28usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_uid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_gid as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_gid)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).__pad0 as *const _ as usize },
+        36usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(__pad0)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_rdev as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_rdev)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_size as *const _ as usize },
+        48usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_size)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_blksize as *const _ as usize },
+        56usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_blksize)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_blocks as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_blocks)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_atim as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_atim)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_mtim as *const _ as usize },
+        88usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_mtim)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).st_ctim as *const _ as usize },
+        104usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(st_ctim)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<stat>())).__glibc_reserved as *const _ as usize },
+        120usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(stat),
+            "::",
+            stringify!(__glibc_reserved)
+        )
+    );
+}
 pub type ssize_t = __ssize_t;
 pub type __m128 = [f32; 4usize];
 extern "C" {
@@ -442,6 +672,14 @@ extern "C" {
     #[doc = " Get a pointer to the data at the position (x, y)"]
     pub fn imageAt(image: *mut Image, x: size_t, y: size_t) -> *mut ::std::os::raw::c_void;
 }
+extern "C" {
+    #[doc = " Read RAW image without any processing, this will be a grayscale image"]
+    pub fn imageReadRAWNoProcess(filename: *const ::std::os::raw::c_char) -> *mut Image;
+}
+extern "C" {
+    #[doc = " Read and process RAW image"]
+    pub fn imageReadRAW(filename: *const ::std::os::raw::c_char) -> *mut Image;
+}
 #[doc = " 4-channel floating point pixel"]
 #[repr(C)]
 #[repr(align(16))]
@@ -681,6 +919,15 @@ extern "C" {
         keylen: ssize_t,
         editable: bool,
         handle: *mut ImagedHandle,
+    ) -> ImagedStatus;
+}
+extern "C" {
+    #[doc = " Get filesystem information about a key"]
+    pub fn imagedStat(
+        db: *mut Imaged,
+        key: *const ::std::os::raw::c_char,
+        keylen: ssize_t,
+        st: *mut stat,
     ) -> ImagedStatus;
 }
 extern "C" {
