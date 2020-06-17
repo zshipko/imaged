@@ -256,7 +256,7 @@ bool pixelEq(const Pixel *a, const Pixel *b);
 /** Pixel equality against a single value */
 bool pixelEqF(const Pixel *a, float v);
 
-/** Sun of all pixel channels */
+/** Sum of all pixel channels */
 float pixelSum(const Pixel *a);
 
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \

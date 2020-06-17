@@ -715,6 +715,10 @@ extern "C" {
     pub fn imageGetPixel(image: *mut Image, x: size_t, y: size_t, pixel: *mut Pixel) -> bool;
 }
 extern "C" {
+    #[doc = " Return pixel at position (x, y)"]
+    pub fn imageGetNewPixel(image: *mut Image, x: size_t, y: size_t) -> Pixel;
+}
+extern "C" {
     #[doc = " Set pixel at position (x, y)"]
     pub fn imageSetPixel(image: *mut Image, x: size_t, y: size_t, pixel: *const Pixel) -> bool;
 }
@@ -755,15 +759,31 @@ extern "C" {
     pub fn pixelDiv(src: *const Pixel, dest: *mut Pixel);
 }
 extern "C" {
+    #[doc = " Pixel/float addition"]
+    pub fn pixelAddF(src: *mut Pixel, f: f32);
+}
+extern "C" {
+    #[doc = " Pixel/float subtraction"]
+    pub fn pixelSubF(src: *mut Pixel, f: f32);
+}
+extern "C" {
+    #[doc = " Pixel/float multiplication"]
+    pub fn pixelMulF(src: *mut Pixel, f: f32);
+}
+extern "C" {
+    #[doc = " Pixel/float division"]
+    pub fn pixelDivF(src: *mut Pixel, f: f32);
+}
+extern "C" {
     #[doc = " Pixel equality"]
     pub fn pixelEq(a: *const Pixel, b: *const Pixel) -> bool;
 }
 extern "C" {
     #[doc = " Pixel equality against a single value"]
-    pub fn pixelEqAll(a: *const Pixel, v: f32) -> bool;
+    pub fn pixelEqF(a: *const Pixel, v: f32) -> bool;
 }
 extern "C" {
-    #[doc = " Sun of all pixel channels"]
+    #[doc = " Sum of all pixel channels"]
     pub fn pixelSum(a: *const Pixel) -> f32;
 }
 extern "C" {
