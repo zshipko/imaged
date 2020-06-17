@@ -25,7 +25,6 @@ endif
 LIBCXX?= -lstdc++
 
 ifeq ($(shell uname -s),Darwin)
-	LIBCXX= -lc++
 	SOEXT=dylib
 else
 	SOEXT?=so
