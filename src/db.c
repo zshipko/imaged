@@ -331,6 +331,14 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
   return IMAGED_OK;
 }
 
+ImagedStatus imagedStat(Imaged *db, const char *key, ssize_t keylen,
+                        struct stat *st) {
+  char *path = pathJoin(db->root, key, keylen);
+  ImagedStatus status = stat(path, st) == -1 ? IMAGED_ERR : IMAGED_OK;
+  free(path);
+  return status;
+}
+
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
                        bool editable, ImagedHandle *handle) {
   imagedHandleInit(handle);

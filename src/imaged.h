@@ -8,6 +8,7 @@ extern "C" {
 #include <dirent.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #ifdef _WIN32
@@ -320,6 +321,10 @@ ImagedStatus imagedSet(Imaged *db, const char *key, ssize_t keylen,
 /** Get a key */
 ImagedStatus imagedGet(Imaged *db, const char *key, ssize_t keylen,
                        bool editable, ImagedHandle *handle);
+
+/** Get filesystem information about a key */
+ImagedStatus imagedStat(Imaged *db, const char *key, ssize_t keylen,
+                        struct stat *st);
 
 /** &Remove the value associated with the provided key */
 ImagedStatus imagedRemove(Imaged *db, const char *key, ssize_t keylen);
