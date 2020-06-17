@@ -47,10 +47,28 @@ void pixelClamp(Pixel *px) {
   }
 #endif
 
+#if defined(__SSE__) || defined(__ARM_NEON)
+#define PIXEL_OP_F(name, op)                                                   \
+  void pixel##name##F(Pixel *src, float f) { src->data = src->data op f; }
+#else
+#define PIXEL_OP_F(name, op)                                                   \
+  void pixel##name##F(Pixel *src, float f) {                                   \
+    src->data[0] = src->data[0] op f;                                          \
+    src->data[1] = src->data[1] op f;                                          \
+    src->data[2] = src->data[2] op f;                                          \
+    src->data[3] = src->data[3] op f;                                          \
+  }
+#endif
+
 PIXEL_OP(Add, +);
 PIXEL_OP(Sub, -);
 PIXEL_OP(Mul, *);
 PIXEL_OP(Div, /);
+
+PIXEL_OP_F(Add, +);
+PIXEL_OP_F(Sub, -);
+PIXEL_OP_F(Mul, *);
+PIXEL_OP_F(Div, /);
 
 bool pixelEq(const Pixel *a, const Pixel *b) {
   return a->data[0] == b->data[0] && a->data[1] == b->data[1] &&

@@ -70,7 +70,7 @@ int main(void){
   // Note: Using $Imaged will automatically free `db` when it goes out of scope,
   // you can also use imagedClose if you don't like the `$` syntax
 
-  // Create a new floating-point file
+  // Create a new floating point entry
   ImageMeta meta = {
     .width = 800,
     .height = 600,

@@ -235,25 +235,37 @@ void pixelMul(const Pixel *src, Pixel *dest);
 /** Pixel division */
 void pixelDiv(const Pixel *src, Pixel *dest);
 
+/** Pixel/float addition */
+void pixelAddF(Pixel *src, float f);
+
+/** Pixel/float subtraction */
+void pixelSubF(Pixel *src, float f);
+
+/** Pixel/float multiplication */
+void pixelMulF(Pixel *src, float f);
+
+/** Pixel/float division */
+void pixelDivF(Pixel *src, float f);
+
 /** Pixel equality */
 bool pixelEq(const Pixel *a, const Pixel *b);
 
 /** Pixel equality against a single value */
-bool pixelEqAll(const Pixel *a, float v);
+bool pixelEqF(const Pixel *a, float v);
 
 /** Sun of all pixel channels */
 float pixelSum(const Pixel *a);
 
 #define IMAGE_ITER(im, x, y, _x, _y, _w, _h, sx, sy)                           \
-  uint64_t y##_iter_end = _y + _h =                                            \
-                              < im->meta.height ? _y + _h : im->meta.height;   \
+  uint64_t y##_iter_end =                                                      \
+      _y + _h = < (im)->meta.height ? _y + _h : (im)->meta.height;             \
   uint64_t x##_iter_end = _x + _w =                                            \
-                              < im->meta.width ? _x + _w : im->meta.width;     \
+                              < (im)->meta.width ? _x + _w : (im)->meta.width; \
   for (uint64_t y = _y; y < y##_iter_end; y += sy)                             \
     for (uint64_t x = _x; x < x##_iter_end; x += sx)
 #define IMAGE_ITER_ALL(im, x, y)                                               \
-  for (uint64_t y = 0; y < im->meta.height; y++)                               \
-    for (uint64_t x = 0; x < im->meta.width; x++)
+  for (uint64_t y = 0; y < (im)->meta.height; y++)                             \
+    for (uint64_t x = 0; x < (im)->meta.width; x++)
 
 /** Adjust image gamma */
 void imageAdjustGamma(Image *src, float gamma);
