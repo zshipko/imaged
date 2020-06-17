@@ -142,6 +142,12 @@ void *imageAt(Image *image, size_t x, size_t y) {
     pixel->data[i] = norm(((t *)px)[i], min, max);                             \
   }
 
+Pixel imageGetNewPixel(Image *image, size_t x, size_t y) {
+  Pixel px = pixelEmpty();
+  imageGetPixel(image, x, y, &px);
+  return px;
+}
+
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel) {
   size_t channels = imageColorNumChannels(image->meta.color);
   if (channels > 4) {

@@ -205,6 +205,9 @@ typedef struct {
 /** Get pixel at position (x, y) */
 bool imageGetPixel(Image *image, size_t x, size_t y, Pixel *pixel);
 
+/** Return pixel at position (x, y) */
+Pixel imageGetNewPixel(Image *image, size_t x, size_t y);
+
 /** Set pixel at position (x, y) */
 bool imageSetPixel(Image *image, size_t x, size_t y, const Pixel *pixel);
 
