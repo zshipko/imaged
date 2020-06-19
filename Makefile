@@ -104,5 +104,5 @@ test: lib
 	$(CC) $(CFLAGS) $(PIC) -Wall -O3 -c $*.c  -o $@
 
 ezimage/build:
-	#git submodule update --init
+	git submodule update --init
 	cd ezimage && $(MAKE)
