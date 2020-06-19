@@ -191,10 +191,10 @@ impl<'a> Context<'a> {
     }
 
     /// Create a new window
-    pub fn create_window(&mut self, key: &str, image: crate::Image<'a>) -> Result<(), Error> {
+    pub fn window(&mut self, key: &str, image: crate::Image<'a>) -> Result<&mut Window<'a>, Error> {
         let window = make_window(self, key, image)?;
         self.windows.insert(key.into(), window);
-        Ok(())
+        Ok(self.windows.get_mut(key).unwrap())
     }
 
     /// Execute one iteration
