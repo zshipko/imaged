@@ -29,7 +29,8 @@ static ImageMeta imageMetaFromEzimageShape(ezimage_shape shape) {
 ImagedStatus imageWrite(const char *path, const Image *image) {
   // Only Gray/RGB/RGBA images
   if (image->meta.color > IMAGE_COLOR_RGBA) {
-    $Image(tmp) = imageConvert(image, IMAGE_COLOR_RGB, IMAGE_KIND_UINT, 8);
+    $Image(tmp) = imageConvert(image, IMAGE_COLOR_RGB, image->meta.kind,
+                               image->meta.bits);
     if (tmp == NULL) {
       return IMAGED_ERR;
     }
@@ -38,7 +39,21 @@ ImagedStatus imageWrite(const char *path, const Image *image) {
   }
 
   ezimage_shape shape = imageMetaToEzimageShape(image->meta);
-  return ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
+  ImagedStatus rc =
+      ezimage_imwrite(path, image->data, &shape) ? IMAGED_OK : IMAGED_ERR;
+#ifndef IMAGED_IMWRITE_NO_CONVERT
+  if (rc == IMAGED_ERR) {
+    Image *im = imageConvert(image, IMAGE_COLOR_RGB, IMAGE_KIND_UINT, 8);
+    if (!im) {
+      return rc;
+    }
+
+    shape = imageMetaToEzimageShape(im->meta);
+    rc = ezimage_imwrite(path, im->data, &shape) ? IMAGED_OK : IMAGED_ERR;
+    imageFree(im);
+  }
+#endif
+  return rc;
 }
 
 static bool imaged_raw_auto_bright = false;

@@ -1095,14 +1095,3 @@ extern "C" {
         userdata: *mut ::std::os::raw::c_void,
     ) -> ImagedStatus;
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct halide_buffer_t {
-    _unused: [u8; 0],
-}
-extern "C" {
-    pub fn imageNewHalideBuffer(image: *mut Image, buffer: *mut halide_buffer_t);
-}
-extern "C" {
-    pub fn imageFreeHalideBuffer(buffer: *mut halide_buffer_t);
-}

@@ -1,5 +1,5 @@
 VERSION=0.1
-SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c src/aces.c src/halide.c src/threads.c
+SRC=src/util.c src/iter.c src/db.c src/image.c src/pixel.c src/color.c src/io.c src/aces.c src/threads.c
 OBJ=$(SRC:.c=.o)
 
 RAW=1
@@ -104,5 +104,5 @@ test: lib
 	$(CC) $(CFLAGS) $(PIC) -Wall -O3 -c $*.c  -o $@
 
 ezimage/build:
-	git submodule update --init
+	#git submodule update --init
 	cd ezimage && $(MAKE)

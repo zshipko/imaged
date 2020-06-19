@@ -75,7 +75,7 @@ bool pixelEq(const Pixel *a, const Pixel *b) {
          a->data[2] == b->data[2] && a->data[3] == b->data[3];
 }
 
-bool pixelEqAll(const Pixel *a, float v) {
+bool pixelEqF(const Pixel *a, float v) {
   return a->data[0] == v && a->data[1] == v && a->data[2] == v &&
          a->data[3] == v;
 }

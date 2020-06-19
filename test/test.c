@@ -110,7 +110,7 @@ END_TEST
 START_TEST(test_pixel) {
   Pixel a = pixelEmpty();
   Pixel b = pixelNew(0.0, 0.0, 0.0, 0.0);
-  ck_assert(pixelEqAll(&a, 0.0f));
+  ck_assert(pixelEqF(&a, 0.0f));
   ck_assert(pixelEq(&a, &b));
 
   a.data[0] = 1.0;
