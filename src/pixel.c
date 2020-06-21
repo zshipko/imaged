@@ -34,16 +34,14 @@ void pixelClamp(Pixel *px) {
 
 #if defined(__SSE__) || defined(__ARM_NEON)
 #define PIXEL_OP(name, op)                                                     \
-  void pixel##name(const Pixel *src, Pixel *dest) {                            \
-    dest->data = src->data op dest->data;                                      \
-  }
+  void pixel##name(Pixel *a, const Pixel *b) { a->data = a->data op b->data; }
 #else
 #define PIXEL_OP(name, op)                                                     \
-  void pixel##name(const Pixel *src, Pixel *dest) {                            \
-    dest->data[0] = src->data[0] op dest->data[0];                             \
-    dest->data[1] = src->data[1] op dest->data[1];                             \
-    dest->data[2] = src->data[2] op dest->data[2];                             \
-    dest->data[3] = src->data[3] op dest->data[3];                             \
+  void pixel##name(Pixel *src, const Pixel *b) {                               \
+    b->data[0] = src->data[0] op b->data[0];                                   \
+    b->data[1] = src->data[1] op b->data[1];                                   \
+    b->data[2] = src->data[2] op b->data[2];                                   \
+    b->data[3] = src->data[3] op b->data[3];                                   \
   }
 #endif
 

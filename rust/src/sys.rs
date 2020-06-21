@@ -744,19 +744,19 @@ extern "C" {
 }
 extern "C" {
     #[doc = " Pixel addition"]
-    pub fn pixelAdd(src: *const Pixel, dest: *mut Pixel);
+    pub fn pixelAdd(a: *mut Pixel, b: *const Pixel);
 }
 extern "C" {
     #[doc = " Pixel subtraction"]
-    pub fn pixelSub(src: *const Pixel, dest: *mut Pixel);
+    pub fn pixelSub(a: *mut Pixel, b: *const Pixel);
 }
 extern "C" {
     #[doc = " Pixel multiplication"]
-    pub fn pixelMul(src: *const Pixel, dest: *mut Pixel);
+    pub fn pixelMul(a: *mut Pixel, b: *const Pixel);
 }
 extern "C" {
     #[doc = " Pixel division"]
-    pub fn pixelDiv(src: *const Pixel, dest: *mut Pixel);
+    pub fn pixelDiv(a: *mut Pixel, b: *const Pixel);
 }
 extern "C" {
     #[doc = " Pixel/float addition"]

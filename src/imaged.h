@@ -227,16 +227,16 @@ Pixel pixelNew3(float r, float g, float b);
 Pixel pixelNew(float r, float g, float b, float a);
 
 /** Pixel addition */
-void pixelAdd(const Pixel *src, Pixel *dest);
+void pixelAdd(Pixel *a, const Pixel *b);
 
 /** Pixel subtraction */
-void pixelSub(const Pixel *src, Pixel *dest);
+void pixelSub(Pixel *a, const Pixel *b);
 
 /** Pixel multiplication */
-void pixelMul(const Pixel *src, Pixel *dest);
+void pixelMul(Pixel *a, const Pixel *b);
 
 /** Pixel division */
-void pixelDiv(const Pixel *src, Pixel *dest);
+void pixelDiv(Pixel *a, const Pixel *b);
 
 /** Pixel/float addition */
 void pixelAddF(Pixel *src, float f);

@@ -11,9 +11,9 @@ impl Default for Pixel {
 
 impl std::ops::Add for Pixel {
     type Output = Pixel;
-    fn add(self, mut other: Pixel) -> Pixel {
+    fn add(mut self, other: Pixel) -> Pixel {
         unsafe {
-            sys::pixelAdd(&self, &mut other);
+            sys::pixelAdd(&mut self, &other);
         }
         other
     }
@@ -21,9 +21,9 @@ impl std::ops::Add for Pixel {
 
 impl std::ops::Sub for Pixel {
     type Output = Pixel;
-    fn sub(self, mut other: Pixel) -> Pixel {
+    fn sub(mut self, other: Pixel) -> Pixel {
         unsafe {
-            sys::pixelSub(&self, &mut other);
+            sys::pixelSub(&mut self, &other);
         }
         other
     }
@@ -31,9 +31,9 @@ impl std::ops::Sub for Pixel {
 
 impl std::ops::Mul for Pixel {
     type Output = Pixel;
-    fn mul(self, mut other: Pixel) -> Pixel {
+    fn mul(mut self, other: Pixel) -> Pixel {
         unsafe {
-            sys::pixelMul(&self, &mut other);
+            sys::pixelMul(&mut self, &other);
         }
         other
     }
@@ -41,9 +41,9 @@ impl std::ops::Mul for Pixel {
 
 impl std::ops::Div for Pixel {
     type Output = Pixel;
-    fn div(self, mut other: Pixel) -> Pixel {
+    fn div(mut self, other: Pixel) -> Pixel {
         unsafe {
-            sys::pixelDiv(&self, &mut other);
+            sys::pixelDiv(&mut self, &other);
         }
         other
     }
