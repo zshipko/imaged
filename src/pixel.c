@@ -70,14 +70,20 @@ PIXEL_OP_F(Div, /);
 
 bool pixelEq(const Pixel *a, const Pixel *b) {
   return a->data[0] == b->data[0] && a->data[1] == b->data[1] &&
-         a->data[2] == b->data[2] && a->data[3] == b->data[3];
+         a->data[2] == b->data[2];
 }
 
 bool pixelEqF(const Pixel *a, float v) {
+  return a->data[0] == v && a->data[1] == v && a->data[2] == v;
+}
+
+bool pixelEqFWithAlpha(const Pixel *a, float v) {
   return a->data[0] == v && a->data[1] == v && a->data[2] == v &&
          a->data[3] == v;
 }
 
-float pixelSum(const Pixel *a) {
+float pixelSum(const Pixel *a) { return a->data[0] + a->data[1] + a->data[2]; }
+
+float pixelSumWithAlpha(const Pixel *a) {
   return a->data[0] + a->data[1] + a->data[2] + a->data[3];
 }
