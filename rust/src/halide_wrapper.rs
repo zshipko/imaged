@@ -27,15 +27,12 @@ impl<'a> crate::Image<'a> {
 
         // This only works because imaged Kind is modeled after halide
         let kind = unsafe { std::mem::transmute_copy(&meta.kind) };
-        Ok(halide_runtime::Buffer::new(
+        Ok(halide_runtime::Buffer::new_const(
             meta.width as i32,
             meta.height as i32,
             meta.channels() as i32,
             halide_runtime::Type::new(kind, meta.bits),
-            #[allow(clippy::cast_ref_to_mut)]
-            unsafe {
-                &mut *(self.buffer()? as *const [u8] as *mut [u8])
-            },
+            self.buffer()?,
         ))
     }
 }

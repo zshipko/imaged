@@ -1,5 +1,3 @@
-#![cfg(feature = "viewer")]
-
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -14,7 +12,7 @@ pub enum Error {
     InvalidBits,
     UnableToCreateWindow,
     Failure,
-    Imaged(crate::Error),
+    Image(crate::Error),
     Glfw(glfw::Error),
 }
 
